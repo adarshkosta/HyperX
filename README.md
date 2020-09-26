@@ -4,6 +4,8 @@
 Clone this repository using: 
 ```git clone https://github.com/adarshkosta/Hybrid_RRAM-SRAM.git```
 
+The folders ```Hybrid_RRAM-SRAM/xb_models``` containing the crossbar models and ```Hybrid_RRAM-SRAM/pretrained_models``` need to be present and can be downloaded from my Onedrive.
+
 ## Inference
 Codes for inference (ideal, ideal_mvm, non-ideal_mvm) are in the inference folder.
 For example: To run inference for ResNet-20 on CIFAR-10 with non-ideal_mvm use the following command.
