@@ -1,0 +1,16 @@
+.*.sw*
+*.txt
+*.tar
+*.sh
+*.pyc
+
+__pycache__
+
+datasets/
+models/*.tar
+pretrained_models/*.tar
+results/
+datasets/
+xbmodels/*.tar
+puma-functional-model/
+
