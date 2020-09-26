@@ -9,8 +9,11 @@ import os
 import sys
 import time
 
-sys_path = '/home/min/a/akosta/Current_Projects/Hybrid_RRAM-SRAM/activations/multiple_batches/'
+#Min
+#savedir = '/home/min/a/akosta/Current_Projects/Hybrid_RRAM-SRAM/activations/multiple_batches/'
 
+#Nano
+#savedir= '/home/nano01/a/esoufler/activations/multiple_batches/'
 
 #Filepath handling
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -172,6 +175,8 @@ if __name__=='__main__':
                          metavar='N', help='mini-batch size (default: 256)')
     parser.add_argument('--dataset', metavar='DATASET', default='cifar100',
                 help='dataset name or folder')
+    parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/multiple_batches/',
+                help='base path for saving activations')
     parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
                 choices=model_names,
                 help='name of the model')
@@ -209,7 +214,7 @@ if __name__=='__main__':
 
     cfg.dump_config()
     
-    root_path = os.path.join(sys_path, args.dataset, args.model)
+    root_path = os.path.join(args.savedir, args.dataset, args.model)
     
     os.environ['CUDA_VISIBLE_DEVICES']= args.gpus
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
