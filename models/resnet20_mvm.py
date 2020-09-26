@@ -214,7 +214,7 @@ class ResNet_cifar(resnet):
         self.fc=Linear_mvm(64*self.inflate,num_classes, bias=False) 
 #        self.fc=nn.Linear(64*self.inflate,num_classes, bias=False) 
         self.bn21= nn.BatchNorm1d(num_classes)
-        self.logsoftmax=nn.LogSoftmax()
+        self.logsoftmax=nn.LogSoftmax(dim=1)
 
         #self.linear.weight.data = torch.clone(weights_lin)
 

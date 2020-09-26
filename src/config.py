@@ -94,7 +94,7 @@ def dump_config():
                   'bit_stream':bit_stream, 'bit_slice':bit_slice, 'adc_bit':adc_bit, 'acm_bits':acm_bits, 'acm_bit_frac':acm_bit_frac,
                    'mvm':mvm, 'non-ideality':non_ideality, '\nxbmodel':xbmodel, '\nxbmodel_weight_path':xbmodel_weight_path}
 
-    print(' '*6 + "==> Functional simulator configurations:")
+    print('\n' + ' '*6 + "==> Functional simulator configurations:")
     for key, val in param_dict.items():
         t_str = ' '*10 + key + '=' + str(val)
         print (t_str)

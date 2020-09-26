@@ -13,4 +13,5 @@ results/
 datasets/
 xbmodels/*.tar
 puma-functional-model/
+activations/
 

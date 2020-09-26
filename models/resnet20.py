@@ -202,7 +202,7 @@ class ResNet_cifar(resnet):
         self.bn20= nn.BatchNorm1d(64*self.inflate)
         self.fc=nn.Linear(64*self.inflate,num_classes, bias=False)
         self.bn21= nn.BatchNorm1d(num_classes)
-        self.logsoftmax=nn.LogSoftmax()
+        self.logsoftmax=nn.LogSoftmax(dim=1)
 
         #init_model(self)
         #self.regime = {
