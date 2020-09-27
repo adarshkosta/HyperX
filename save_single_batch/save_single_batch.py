@@ -48,7 +48,6 @@ for batch in range(num):
 
 ################ SAVE THE ACTIVATIONS 
 for i in range(1,20,2):
-    # i = 1
     # trainset
     base_src_path = '/home/nano01/a/esoufler/activations/multiple_batches/'+str(args.dataset)+'/'+str(args.model)+'/'+'train/relu'+ str(i) +'/'
     base_dst_path = '/home/nano01/a/esoufler/activations/one_batch/'+str(args.dataset)+'/'+str(args.model)+'/'+'train/relu'+ str(i) +'/'
