@@ -16,7 +16,9 @@ Other command-line arguments can be looked upon from the code.
 
 ## Saving activations
 For saving non-ideal mvm activations for ResNet-20 on CIFAR-10 for the training set, use the following command.
-```python save_mvm_resnet20.py --pretrained= <PATH TO MODEL> --mvm --nideal --dataset='cifar10' --mode='train'```
+```python save_mvm_resnet20.py --pretrained='path to saved model' --dataset='cifar10' --mode='test' --gpus='0,1,2,3' -b1000 -j16 --exp='resnet20_cf10_test' --nideal --mvm```
+
+NOTE: Please use all 4 GPUs on the server (0,1,2,3) and batch_size=1000, else code wouldn't work. Currently only fixed for 4 GPUs operating together.
 
 ## Some useful Command-line arguments 
 
