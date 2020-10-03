@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Sep 25 22:42:24 2020
+Created on Wed Sep 30 05:53:05 2020
 
-@author: akosta (original by Shubham Negi)
+@author: akosta
 """
+
 import os
 import sys
 
@@ -86,9 +87,6 @@ def test(device):
         data_var = data.to(device)
         target_var = target.to(device)
         
-        if args.half:
-            data_var = data_var.half()
-        
         output = model(data_var)
         loss= criterion(output, target_var)
         prec1, prec5 = accuracy(output.data, target_var.data, topk=(1, 5))
@@ -96,16 +94,24 @@ def test(device):
         top1.update(prec1[0], data.size(0))
         top5.update(prec5[0], data.size(0))
 
-
-        if batch_idx % 1 == 0:
-            print('[{0}/{1}({2:.0f}%)]\t'
-                  'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                  'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
-                  'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
-                   batch_idx, len(testloader), 100. *float(batch_idx)/len(testloader),
-                   loss=losses, top1=top1, top5=top5))
-            print('Output dtype: {}'.format(output.dtype))
-
+        if flag == True:
+            if batch_idx % 1 == 0:
+                print('[{0}/{1}({2:.0f}%)]\t'
+                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                      'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+                      'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
+                       batch_idx, len(testloader), 100. *float(batch_idx)/len(testloader),
+                       loss=losses, top1=top1, top5=top5))
+        else:
+            if batch_idx % 1 == 0:
+               print('Epoch: [{0}][{1}/{2}({3:.0f}%)]\t'
+                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                      'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+                      'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
+                       epoch, batch_idx, len(testloader), 100. *float(batch_idx)/len(testloader),
+                       loss=losses, top1=top1, top5=top5))
+        # if batch_idx == 10:
+        #     break
 
     print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'
           .format(top1=top1, top5=top5))
@@ -119,21 +125,16 @@ def get_activation(name):
         activation[name] = output.detach()
     return hook
 
-def print_args(args):
-    print('\n' + ' '*6 + '==> Arguments:')
-    for k, v in vars(args).items():
-        print(' '*10 + k + ': ' + str(v))
-
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-b', '--batch-size', default=256, type=int,
                          metavar='N', help='mini-batch size (default: 256)')
-    parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
+    parser.add_argument('--dataset', metavar='DATASET', default='cifar100',
                 help='dataset name or folder')
-    parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
+    parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18',
                 choices=model_names,
                 help='name of the model')
-    parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20fp_cifar10.pth.tar',
+    parser.add_argument('--pretrained', action='store', default=None,
         help='the path to the pretrained model')
     parser.add_argument('--mvm', action='store_true', default=None,
                 help='if running functional simulator backend')
@@ -144,22 +145,16 @@ if __name__=='__main__':
                 help='image input size')
     parser.add_argument('-j', '--workers', default=8, type=int, metavar='J',
                 help='number of data loading workers (default: 8)')
-    parser.add_argument('--gpus', default='0', help='gpus (default: 0)')
-    parser.add_argument('--half', action='store_true', default=False,
-                help='Use half-tensors')
-    args = parser.parse_args()
+    parser.add_argument('--gpus', default='0', help='gpus (default: 4)')
+    parser.add_argument('-exp', '--experiment', default='128x128', metavar='N',
+                help='experiment name')
     
-    print_args(args)
+    args = parser.parse_args()
     
     if args.nideal:
       cfg.non_ideality = True
     else:
       cfg.non_ideality = False
-      
-    if args.mvm:
-      cfg.mvm= True
-    else:
-      cfg.mvm = False
 
     cfg.dump_config()
 
@@ -174,16 +169,10 @@ if __name__=='__main__':
         model_mvm = (__import__(args.model+'_mvm'))
     else:
         raise Exception(args.model+'is currently not supported')
-        
-    if args.dataset == 'cifar10':
-        model = model.net(num_classes=10)
-        model_mvm = model_mvm.net(num_classes=10)
-    elif args.dataset == 'cifar100':
-        model = model.net(num_classes=100)
-        model_mvm = model_mvm.net(num_classes=100)
-    else:
-      raise Exception(args.dataset + 'is currently not supported')
-      
+    
+    model = model.net(num_classes=1000)
+    model_mvm = model_mvm.net(num_classes=1000)
+
     #print(model_mvm)
 
     print('==> Initializing model parameters ...')
@@ -201,7 +190,6 @@ if __name__=='__main__':
         print('==> Load pretrained model form', args.pretrained, '...')
         pretrained_model = torch.load(args.pretrained)
         best_acc = pretrained_model['best_acc']
-        print('Pretrained model accuracy: {}'.format(best_acc))
         model.load_state_dict(pretrained_model['state_dict'])
         for m in model.modules():
             if isinstance(m, nn.Conv2d):
@@ -234,43 +222,55 @@ if __name__=='__main__':
         elif isinstance(m, Linear_mvm):
             m.weight.data = weights_lin[k]
             k=k+1
-
+    
+    if args.dataset == 'cifar10':
+        model.fc = nn.Linear(int(512), 10, bias=False)
+        model_mvm.fc = Linear_mvm(int(512), 10, bias=False)
+    elif args.dataset == 'cifar100':
+        model.fc = nn.Linear(int(512), 100, bias=False)
+        model_mvm.fc = Linear_mvm(int(512), 100, bias=False)
+    else:
+      raise Exception(args.dataset + 'is currently not supported')
+    
     # Move required model to GPU (if applicable)
     if args.mvm:
-        cfg.mvm = True
         model = model_mvm
-        
-    model.to(device)
     
-    if args.half:
-        model.half() # FP16
-
+    model.to(device)#.half() # uncomment for FP16
     model = torch.nn.DataParallel(model)
 
-    default_transform = {
-        'train': get_transform(args.dataset,
-                               input_size=args.input_size, augment=True),
-        'eval': get_transform(args.dataset,
-                              input_size=args.input_size, augment=False)
-    }
-    transform = getattr(model, 'input_transform', default_transform)
-    
-    train_data = get_dataset(args.dataset, 'train', transform['train'])
+    image_transforms = {
+        'train':
+            transforms.Compose([
+                    transforms.Resize(size=256),
+                    transforms.CenterCrop(size=224),
+                    transforms.ToTensor(),
+                    transforms.Normalize([0.485, 0.456, 0.406],
+                                         [0.229, 0.224, 0.225])
+                    ]),
+        'eval':
+            transforms.Compose([
+                    transforms.Resize(size=256),
+                    transforms.CenterCrop(size=224),
+                    transforms.ToTensor(),
+                    transforms.Normalize([0.485, 0.456, 0.406],
+                                         [0.229, 0.224, 0.225])
+                    ]),
+        }
+
+    train_data = get_dataset(args.dataset, 'train', image_transforms['train'])
     trainloader = torch.utils.data.DataLoader(
         train_data,
         batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True)
-
-    test_data = get_dataset(args.dataset, 'val', transform['eval'], download=True)
+    
+    test_data = get_dataset(args.dataset, 'val', image_transforms['eval'])
     testloader = torch.utils.data.DataLoader(
         test_data,
         batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True)
-    
+
     criterion = nn.CrossEntropyLoss()
-    
-    if args.half:
-        criterion.half()
 
     test(device)
     exit(0)

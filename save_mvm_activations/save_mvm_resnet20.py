@@ -126,6 +126,8 @@ def get_activation1(name):
     def hook1(module, input, output):
         out = output.detach()
         activation[name] = out
+#        print('In: ' + str(activation[name].shape) + '  Out Device: ' + str(output.device)[-1])
+        
     return hook1
 
 def get_activation(name): #only works with 4 GPUs
@@ -149,18 +151,21 @@ def get_activation(name): #only works with 4 GPUs
 def reg_hook1(model):
     for name, module in model.module.named_modules():
         if 'relu' in name or 'fc' in name:
-            module.register_forward_hook(get_activation1(name))
+            if 'xbmodel' not in name:
+                module.register_forward_hook(get_activation1(name))
         
 def reg_hook(model):
     for name, module in model.module.named_modules():
         if 'relu' in name or 'fc' in name:
-            module.register_forward_hook(get_activation(name))
+            if 'xbmodel' not in name:
+                module.register_forward_hook(get_activation(name))
 
 def save_activations(model, batch_idx, act, labels):
     global act_path
     for name, module in model.module.named_modules():
         if 'relu' in name or 'fc' in name:
-            torch.save(act[name], os.path.join(act_path, name) + '/act_' + name + '_' + str(batch_idx) + '.pth.tar')
+            if 'xbmodel' not in name:
+                torch.save(act[name], os.path.join(act_path, name) + '/act_' + name + '_' + str(batch_idx) + '.pth.tar')
     torch.save(labels, act_path+'/labels/labels_' +str(batch_idx) + '.pth.tar')
 
 class MyDataParallel(nn.DataParallel):
@@ -179,7 +184,7 @@ if __name__=='__main__':
     parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
                 choices=model_names,
                 help='name of the model')
-    parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20fp_cifar10.pth.tar',
+    parser.add_argument('--pretrained', action='store', default=None, #'../pretrained_models/ideal/resnet20fp_cifar10.pth.tar',
                 help='the path to the pretrained model')
     parser.add_argument('--mvm', action='store_true', default=False,
                 help='if running functional simulator backend')
@@ -191,7 +196,7 @@ if __name__=='__main__':
                 help='image input size')
     parser.add_argument('-j', '--workers', default=8, type=int, metavar='J',
                 help='number of data loading workers (default: 8)')
-    parser.add_argument('--gpus', default='0,1,2,3', help='gpus (default: 4)')
+    parser.add_argument('--gpus', default='0,1,2,3', help='gpus (default: 0,1,2,3)')
     parser.add_argument('-exp', '--experiment', default='128x128', metavar='N',
                 help='experiment name')
     args = parser.parse_args()
@@ -317,7 +322,6 @@ if __name__=='__main__':
 
 #    test(device)
 #    exit(0)
-    activation = {}
     act_path = os.path.join(root_path, args.mode)
     
     if args.mode == 'train':
@@ -345,12 +349,20 @@ if __name__=='__main__':
         print('Dry run finished...')
         
         break
+    
+    for name, module in model.module.named_modules():
+        if 'relu' in name or 'fc' in name:
+            if 'xbmodel' not in name:
+                print(name + ': ' + str(activation[name].shape))
+
     act = {}
     for name, module in model.module.named_modules():
-        if 'relu' in name:
+        if 'relu' in name and 'xbmodel' not in name:
             act[name] = torch.zeros([args.batch_size, activation[name].shape[1], activation[name].shape[2], activation[name].shape[3]])
-        if 'fc' in name:
+            print(name + ': ' + str(act[name].shape))
+        if 'fc' in name and 'xbmodel' not in name:
             act[name] = torch.zeros([args.batch_size, activation[name].shape[1]])
+            print(name + ': ' + str(act[name].shape))
     labels = torch.zeros([args.batch_size])
 
     for batch_idx,(data, target) in enumerate(dataloader):
@@ -364,10 +376,13 @@ if __name__=='__main__':
         
 #        for name, module in model.module.named_modules():
 #            if 'relu' in name or 'fc' in name:
-#                print('Out: ' + str(act[name].shape))
+#                if 'xbmodel' not in name:
+#                    print('Out: ' + str(act[name].shape))
         labels = target
 
         save_activations(model=model, batch_idx=batch_idx, act=act, labels=labels)
         duration = time.time() - base_time
         print("Batch IDx: {} \t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))
     
+    print("Done saving activations!")
+    exit(0)

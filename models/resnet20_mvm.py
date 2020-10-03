@@ -230,6 +230,5 @@ class ResNet_cifar(resnet):
 def net(**kwargs):
     num_classes, depth, dataset = map(
         kwargs.get, ['num_classes', 'depth', 'dataset'])
-    num_classes = 100
     return ResNet_cifar(num_classes=num_classes)
     #if dataset == 'cifar100':
