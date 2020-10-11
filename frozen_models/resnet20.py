@@ -5,21 +5,30 @@ import sys
 import time
 __all__ = ['net']
 
-
-  
 class resnet(nn.Module):
+
     def __init__(self):
         super(resnet, self).__init__()
 
     def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu1(x)
         residual = x.clone() 
+        out = x.clone()
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out = self.relu2(out)
+        out = self.conv3(out)
+        out = self.bn3(out)
+        out+=residual
+        out = self.relu3(out)
+        residual = out.clone() 
         ################################### 
-        out = self.conv4(x)
+        out = self.conv4(out)
         out = self.bn4(out)
         out = self.relu4(out)
         out = self.conv5(out)
-        # print('Conv5', torch.mean(abs(out)))
-        # input()
         out = self.bn5(out)
         out+=residual
         out = self.relu5(out)
@@ -39,8 +48,6 @@ class resnet(nn.Module):
         out = self.bn8(out)
         out = self.relu8(out)
         out = self.conv9(out)
-        # print('Conv9', torch.mean(abs(out)))
-        # input()
         out = self.bn9(out)
         residual = self.resconv1(residual)
         out+=residual
@@ -70,8 +77,6 @@ class resnet(nn.Module):
         out = self.bn14(out)
         out = self.relu14(out)
         out = self.conv15(out)
-        # print('Conv15', torch.mean(abs(out)))
-        # input()
         out = self.bn15(out)
         residual = self.resconv2(residual)
         out+=residual
@@ -91,33 +96,35 @@ class resnet(nn.Module):
         out = self.bn18(out)
         out = self.relu18(out)
         out = self.conv19(out)
-        # print('Conv19', torch.mean(abs(out)))
-        # input()
         out = self.bn19(out)
         out+=residual
         out = self.relu19(out)
         residual = out.clone() 
         ################################### 
-        
         #########Layer################ 
         x=out
         x = self.avgpool(x)
-
         x = x.view(x.size(0), -1)
-
         x = self.bn20(x)
         x = self.fc(x)
         x = self.bn21(x)
-
         x = self.logsoftmax(x)
-
         return x
 
 class ResNet_cifar(resnet):
+
     def __init__(self, num_classes=100):
         super(ResNet_cifar, self).__init__()
-       
         self.inflate = 1
+        self.conv1=nn.Conv2d(3,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn1= nn.BatchNorm2d(16*self.inflate)
+        self.relu1=nn.ReLU(inplace=True)
+        self.conv2=nn.Conv2d(16*self.inflate,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2= nn.BatchNorm2d(16*self.inflate)
+        self.relu2=nn.ReLU(inplace=True)
+        self.conv3=nn.Conv2d(16*self.inflate,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn3= nn.BatchNorm2d(16*self.inflate)
+        self.relu3=nn.ReLU(inplace=True)
         #######################################################
 
         self.conv4=nn.Conv2d(16*self.inflate,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
@@ -193,15 +200,21 @@ class ResNet_cifar(resnet):
         #########Layer################ 
         self.avgpool=nn.AvgPool2d(8)
         self.bn20= nn.BatchNorm1d(64*self.inflate)
-        self.fc=nn.Linear(64*self.inflate,num_classes, bias = False)
+        self.fc=nn.Linear(64*self.inflate,num_classes, bias=False)
         self.bn21= nn.BatchNorm1d(num_classes)
-        self.logsoftmax=nn.LogSoftmax()
+        self.logsoftmax=nn.LogSoftmax(dim=1)
 
+        #init_model(self)
+        #self.regime = {
+        #    0: {'optimizer': 'SGD', 'lr': 1e-1,
+        #        'weight_decay': 1e-4, 'momentum': 0.9},
+        #    81: {'lr': 1e-4},
+        #    122: {'lr': 1e-5, 'weight_decay': 0},
+        #    164: {'lr': 1e-6}
+        #}
 
 def net(**kwargs):
     num_classes, depth, dataset = map(
         kwargs.get, ['num_classes', 'depth', 'dataset'])
     return ResNet_cifar(num_classes=num_classes)
-
-        
-        
+    #if dataset == 'cifar100':

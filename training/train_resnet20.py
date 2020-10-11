@@ -90,11 +90,11 @@ parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
                 help='name of the model')
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', default=300, type=int, metavar='N',
+parser.add_argument('--epochs', default=250, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
-parser.add_argument('-b', '--batch-size', default=256, type=int,
+parser.add_argument('-b', '--batch-size', default=128, type=int,
                     metavar='N', help='mini-batch size (default: 128)')
 parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
                     metavar='LR', help='initial learning rate')
@@ -119,7 +119,7 @@ parser.add_argument('--savedir', default='/home/min/a/akosta/Current_Projects/Hy
 parser.add_argument('--save-every', dest='save_every',
                     help='Saves checkpoints at every specified number of epochs',
                     type=int, default=10)
-parser.add_argument('--gpus', default='0,1,2,3', help='gpus (default: 0,1,2,3)')
+parser.add_argument('--gpus', default='0', help='gpus (default: 0)')
 
 args = parser.parse_args()
 
@@ -229,13 +229,17 @@ def main():
                 'epoch': epoch + 1,
                 'state_dict': model.state_dict(),
                 'best_acc': best_acc,
-            }, is_best, filename=os.path.join(args.savedir, 'checkpoint.pth.tar'))
-
-        save_checkpoint({
-            'state_dict': model.state_dict(),
-            'best_acc': best_acc,
-        }, is_best, filename=os.path.join(args.savedir, 'resnet20fp_cifar10.pth.tar'))
-
+            }, is_best, path=args.savedir, filename=args.model +'fp_' + args.dataset + '_checkpoint.pth.tar')
+        if args.half:
+            save_checkpoint({
+                'state_dict': model.state_dict(),
+                'best_acc': best_acc,
+            }, is_best, path= args.savedir, filename=args.model +'fp_' + args.dataset + '_half.pth.tar')
+        else:
+            save_checkpoint({
+                'state_dict': model.state_dict(),
+                'best_acc': best_acc,
+            }, is_best, path=args.savedir, filename=args.model +'fp_' + args.dataset + '_full.pth.tar')
 
 def train(train_loader, model, criterion, optimizer, epoch):
     """
@@ -272,6 +276,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
 
         output = output.float()
         loss = loss.float()
+        
         # measure accuracy and record loss
         prec1 = accuracy(output.data, target)[0]
         losses.update(loss.item(), input.size(0))

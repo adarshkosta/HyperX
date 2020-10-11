@@ -104,7 +104,6 @@ def test(device):
                   'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
                    batch_idx, len(testloader), 100. *float(batch_idx)/len(testloader),
                    loss=losses, top1=top1, top5=top5))
-            print('Output dtype: {}'.format(output.dtype))
 
 
     print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'

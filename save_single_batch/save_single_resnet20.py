@@ -11,14 +11,16 @@ parser.add_argument('--dataset', metavar='DATASET', default='cifar10', help='dat
 parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20', help='name of the model')
 args = parser.parse_args()
 
+#%%
 ################ SAVE THE LABELS (we do it only once)
 base_src_path = '/home/nano01/a/esoufler/activations/multiple_batches/'+str(args.dataset)+'/'+str(args.model)+'/'+'train/labels/'
 base_dst_path = '/home/nano01/a/esoufler/activations/one_batch/'+str(args.dataset)+'/'+str(args.model)+'/'+'train/labels/'
 batch_size = args.b_train
 num = int(50000/batch_size)
 
+print('Saving Train labels...')
 for batch in range(num):
-    print(batch)
+#    print(batch)
     filename = base_src_path + 'labels_' + str(batch) + '.pth.tar' 
     src_value = torch.load(filename)
 
@@ -29,13 +31,15 @@ for batch in range(num):
         torch.save(dst_tensor, dst_filename)
         element_in_index += 1
 
+#%%
 base_src_path = '/home/nano01/a/esoufler/activations/multiple_batches/'+str(args.dataset)+'/'+str(args.model)+'/'+'test/labels/'
 base_dst_path = '/home/nano01/a/esoufler/activations/one_batch/'+str(args.dataset)+'/'+str(args.model)+'/'+'test/labels/'
 batch_size = args.b_test
 num = int(10000/batch_size)
 
+print('Saving Test labels...')
 for batch in range(num):
-    print(batch)
+#    print(batch)
     filename = base_src_path + 'labels_' + str(batch) + '.pth.tar' 
     src_value = torch.load(filename)
 
@@ -46,16 +50,18 @@ for batch in range(num):
         torch.save(dst_tensor, dst_filename)
         element_in_index += 1
 
+#%% 
 ################ SAVE THE ACTIVATIONS 
+print('Saving Training and Test activations...')
 for i in range(1,20,2):
     # trainset
     base_src_path = '/home/nano01/a/esoufler/activations/multiple_batches/'+str(args.dataset)+'/'+str(args.model)+'/'+'train/relu'+ str(i) +'/'
     base_dst_path = '/home/nano01/a/esoufler/activations/one_batch/'+str(args.dataset)+'/'+str(args.model)+'/'+'train/relu'+ str(i) +'/'
     batch_size = args.b_train
     num = int(50000/batch_size)
-
+    
+    print('relu'+str(i))
     for batch in range(num):
-        print(batch)
         filename = base_src_path + 'act_relu'+ str(i) +'_' + str(batch) + '.pth.tar' 
         src_value = torch.load(filename)
 
@@ -73,7 +79,7 @@ for i in range(1,20,2):
     num = int(10000/batch_size)
 
     for batch in range(num):
-        print(batch)
+#        print(batch)
         filename = base_src_path + 'act_relu'+ str(i) +'_' + str(batch) + '.pth.tar' 
         src_value = torch.load(filename)
 

@@ -257,6 +257,7 @@ if __name__=='__main__':
         print('==> Load pretrained model form', args.pretrained, '...')
         pretrained_model = torch.load(args.pretrained)
         best_acc = pretrained_model['best_acc']
+        print('Pretrained model accuracy: {}'.format(best_acc))
         model.load_state_dict(pretrained_model['state_dict'])
         for m in model.modules():
             if isinstance(m, nn.Conv2d):

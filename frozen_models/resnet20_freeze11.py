@@ -13,8 +13,17 @@ class resnet(nn.Module):
     def forward(self, x):
         residual = x.clone() 
         ################################### 
+        out = self.conv12(x)
+        out = self.bn12(out)
+        out = self.relu12(out)
+        out = self.conv13(out)
+        out = self.bn13(out)
+        out+=residual
+        out = self.relu13(out)
+        residual = out.clone() 
+        ################################### 
         #########Layer################ 
-        out = self.conv14(x)
+        out = self.conv14(out)
         out = self.bn14(out)
         out = self.relu14(out)
         out = self.conv15(out)
@@ -59,6 +68,14 @@ class ResNet_cifar(resnet):
         super(ResNet_cifar, self).__init__()
         self.inflate = 1
 
+        self.conv12=nn.Conv2d(32*self.inflate,32*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn12= nn.BatchNorm2d(32*self.inflate)
+        self.relu12=nn.ReLU(inplace=True)
+        self.conv13=nn.Conv2d(32*self.inflate,32*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn13= nn.BatchNorm2d(32*self.inflate)
+        self.relu13=nn.ReLU(inplace=True)
+        #######################################################
+
         #########Layer################ 
         self.conv14=nn.Conv2d(32*self.inflate,64*self.inflate, kernel_size=3, stride=2, padding=1, bias=False)
         self.bn14= nn.BatchNorm2d(64*self.inflate)
@@ -91,12 +108,13 @@ class ResNet_cifar(resnet):
         self.bn20= nn.BatchNorm1d(64*self.inflate)
         self.fc=nn.Linear(64*self.inflate,num_classes, bias = False)
         self.bn21= nn.BatchNorm1d(num_classes)
-        self.logsoftmax=nn.LogSoftmax()
+        self.logsoftmax=nn.LogSoftmax(dim=1)
 
 
 def net(**kwargs):
     num_classes, depth, dataset = map(
         kwargs.get, ['num_classes', 'depth', 'dataset'])
     return ResNet_cifar(num_classes=num_classes)
+
         
         

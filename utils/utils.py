@@ -76,10 +76,10 @@ class ResultsLog(object):
 
 
 def save_checkpoint(state, is_best, path='.', filename='checkpoint.pth.tar', save_all=False):
-    filename = os.path.join(path, filename)
+    filename = os.path.join(path, filename + '.path.tar')
     torch.save(state, filename)
     if is_best:
-        shutil.copyfile(filename, os.path.join(path, 'model_best.pth.tar'))
+        shutil.copyfile(filename, os.path.join(path, filename + '_best.pth.tar'))
     if save_all:
         shutil.copyfile(filename, os.path.join(
             path, 'checkpoint_epoch_%s.pth.tar' % state['epoch']))
