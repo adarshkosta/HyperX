@@ -1,5 +1,4 @@
 .*.sw*
-*.txt
 *.tar
 *.sh
 *.pyc
