@@ -30,80 +30,80 @@ class resnet(nn.Module):
         out = x.clone() 
         out = self.conv2(out)
         out = self.bn2(out)
-        out = F.relu(out)
+        out = self.relu2(out)
         out = self.conv3(out)
         out = self.bn3(out)
         out+=residual1
-        out = F.relu(out)
+        out = self.relu3(out)
         residual1 = out.clone() 
         ################################### 
         out = self.conv4(out)
         out = self.bn4(out)
-        out = F.relu(out)
+        out = self.relu4(out)
         out = self.conv5(out)
         out = self.bn5(out)
         out+=residual1
-        out = F.relu(out)
+        out = self.relu5(out)
         residual1 = out.clone() 
         ################################### 
         #########Layer################ 
         out = self.conv6(out)
         out = self.bn6(out)
         residual1 = self.resconv1(residual1)
-        out = F.relu(out)
+        out = self.relu6(out)
         out = self.conv7(out)
         out = self.bn7(out)
         out+=residual1
-        out = F.relu(out)
+        out = self.relu7(out)
         residual1 = out.clone() 
         ################################### 
         out = self.conv8(out)
         out = self.bn8(out)
-        out = F.relu(out)
+        out = self.relu8(out)
         out = self.conv9(out)
         out = self.bn9(out)
         out+=residual1
-        out = F.relu(out)
+        out = self.relu9(out)
         residual1 = out.clone() 
         ################################### 
         #########Layer################ 
         out = self.conv10(out)
         out = self.bn10(out)
         residual1 = self.resconv2(residual1)
-        out = F.relu(out)
+        out = self.relu10(out)
         out = self.conv11(out)
         out = self.bn11(out)
         out+=residual1
-        out = F.relu(out)
+        out = self.relu11(out)
         residual1 = out.clone() 
         ################################### 
         out = self.conv12(out)
         out = self.bn12(out)
-        out = F.relu(out)
+        out = self.relu12(out)
         out = self.conv13(out)
         out = self.bn13(out)
         out+=residual1
-        out = F.relu(out)
+        out = self.relu13(out)
         residual1 = out.clone() 
         ################################### 
         #########Layer################ 
         out = self.conv14(out)
         out = self.bn14(out)
         residual1 = self.resconv3(residual1)
-        out = F.relu(out)
+        out = self.relu14(out)
         out = self.conv15(out)
         out = self.bn15(out)
         out+=residual1
-        out = F.relu(out)
+        out = self.relu15(out)
         residual1 = out.clone() 
         ################################### 
         out = self.conv16(out)
         out = self.bn16(out)
-        out = F.relu(out)
+        out = self.relu16(out)
         out = self.conv17(out)
         out = self.bn17(out)
         out+=residual1
-        out = F.relu(out)
+        out = self.relu17(out)
         residual1 = out.clone() 
         ################################### 
         #########Layer################ 

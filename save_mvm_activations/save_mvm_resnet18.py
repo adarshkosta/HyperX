@@ -122,7 +122,7 @@ def get_activation1(name):
     def hook1(module, input, output):
         out = output.detach()
         activation[name] = out
-        print('In: ' + name + ' ' +  str(activation[name].shape) + '  Out Device: ' + str(output.device)[-1])
+#        print('In: ' + name + ' ' +  str(activation[name].shape) + '  Out Device: ' + str(output.device)[-1])
         
     return hook1
 
@@ -148,7 +148,7 @@ def reg_hook1(model):
     for name, module in model.module.named_modules():
         if 'relu' in name or 'fc' in name:
             if 'xbmodel' not in name:
-                print(name)
+#                print(name)
                 module.register_forward_hook(get_activation1(name))
         
 def reg_hook(model):
