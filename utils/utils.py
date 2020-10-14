@@ -75,15 +75,11 @@ class ResultsLog(object):
         self.figures.append(fig)
 
 
-def save_checkpoint(state, is_best, path='.', filename='checkpoint.pth.tar', save_all=False):
-    filename = os.path.join(path, filename + '.path.tar')
-    torch.save(state, filename)
+def save_checkpoint(state, is_best, path='.', filename='checkpoint', save_all=False):
+    file = os.path.join(path, filename + '.pth.tar')
+    torch.save(state, file)
     if is_best:
-        shutil.copyfile(filename, os.path.join(path, filename + '_best.pth.tar'))
-    if save_all:
-        shutil.copyfile(filename, os.path.join(
-            path, 'checkpoint_epoch_%s.pth.tar' % state['epoch']))
-
+        shutil.copyfile(file, os.path.join(path, filename + '_best.pth.tar'))
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""

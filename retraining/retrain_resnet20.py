@@ -9,7 +9,6 @@ Created on Thu Oct  8 21:02:25 2020
 import os
 import sys
 import time
-import collections
 import math
 
 #Filepath handling
@@ -32,22 +31,18 @@ sys.path.insert(0, datasets_dir)
 import numpy as np
 import random
 import argparse
-import pdb
 
 import torch
-import torchvision
-import torchvision.transforms as transforms
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torchvision.utils import save_image
-from torchsummary import summary
 from torch.utils.data import Dataset, DataLoader
+from torchsummary import summary
 
 #torch.set_default_tensor_type(torch.HalfTensor)
 
 # User-defined packages
-import models
+import frozen_models
 from utils.utils import accuracy, AverageMeter, save_checkpoint 
 #from utils_bar import progress_bar
 
@@ -124,14 +119,6 @@ def train(train_loader, model, criterion, optimizer, epoch, device):
           'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
           'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'.format(
               epoch, batch_idx, len(train_loader), optimizer.param_groups[0]['lr'], loss=losses, top1=top1, ))
-        
-#        progress_bar(batch_idx, len(train_loader), 'Epoch: [{0}][{1}/{2}]\t'
-#                  'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-#                  'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
-#                  'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-#                  'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
-#                      epoch, batch_idx, len(train_loader), batch_time=batch_time,
-#                      data_time=data_time, loss=losses, top1=top1))
 
 # Evaluate
 def test(test_loader, model, criterion, device):
@@ -145,10 +132,6 @@ def test(test_loader, model, criterion, device):
 
     # switch to evaluate mode
     model.eval()
-    
-#    test_loss = 0
-#    correct = 0
-#    total = 0
 
     end = time.time()
     with torch.no_grad():
@@ -185,16 +168,6 @@ def test(test_loader, model, criterion, device):
           'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
               batch_idx, len(test_loader), loss=losses, top1=top1))
     print('-'*80)
-        
-    #        progress_bar(batch_idx, len(test_loader), 'Test: [{0}/{1}]\t'
-    #                      'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-    #                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-    #                      'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
-    #                          batch_idx, len(test_loader), batch_time=batch_time, loss=losses,
-    #                          top1=top1))
-        
-#        print(' * Prec@1 {top1.avg:.3f}'
-#              .format(top1=top1))
 
     return top1.avg
   
@@ -243,11 +216,11 @@ parser.add_argument('--savedir', default='../pretrained_models/frozen/',
 
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
             help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', default=50, type=int, metavar='N',
+parser.add_argument('--epochs', default=150, type=int, metavar='N',
             help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
             help='manual epoch number (useful on restarts)')
-parser.add_argument('-b', '--batch-size', default=1024, type=int,
+parser.add_argument('-b', '--batch-size', default=128, type=int,
             metavar='N', help='mini-batch size (default: 128)')
 parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
             metavar='LR', help='initial learning rate')
@@ -255,14 +228,18 @@ parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
             help='momentum')
 parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar='W', 
             help='weight decay (default: 1e-4)')
+parser.add_argument('--milestones', default=[10, 20, 35], 
+            help='Milestones for LR decay')
+parser.add_argument('--gamma', default=0.5, type=float,
+            help='learning rate decay')
 
-parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20fp_cifar10.pth.tar',
+parser.add_argument('--pretrained', action='store', default=None, #'../pretrained_models/ideal/resnet20fp_cifar10.pth.tar',
             help='the path to the ideal pretrained model')
 parser.add_argument('--print-freq', '-p', default=100, type=int,
                 metavar='N', help='print frequency (default: 100)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
                 help='path to latest checkpoint (default: none)')
-parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true', 
+parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true', default=False, 
                     help='evaluate model on validation set')
 parser.add_argument('--half', dest='half', action='store_true', default=False,
                     help='use half-precision(16-bit) ')
@@ -271,15 +248,11 @@ parser.add_argument('--save-every', dest='save_every',
                     help='Saves checkpoints at every specified number of epochs',
                     type=int, default=10)
 parser.add_argument('--gpus', default='0', help='gpus (default: 0)')
-parser.add_argument('--frozen-layers', default=13, type=int, help='number of frozen layers in the model')
+parser.add_argument('--frozen-layers', default=1, type=int, help='number of frozen layers in the model')
 
 args = parser.parse_args()
 
 print_args(args)
-    
-    
-#def main():
-#    global args, best_acc
 
 # Check the savedir exists or not
 save_dir = os.path.join(args.savedir, args.dataset, args.model)
@@ -360,17 +333,17 @@ else: #No model to resume from
                 if m.bias is not None:
                    m.bias.data.uniform_(-stdv, stdv)
 
-#    model = nn.DataParallel(model) #Dont need to use dataparallel
-for name1, m1 in model.named_modules():
-    for name2, m2 in original_model.named_modules():
-        if name2 == name1:                   
-            print(name1, name2)
-            for p1, p2 in zip(m1.parameters(), m2.parameters()):
-                print(p1.data.shape, p2.data.shape)
-                if p1.data.ne(p2.data).sum() > 0:
-                    print(name1 + ' NOT equal in the two models.')
-                else:
-                    print(name1 + ' equal in the two models.')
+#model = nn.DataParallel(model) #Dont need to use dataparallel
+#for name1, m1 in model.named_modules():
+#    for name2, m2 in original_model.named_modules():
+#        if name2 == name1:                   
+#            print(name1, name2)
+#            for p1, p2 in zip(m1.parameters(), m2.parameters()):
+#                print(p1.data.shape, p2.data.shape)
+#                if p1.data.ne(p2.data).sum() > 0:
+#                    print(name1 + ' NOT equal in the two models.')
+#                else:
+#                    print(name1 + ' equal in the two models.')
  
 model.to(device)
 #%%
@@ -405,8 +378,8 @@ optimizer = torch.optim.SGD(model.parameters(), args.lr,
                             momentum=args.momentum,
                             weight_decay=args.weight_decay)
 
-lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,
-                                                    milestones=[10, 25, 40], last_epoch=args.start_epoch - 1)
+lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer,
+                                                    milestones=args.milestones, gamma=args.gamma, last_epoch=args.start_epoch - 1)
 
 
 if args.evaluate:
@@ -414,43 +387,38 @@ if args.evaluate:
     print('Prec@1 with ' + str(args.frozen_layers) + ' layers frozen = ', acc)
 else:
     acc = test(test_loader, model, criterion, device)
-    print('Pre-training Prec@1 with ' + str(args.frozen_layers) + ' layers frozen = ', acc)
+    print('Pre-trained Prec@1 with ' + str(args.frozen_layers) + ' layers frozen = ', acc)
     print('\nStarting training on SRAM layers...')
     
-    print('Params getting trained: \n')
-    for name, param in model.named_parameters():
-      if param.requires_grad == True:
-        print('\t', name)
-        
+#    print('Params getting trained: \n')
+#    for name, param in model.named_parameters():
+#      if param.requires_grad == True:
+#        print('\t', name)
+    
+    best_acc = 0
     for epoch in range(args.start_epoch, args.epochs):
         # train for one epoch
         train(train_loader, model, criterion, optimizer, epoch, device)
-        lr_scheduler.step()
     
         # evaluate on validation set
         acc = test(test_loader, model, criterion, device)
+        
+        lr_scheduler.step()
     
         # remember best prec@1 and save checkpoint
         is_best = acc > best_acc
         best_acc = max(acc, best_acc)
-    
-        if epoch > 0 and epoch % args.save_every == 0:
-            save_checkpoint({
-                'epoch': epoch + 1,
-                'state_dict': model.state_dict(),
-                'best_acc': best_acc,
-            }, is_best, path=args.savedir, filename='freeze' + str(args.frozen_layers) + '_checkpoint.pth.tar')
             
         if args.half:
             save_checkpoint({
                 'state_dict': model.state_dict(),
                 'best_acc': best_acc,
-            }, is_best, path= args.savedir, filename='freeze' + str(args.frozen_layers) + '_half.pth.tar')
+            }, is_best, path= args.savedir, filename='freeze' + str(args.frozen_layers) + '_half')
         else:
             save_checkpoint({
                 'state_dict': model.state_dict(),
                 'best_acc': best_acc,
-            }, is_best, path=args.savedir, filename='freeze' + str(args.frozen_layers) + '_full.pth.tar')
+            }, is_best, path=args.savedir, filename='freeze' + str(args.frozen_layers) + '_full')
 
 #if __name__=='__main__':
 #    main()

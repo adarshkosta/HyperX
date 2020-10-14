@@ -117,10 +117,10 @@ class resnet(nn.Module):
         return x
 
 
-class ResNet18_cifar(resnet):
+class ResNet18(resnet):
 
-    def __init__(self, num_classes=100):
-        super(ResNet18_cifar, self).__init__()
+    def __init__(self, num_classes=1000):
+        super(ResNet18, self).__init__()
         self.inflate = 1
         self.conv1=Conv2d_mvm(3,int(64*self.inflate), kernel_size=7, stride=2, padding=3,bias=False)
         self.bn1= nn.BatchNorm2d(int(64*self.inflate))
@@ -239,5 +239,5 @@ class ResNet18_cifar(resnet):
 def net(**kwargs):
     num_classes, depth, dataset = map(
         kwargs.get, ['num_classes', 'depth', 'dataset'])
-    return ResNet18_cifar(num_classes=num_classes)
+    return ResNet18(num_classes=num_classes)
 
