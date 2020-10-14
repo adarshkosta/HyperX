@@ -35,6 +35,7 @@ import numpy as np
 import random
 import argparse
 import pdb
+import math
 
 import torch
 import torchvision
@@ -54,12 +55,8 @@ from utils.preprocess import get_transform
 from utils.utils import *
 import src.config as cfg
 
-if cfg.if_bit_slicing and not cfg.dataset:
-    from src.pytorch_mvm_class_v3 import *
-elif cfg.dataset:
-    from geneix.pytorch_mvm_class_dataset import *   # import mvm class from geneix folder
-else:
-    from src.pytorch_mvm_class_no_bitslice import *
+from src.pytorch_mvm_class_v3 import *
+
 
 #Seeding
 new_manual_seed = 0
@@ -110,8 +107,7 @@ def test(device):
                       'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
                        batch_idx, len(testloader), 100. *float(batch_idx)/len(testloader),
                        loss=losses, top1=top1, top5=top5))
-        # if batch_idx == 10:
-        #     break
+
 
     print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'
           .format(top1=top1, top5=top5))
@@ -126,11 +122,11 @@ def get_activation1(name):
     def hook1(module, input, output):
         out = output.detach()
         activation[name] = out
-#        print('In: ' + str(activation[name].shape) + '  Out Device: ' + str(output.device)[-1])
+        print('In: ' + name + ' ' +  str(activation[name].shape) + '  Out Device: ' + str(output.device)[-1])
         
     return hook1
 
-def get_activation(name): #only works with 4 GPUs
+def get_activation(name): #only works with 4 GPUs as of now
     def hook(module, input, output):
         batch_split = int(args.batch_size/4)
         
@@ -152,6 +148,7 @@ def reg_hook1(model):
     for name, module in model.module.named_modules():
         if 'relu' in name or 'fc' in name:
             if 'xbmodel' not in name:
+                print(name)
                 module.register_forward_hook(get_activation1(name))
         
 def reg_hook(model):
@@ -175,8 +172,8 @@ class MyDataParallel(nn.DataParallel):
 #%%
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-b', '--batch-size', default=200, type=int, metavar='N', 
-                help='mini-batch size (default: 200)')
+    parser.add_argument('-b', '--batch-size', default=16, type=int, metavar='N', 
+                help='mini-batch size (default: 16)')
     parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
                 help='dataset name or folder')
     parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/multiple_batches/',
@@ -266,8 +263,6 @@ if __name__=='__main__':
         for m in base_model.modules():
             if isinstance(m, nn.Conv2d):
                 weights_conv.append(m.weight.data.clone())
-                #print(m.weight.data)
-                #raw_input()
             elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.BatchNorm1d):
                 bn_data.append(m.weight.data.clone())
                 bn_bias.append(m.bias.data.clone())
@@ -282,13 +277,21 @@ if __name__=='__main__':
         if isinstance(m, nn.Conv2d):
             m.weight.data = weights_conv[i]
             i = i+1
-        elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.BatchNorm1d):
+        elif isinstance(m, nn.BatchNorm2d):
             m.weight.data = bn_data[j]
             m.bias.data = bn_bias[j]
             m.running_mean.data = running_mean[j]
             m.running_var.data = running_var[j]
             m.num_batches_tracked = num_batches[j]
             j = j+1
+        elif isinstance(m, nn.BatchNorm1d):
+            m.weight.data.fill_(1)
+            m.bias.data.zero_()
+        elif isinstance(m, nn.Linear):
+            stdv = 1. / math.sqrt(m.weight.data.size(1))
+            m.weight.data.uniform_(-stdv, stdv)
+            if m.bias is not None:
+               m.bias.data.uniform_(-stdv, stdv)
             
     i=j=k=0
     for m in model_mvm.modules():
@@ -302,9 +305,18 @@ if __name__=='__main__':
             m.running_var.data = running_var[j]
             m.num_batches_tracked = num_batches[j]
             j = j+1
+        elif isinstance(m, nn.BatchNorm1d):
+            m.weight.data.fill_(1)
+            m.bias.data.zero_()
+        elif isinstance(m, nn.Linear):
+            stdv = 1. / math.sqrt(m.weight.data.size(1))
+            m.weight.data.uniform_(-stdv, stdv)
+            if m.bias is not None:
+               m.bias.data.uniform_(-stdv, stdv)
 
 
     # Move required model to GPU (if applicable)
+    
     if args.mvm:
         cfg.mvm = True
         model = model_mvm
@@ -312,11 +324,14 @@ if __name__=='__main__':
     model.to(device)#.half() # uncomment for FP16
     model = nn.DataParallel(model)
     
+    
+#    summary(model.to(device), (3,256,256))
+    
     image_transforms = {
         'train':
             transforms.Compose([
                     transforms.Resize(size=256),
-                    transforms.CenterCrop(size=224),
+#                    transforms.CenterCrop(size=224),
                     transforms.ToTensor(),
                     transforms.Normalize([0.485, 0.456, 0.406],
                                          [0.229, 0.224, 0.225])
@@ -324,7 +339,7 @@ if __name__=='__main__':
         'eval':
             transforms.Compose([
                     transforms.Resize(size=256),
-                    transforms.CenterCrop(size=224),
+#                    transforms.CenterCrop(size=224),
                     transforms.ToTensor(),
                     transforms.Normalize([0.485, 0.456, 0.406],
                                          [0.229, 0.224, 0.225])
@@ -360,9 +375,15 @@ if __name__=='__main__':
         os.makedirs(act_path + '/relu' + str(i), exist_ok=True)
     os.makedirs(act_path + '/labels', exist_ok=True)
     
+#    for name, module in model.module.named_modules():
+#        if 'relu' in name or 'fc' in name:
+#            if 'xbmodel' not in name:
+#                print(name)
     
     print("Saving activations to: {}".format(act_path))
+    
     for batch_idx,(data, target) in enumerate(dataloader):
+        base_time = time.time()
         reg_hook1(model)
         target = target.to(device)
         data_var = torch.autograd.Variable(data.to(device))
@@ -371,7 +392,8 @@ if __name__=='__main__':
         output = model(data_var)
 #        print(activation['relu1'].shape())
         print('Dry run finished...')
-        
+        duration = time.time() - base_time
+        print("Time taken: {}m {}secs".format(int(duration)//60, int(duration)%60))
         break
     
     for name, module in model.module.named_modules():
