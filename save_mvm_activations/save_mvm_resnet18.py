@@ -126,20 +126,35 @@ def get_activation1(name):
         
     return hook1
 
-def get_activation(name): #only works with 4 GPUs as of now
+def get_activation(name): #only works with 4 and 2 GPUs as of now
     def hook(module, input, output):
-        batch_split = int(args.batch_size/4)
         
         out = output.detach()
         
-        if str(output.device)[-1] == '0':
-            act[name][0:batch_split] = out
-        elif str(output.device)[-1] == '1':
-            act[name][batch_split:2*batch_split] = out
-        elif str(output.device)[-1] == '2':
-            act[name][2*batch_split:3*batch_split] = out
-        elif str(output.device)[-1] == '3':
-            act[name][3*batch_split:4*batch_split] = out
+        if len(args.gpus) == 7: #4 GPUS
+            batch_split = int(args.batch_size/4) #0,1,2,3
+            
+            if str(output.device)[-1] == args.gpus[0]:
+                act[name][0:batch_split] = out
+            elif str(output.device)[-1] == args.gpus[2]:
+                act[name][batch_split:2*batch_split] = out
+            elif str(output.device)[-1] == args.gpus[4]:
+                act[name][2*batch_split:3*batch_split] = out
+            elif str(output.device)[-1] == args.gpus[6]:
+                act[name][3*batch_split:4*batch_split] = out
+            
+        elif len(args.gpus) == 3: #2 GPUS
+            batch_split = int(args.batch_size/2) #0,1 config ONLY
+            
+            if str(output.device)[-1] == args.gpus[0]:
+                act[name][0:batch_split] = out
+            elif str(output.device)[-1] == args.gpus[2]:
+                act[name][batch_split:2*batch_split] = out
+            
+        elif len(args.gpus) == 1: # 1 GPU
+            act[name] = out
+        else:
+            raise Exception('Odd multi-gpu numbers (3) not supported.')
 
 #        print('In: ' + str(act[name].shape) + '  Out Device: ' + str(output.device)[-1])
     return hook
@@ -172,8 +187,8 @@ class MyDataParallel(nn.DataParallel):
 #%%
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-b', '--batch-size', default=16, type=int, metavar='N', 
-                help='mini-batch size (default: 16)')
+    parser.add_argument('-b', '--batch-size', default=40, type=int, metavar='N', 
+                help='mini-batch size (default: 40)')
     parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
                 help='dataset name or folder')
     parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/multiple_batches/',
@@ -211,6 +226,13 @@ if __name__=='__main__':
       cfg.mvm= True
     else:
       cfg.mvm = False
+    
+    #Using custom tiling
+    cfg.ifglobal_tile_col = False
+    cfg.ifglobal_tile_row = False
+    cfg.tile_row = 'custom'
+    cfg.tile_col = 'custom'
+    
 
     cfg.dump_config()
     
@@ -219,7 +241,7 @@ if __name__=='__main__':
     os.environ['CUDA_VISIBLE_DEVICES']= args.gpus
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print('DEVICE:', device)
-    print('GPU Id(s) being used:', args.gpus)
+    print(str(int((len(args.gpus)+1)/2)) + ' GPU devices being used. ID(s)', args.gpus)
 
     print('==> Building model and model_mvm for', args.model, '...')
     if (args.model in model_names and args.model+'_mvm' in model_names):
@@ -316,7 +338,7 @@ if __name__=='__main__':
 
 
     # Move required model to GPU (if applicable)
-    
+#    summary(model.to(device), (3,224,224))
     if args.mvm:
         cfg.mvm = True
         model = model_mvm
@@ -325,13 +347,12 @@ if __name__=='__main__':
     model = nn.DataParallel(model)
     
     
-#    summary(model.to(device), (3,256,256))
     
     image_transforms = {
         'train':
             transforms.Compose([
                     transforms.Resize(size=256),
-#                    transforms.CenterCrop(size=224),
+                    transforms.CenterCrop(size=224),
                     transforms.ToTensor(),
                     transforms.Normalize([0.485, 0.456, 0.406],
                                          [0.229, 0.224, 0.225])
@@ -339,7 +360,7 @@ if __name__=='__main__':
         'eval':
             transforms.Compose([
                     transforms.Resize(size=256),
-#                    transforms.CenterCrop(size=224),
+                    transforms.CenterCrop(size=224),
                     transforms.ToTensor(),
                     transforms.Normalize([0.485, 0.456, 0.406],
                                          [0.229, 0.224, 0.225])
@@ -373,6 +394,7 @@ if __name__=='__main__':
         
     for i in range(1, 18):
         os.makedirs(act_path + '/relu' + str(i), exist_ok=True)
+    os.makedirs(act_path + '/fc', exist_ok=True)
     os.makedirs(act_path + '/labels', exist_ok=True)
     
 #    for name, module in model.module.named_modules():

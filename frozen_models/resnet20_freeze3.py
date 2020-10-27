@@ -15,6 +15,7 @@ class resnet(nn.Module):
         residual = x.clone() 
         ################################### 
         out = self.conv4(x)
+        
         out = self.bn4(out)
         out = self.relu4(out)
         out = self.conv5(out)
@@ -91,8 +92,9 @@ class resnet(nn.Module):
         out = self.bn18(out)
         out = self.relu18(out)
         out = self.conv19(out)
-        # print('Conv19', torch.mean(abs(out)))
-        # input()
+        
+        out = self.dropout(out)
+        
         out = self.bn19(out)
         out+=residual
         out = self.relu19(out)
@@ -114,7 +116,7 @@ class resnet(nn.Module):
         return x
 
 class ResNet_cifar(resnet):
-    def __init__(self, num_classes=100):
+    def __init__(self, num_classes=100, p=0.2):
         super(ResNet_cifar, self).__init__()
        
         self.inflate = 1
@@ -192,6 +194,9 @@ class ResNet_cifar(resnet):
 
         #########Layer################ 
         self.avgpool=nn.AvgPool2d(8)
+        
+        self.dropout = nn.Dropout2d(p=p, inplace=True)
+        
         self.bn20= nn.BatchNorm1d(64*self.inflate)
         self.fc=nn.Linear(64*self.inflate,num_classes, bias = False)
         self.bn21= nn.BatchNorm1d(num_classes)

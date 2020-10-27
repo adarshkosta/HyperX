@@ -28,6 +28,7 @@ import numpy as np
 import random
 import argparse
 import pdb
+import math
 
 import torch
 import torchvision
@@ -225,12 +226,30 @@ if __name__=='__main__':
     
     if args.dataset == 'cifar10':
         model.fc = nn.Linear(int(512), 10, bias=False)
+        model.bn19 = nn.BatchNorm1d(10)
+        
         model_mvm.fc = Linear_mvm(int(512), 10, bias=False)
+        model_mvm.bn19 = nn.BatchNorm1d(10)
+        
     elif args.dataset == 'cifar100':
         model.fc = nn.Linear(int(512), 100, bias=False)
+        model.bn19 = nn.BatchNorm1d(100)
+        
         model_mvm.fc = Linear_mvm(int(512), 100, bias=False)
+        model_mvm.bn19 = nn.BatchNorm1d(100)
     else:
-      raise Exception(args.dataset + 'is currently not supported')
+        raise Exception(args.dataset + 'is currently not supported')
+      
+    for m in model.modules():
+        if isinstance(m, nn.Linear):
+            stdv = 1. / math.sqrt(m.weight.data.size(1))
+            m.weight.data.uniform_(-stdv, stdv)
+            if m.bias is not None:
+                m.bias.data.uniform_(-stdv, stdv)
+        elif isinstance(m, nn.BatchNorm1d):
+            m.weight.data.fill_(1)
+            m.bias.data.zero_()
+    
     
     # Move required model to GPU (if applicable)
     if args.mvm:

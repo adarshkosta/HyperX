@@ -99,19 +99,23 @@ class resnet(nn.Module):
         out = self.bn18(out)
         out = self.relu18(out)
         out = self.conv19(out)
-        # print('Conv19', torch.mean(abs(out)))
-        # input()
+        
+        out = self.dropout(out)
+
         out = self.bn19(out)
         out+=residual
         out = self.relu19(out)
+        
+        
         residual = out.clone() 
+        
         ################################### 
         
         #########Layer################ 
         x=out
         x = self.avgpool(x)
         
-#        x = self.dropout(x)
+
 
         x = x.view(x.size(0), -1)
 
@@ -211,7 +215,7 @@ class ResNet_cifar(resnet):
         #########Layer################ 
         self.avgpool=nn.AvgPool2d(8)
         
-#        self.dropout = nn.Dropout2d(p=0.5, inplace=True)
+        self.dropout = nn.Dropout2d(p=0.5, inplace=True)
         
         self.bn20= nn.BatchNorm1d(64*self.inflate)
         self.fc=nn.Linear(64*self.inflate,num_classes, bias = False)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Oct  8 21:02:25 2020
+Created on Tue Oct 27 05:16:27 2020
 
 @author: akosta
 """
@@ -213,7 +213,7 @@ def print_args(args):
 parser = argparse.ArgumentParser(description= ' Re-training')
 parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
             help='dataset name')
-parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
+parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18',
             choices=model_names,
             help='name of the model')
 
@@ -287,18 +287,19 @@ if (args.model+'_freeze'+str(args.frozen_layers) in model_names):
 else:
     raise Exception(args.model+' is currently not supported')
 
-if args.dataset == 'cifar10':
-    model = model.net(num_classes=10, p=args.dropout)
-elif args.dataset == 'cifar100':
-    model = model.net(num_classes=100, p=args.dropout)
-else:
-  raise Exception(args.dataset + 'is currently not supported')
 
 if args.model == 'resnet20' and args.frozen_layers % 2 == 0:
     raise Exception('Value ' + args.frozen_layers + 'for frozen_layers not supported. Enter odd values in the range (1-19).')
 
 # optionally resume from a checkpoint
 if args.resume:
+    if args.dataset == 'cifar10':
+        model = model.net(num_classes=10, p=args.dropout)
+    elif args.dataset == 'cifar100':
+        model = model.net(num_classes=100, p=args.dropout)
+    else:
+        raise Exception(args.dataset + 'is currently not supported')
+        
     if os.path.isfile(args.resume):
         print("=> loading checkpoint '{}'".format(args.resume))
         checkpoint = torch.load(args.resume)
@@ -310,35 +311,61 @@ if args.resume:
               .format(args.evaluate, checkpoint['epoch']))
     else:
         raise Exception(args.resume + ' does not exists')
+        
 else: #No model to resume from
     if args.pretrained: #Initialize params with pretrained model
-        print('==> Initializing model with pre-trained parameters ...')
+        model = model.net(num_classes=1000, p=args.dropout)
+        
+        print('==> Initializing model with pre-trained parameters (except classifier)...')
         original_model = (__import__(args.model))
-        if args.dataset == 'cifar10':
-            original_model = original_model.net(num_classes=10)
-        elif args.dataset == 'cifar100':
-            original_model = original_model.net(num_classes=100)
-        else:
-            raise Exception(args.dataset + 'is currently not supported')
+        original_model = original_model.net(num_classes=1000)
 
         print('==> Load pretrained model form', args.pretrained, '...')
         pretrained_model = torch.load(args.pretrained)
         original_model.load_state_dict(pretrained_model['state_dict'])
         best_acc = pretrained_model['best_acc']
-        print('Original model accuracy: {}'.format(best_acc))
+        print('Original model accuracy on ImageNet: {}'.format(best_acc))
         
         for name1, m1 in model.named_modules():
             for name2, m2 in original_model.named_modules():
                 if name2 == name1:
                     if 'resconv' in name1 or 'conv' in name1 or 'fc' in name1 or 'bn' in name1:
                         m1.load_state_dict(m2.state_dict())
+        
+        #Re-build classifier layer
+        if args.dataset == 'cifar10':
+            model.fc = nn.Linear(512, 10, bias = False)
+            model.bn19 = nn.BatchNorm1d(10)
+        elif args.dataset == 'cifar100':
+            model.fc = nn.Linear(512, 100, bias = False)
+            model.bn19 = nn.BatchNorm1d(100)
+        else:
+            raise Exception(args.dataset + 'is currently not supported')
+            
+        #Initialize classifier params with normal distribution
+        for m in model.modules():
+            if isinstance(m, nn.Linear):
+                stdv = 1. / math.sqrt(m.weight.data.size(1))
+                m.weight.data.uniform_(-stdv, stdv)
+                if m.bias is not None:
+                    m.bias.data.uniform_(-stdv, stdv)
+            elif isinstance(m, nn.BatchNorm1d):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
                         
-    else: #Initialize params with normal distribution
+    else: #Initialize all params with normal distribution
+        if args.dataset == 'cifar10':
+            model = model.net(num_classes=10, p=args.dropout)
+        elif args.dataset == 'cifar100':
+            model = model.net(num_classes=100, p=args.dropout)
+        else:
+            raise Exception(args.dataset + 'is currently not supported')
+        
         for m in model.modules():
             if isinstance(m, nn.Conv2d):
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
                 m.weight.data.normal_(0, math.sqrt(2. / n))
-            elif isinstance(m, nn.BatchNorm2d):
+            elif isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d)):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
             elif isinstance(m, nn.Linear):
@@ -397,12 +424,15 @@ if args.optim == 'sgd':
                             momentum=args.momentum,
                             weight_decay=args.weight_decay)
 elif args.optim == 'adam':
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, 
+                             weight_decay=args.weight_decay)
 else:
     raise NotImplementedError
 
 lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer,
-                                                    milestones=args.milestones, gamma=args.gamma, last_epoch=args.start_epoch - 1)
+                                              milestones=args.milestones, 
+                                              gamma=args.gamma, 
+                                              last_epoch=args.start_epoch - 1)
 
 
 if args.evaluate:
@@ -436,12 +466,12 @@ else:
             save_checkpoint({
                 'state_dict': model.state_dict(),
                 'best_acc': best_acc,
-            }, is_best, path= args.savedir, filename='freeze' + str(args.frozen_layers) + '_half')
+            }, is_best, path= save_dir, filename='freeze' + str(args.frozen_layers) + '_half')
         else:
             save_checkpoint({
                 'state_dict': model.state_dict(),
                 'best_acc': best_acc,
-            }, is_best, path=args.savedir, filename='freeze' + str(args.frozen_layers) + '_full')
+            }, is_best, path=save_dir, filename='freeze' + str(args.frozen_layers) + '_full')
     
         print('Best acc: {:.3f}'.format(best_acc))
         print('-'*80)

@@ -30,7 +30,8 @@ class Conv2d_mvm_function(Function):
         ## fraction : 12
         
 #        loop = cfg.loop
-        
+#        print('funct', tile_row, tile_col)
+#        pdb.set_trace()
         num_pixel = tile_row*tile_col
         if weight_bit_frac == -1:
             weight_bit_frac = weight_bits//4*3
@@ -259,8 +260,17 @@ class _ConvNd_mvm(nn.Module):
             assert (self.xbmodel != None)
             assert (self.xbmodel_weight_path != None)
             self.xbmodel.load_state_dict(torch.load(self.xbmodel_weight_path)['state_dict'])
+            
         self.tile_col = cfg.tile_col if cfg.ifglobal_tile_col else tile_col
         self.tile_row = cfg.tile_row if cfg.ifglobal_tile_row else tile_row
+        
+#        self.tile_row = tile_row
+#        self.tile_col = tile_col
+        
+#        print(cfg.ifglobal_tile_row, cfg.ifglobal_tile_col)
+#        print(tile_col, tile_row)
+        
+#        print('init', self.tile_row, self.tile_col)
 
         if check_grad:
             tensor_constructor = torch.DoubleTensor # double precision required to check grad
@@ -312,12 +322,14 @@ class Conv2d_mvm(_ConvNd_mvm):
 
         super(Conv2d_mvm, self).__init__(
             in_channels, out_channels, kernel_size, stride, padding, dilation,
-            False, _pair(0), groups, bias, padding_mode,
+            False, _pair(0), groups, bias, padding_mode, check_grad,
             bit_slice, bit_stream, weight_bits, weight_bit_frac, input_bits, input_bit_frac, adc_bit, acm_bits, acm_bit_frac, tile_row, tile_col, xbmodel, xbmodel_weight_path)
+
     #@weak_script_method
     def forward(self, input):
-            return Conv2d_mvm_function.apply(input, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups,
-            self.bit_slice, self.bit_stream, self.weight_bits, self.weight_bit_frac, self.input_bits, self.input_bit_frac, self.adc_bit, self.acm_bits, self.acm_bit_frac, self.tile_row, self.tile_col, self.xbmodel, self.xbmodel_weight_path)
+#        print('fwd', self.tile_row, self.tile_col)
+        return Conv2d_mvm_function.apply(input, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups,
+        self.bit_slice, self.bit_stream, self.weight_bits, self.weight_bit_frac, self.input_bits, self.input_bit_frac, self.adc_bit, self.acm_bits, self.acm_bit_frac, self.tile_row, self.tile_col, self.xbmodel, self.xbmodel_weight_path)
 
 
 class Linear_mvm_function(Function):
