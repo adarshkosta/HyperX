@@ -1,21 +1,23 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Oct 28 19:39:24 2020
+
+@author: akosta
+"""
+
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
 import sys
 import time
-import pdb
 
 import config as cfg
 
-if cfg.if_bit_slicing and not cfg.dataset:
-    from src.pytorch_mvm_class_v3 import *
-elif cfg.dataset:
-    from geneix.pytorch_mvm_class_dataset import *   # import mvm class from geneix folder
-else:
-    from src.pytorch_mvm_class_no_bitslice import *
+from src.pytorch_mvm_class_v3 import *
 
 __all__ = ['net']
-  
+
 class resnet(nn.Module):
 
     def __init__(self):
@@ -54,6 +56,7 @@ class resnet(nn.Module):
         out = self.relu7(out)
         residual = out.clone() 
         ################################### 
+        #########Layer################ 
         out = self.conv8(out)
         out = self.bn8(out)
         out = self.relu8(out)
@@ -82,6 +85,7 @@ class resnet(nn.Module):
         out = self.relu13(out)
         residual = out.clone() 
         ################################### 
+        #########Layer################ 
         out = self.conv14(out)
         out = self.bn14(out)
         out = self.relu14(out)
@@ -110,7 +114,7 @@ class resnet(nn.Module):
         out = self.relu19(out)
         residual = out.clone() 
         ################################### 
-        
+        #########Layer################ 
         x=out
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
@@ -118,7 +122,6 @@ class resnet(nn.Module):
         x = self.fc(x)
         x = self.bn21(x)
         x = self.logsoftmax(x)
-        
         return x
 
 class ResNet_cifar(resnet):
@@ -126,10 +129,10 @@ class ResNet_cifar(resnet):
     def __init__(self, num_classes=100):
         super(ResNet_cifar, self).__init__()
         self.inflate = 1
-        
         self.conv1=Conv2d_mvm(3,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1= nn.BatchNorm2d(16*self.inflate)
         self.relu1=nn.ReLU(inplace=True)
+        
         self.conv2=Conv2d_mvm(16*self.inflate,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn2= nn.BatchNorm2d(16*self.inflate)
         self.relu2=nn.ReLU(inplace=True)
@@ -160,7 +163,7 @@ class ResNet_cifar(resnet):
         self.relu8=nn.ReLU(inplace=True)
         self.conv9=Conv2d_mvm(32*self.inflate,32*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn9= nn.BatchNorm2d(32*self.inflate)
-        self.resconv1=nn.Sequential(Conv2d_mvm(16*self.inflate,32*self.inflate, kernel_size=1, stride=2, padding=0, bias=False),
+        self.resconv1=nn.Sequential(Conv2d_mvm(16*self.inflate,32*self.inflate, kernel_size=1, stride=2, padding =0, bias=False),
         nn.BatchNorm2d(32*self.inflate),)
         self.relu9=nn.ReLU(inplace=True)
         #######################################################
@@ -187,7 +190,7 @@ class ResNet_cifar(resnet):
         self.relu14=nn.ReLU(inplace=True)
         self.conv15=Conv2d_mvm(64*self.inflate,64*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn15= nn.BatchNorm2d(64*self.inflate)
-        self.resconv2=nn.Sequential(Conv2d_mvm(32*self.inflate,64*self.inflate, kernel_size=1, stride=2, padding=0, bias=False),
+        self.resconv2=nn.Sequential(Conv2d_mvm(32*self.inflate,64*self.inflate, kernel_size=1, stride=2, padding =0, bias=False),
         nn.BatchNorm2d(64*self.inflate),)
         self.relu15=nn.ReLU(inplace=True)
         #######################################################
@@ -200,10 +203,10 @@ class ResNet_cifar(resnet):
         self.relu17=nn.ReLU(inplace=True)
         #######################################################
 
-        self.conv18=Conv2d_mvm(64*self.inflate,64*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv18=nn.Conv2d(64*self.inflate,64*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn18= nn.BatchNorm2d(64*self.inflate)
         self.relu18=nn.ReLU(inplace=True)
-        self.conv19=Conv2d_mvm(64*self.inflate,64*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv19=nn.Conv2d(64*self.inflate,64*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn19= nn.BatchNorm2d(64*self.inflate)
         self.relu19=nn.ReLU(inplace=True)
         #######################################################
@@ -211,23 +214,12 @@ class ResNet_cifar(resnet):
         #########Layer################ 
         self.avgpool=nn.AvgPool2d(8)
         self.bn20= nn.BatchNorm1d(64*self.inflate)
-        self.fc=Linear_mvm(64*self.inflate,num_classes, bias=False) 
+        self.fc= nn.Linear(64*self.inflate,num_classes, bias=False)
         self.bn21= nn.BatchNorm1d(num_classes)
         self.logsoftmax=nn.LogSoftmax(dim=1)
 
-        #self.linear.weight.data = torch.clone(weights_lin)
-
-        #init_model(self)
-        #self.regime = {
-        #    0: {'optimizer': 'SGD', 'lr': 1e-1,
-        #        'weight_decay': 1e-4, 'momentum': 0.9},
-        #    81: {'lr': 1e-4},
-        #    122: {'lr': 1e-5, 'weight_decay': 0},
-        #    164: {'lr': 1e-6}
-        #}
 
 def net(**kwargs):
     num_classes, depth, dataset = map(
         kwargs.get, ['num_classes', 'depth', 'dataset'])
     return ResNet_cifar(num_classes=num_classes)
-    #if dataset == 'cifar100':

@@ -1,0 +1,60 @@
+
+Layer:  relu1
+SRAM mean: 0.3313 
+RRAM mean: 0.3311 
+Meandiff: 0.0002
+MSE: 0.0002
+
+Layer:  relu3
+SRAM mean: 0.4541 
+RRAM mean: 0.4541 
+Meandiff: 0.0000
+MSE: 0.0006
+
+Layer:  relu5
+SRAM mean: 0.5476 
+RRAM mean: 0.5477 
+Meandiff: -0.0000
+MSE: 0.0013
+
+Layer:  relu7
+SRAM mean: 0.6218 
+RRAM mean: 0.6220 
+Meandiff: -0.0002
+MSE: 0.0021
+
+Layer:  relu11
+SRAM mean: 0.4103 
+RRAM mean: 0.4104 
+Meandiff: -0.0000
+MSE: 0.0012
+
+Layer:  relu13
+SRAM mean: 0.5158 
+RRAM mean: 0.5158 
+Meandiff: -0.0000
+MSE: 0.0015
+
+Layer:  relu15
+SRAM mean: 0.1370 
+RRAM mean: 0.1370 
+Meandiff: 0.0000
+MSE: 0.0004
+
+Layer:  relu17
+SRAM mean: 0.1168 
+RRAM mean: 0.1166 
+Meandiff: 0.0001
+MSE: 0.0004
+
+Layer:  relu19
+SRAM mean: 0.0768 
+RRAM mean: 0.0768 
+Meandiff: -0.0000
+MSE: 0.0004
+
+Layer:  fc
+SRAM mean: -0.0000 
+RRAM mean: 0.0005 
+Meandiff: -0.0005
+MSE: 0.0031

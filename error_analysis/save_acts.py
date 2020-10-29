@@ -54,12 +54,7 @@ from utils.preprocess import get_transform
 from utils.utils import *
 import src.config as cfg
 
-if cfg.if_bit_slicing and not cfg.dataset:
-    from src.pytorch_mvm_class_v3 import *
-elif cfg.dataset:
-    from geneix.pytorch_mvm_class_dataset import *   # import mvm class from geneix folder
-else:
-    from src.pytorch_mvm_class_no_bitslice import *
+from src.pytorch_mvm_class_v3 import *
 
 #Seeding
 def reset_seed():
@@ -122,71 +117,57 @@ def test(device):
   
 # Intermediate feature maps
 activation = {}
-act = {}
+activation_mvm = {}
 
-def get_activation1(name):
-    def hook1(module, input, output):
+def get_activation(name):
+    def hook(module, input, output):
         out = output.detach()
         activation[name] = out
 #        print('In: ' + str(activation[name].shape) + '  Out Device: ' + str(output.device)[-1])
         
-    return hook1
-
-def get_activation(name): #only works with 4 GPUs
-    def hook(module, input, output):
-        batch_split = int(args.batch_size/4)
-        
-        out = output.detach()
-        
-        if str(output.device)[-1] == '0':
-            act[name][0:batch_split] = out
-        elif str(output.device)[-1] == '1':
-            act[name][batch_split:2*batch_split] = out
-        elif str(output.device)[-1] == '2':
-            act[name][2*batch_split:3*batch_split] = out
-        elif str(output.device)[-1] == '3':
-            act[name][3*batch_split:4*batch_split] = out
-
-#        print('In: ' + str(act[name].shape) + '  Out Device: ' + str(output.device)[-1])
     return hook
 
-def reg_hook1(model):
-    for name, module in model.module.named_modules():
-        if 'relu' in name or 'fc' in name:
-            if 'xbmodel' not in name:
-                module.register_forward_hook(get_activation1(name))
-        
 def reg_hook(model):
     for name, module in model.module.named_modules():
         if 'relu' in name or 'fc' in name:
             if 'xbmodel' not in name:
                 module.register_forward_hook(get_activation(name))
+                
+                
+                
+def get_activation_mvm(name):
+    def hook_mvm(module, input, output):
+        out = output.detach()
+        activation_mvm[name] = out
+#        print('In: ' + str(activation[name].shape) + '  Out Device: ' + str(output.device)[-1])
+        
+    return hook_mvm
 
-def save_activations(model, batch_idx, act, labels):
+def reg_hook_mvm(model):
+    for name, module in model.module.named_modules():
+        if 'relu' in name or 'fc' in name:
+            if 'xbmodel' not in name:
+                module.register_forward_hook(get_activation_mvm(name))
+
+def save_activations(model, batch_idx, act, labels, suf):
     global act_path
     for name, module in model.module.named_modules():
         if 'relu' in name or 'fc' in name:
             if 'xbmodel' not in name:
-                torch.save(act[name], os.path.join(act_path, name) + '/act_' + name + '_' + str(batch_idx) + '.pth.tar')
+                torch.save(act[name], os.path.join(act_path, suf) + '/act_' + name + '_' + str(batch_idx) + '.pth.tar')
     torch.save(labels, act_path+'/labels/labels_' +str(batch_idx) + '.pth.tar')
 
-class MyDataParallel(nn.DataParallel):
-    def __getattr(self, name):
-        return getattr(self.module, name)
-    
 #%%
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-b', '--batch-size', default=1000, type=int, metavar='N', 
+    parser.add_argument('-b', '--batch-size', default=128, type=int, metavar='N', 
                 help='mini-batch size (default: 256)')
-    parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
+    parser.add_argument('--dataset', metavar='DATASET', default='cifar100',
                 help='dataset name or folder')
-    parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/multiple_batches/',
-                help='base path for saving activations')
     parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
                 choices=model_names,
                 help='name of the model')
-    parser.add_argument('--pretrained', action='store', default=None, #'../pretrained_models/ideal/resnet20fp_cifar10.pth.tar',
+    parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20fp_cifar100.pth.tar',
                 help='the path to the pretrained model')
     parser.add_argument('--mvm', action='store_true', default=False,
                 help='if running functional simulator backend')
@@ -219,7 +200,10 @@ if __name__=='__main__':
 
     cfg.dump_config()
     
-    root_path = os.path.join(args.savedir, args.dataset, args.model)
+    root_path = os.path.join('activations', args.dataset)
+    
+    if not os.path.exists(root_path):
+        os.makedirs(root_path)
     
     os.environ['CUDA_VISIBLE_DEVICES']= args.gpus
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -264,8 +248,6 @@ if __name__=='__main__':
         for m in model.modules():
             if isinstance(m, nn.Conv2d):
                 weights_conv.append(m.weight.data.clone())
-                #print(m.weight.data)
-                #raw_input()
             elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.BatchNorm1d):
                 bn_data.append(m.weight.data.clone())
                 bn_bias.append(m.bias.data.clone())
@@ -280,8 +262,6 @@ if __name__=='__main__':
         if isinstance(m, (Conv2d_mvm, nn.Conv2d)):
             m.weight.data = weights_conv[i]
             i = i+1
-        #print(m.weight.data)
-        #raw_input()
         elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.BatchNorm1d):
             m.weight.data = bn_data[j]
             m.bias.data = bn_bias[j]
@@ -296,10 +276,12 @@ if __name__=='__main__':
     # Move required model to GPU (if applicable)
     if args.mvm:
         cfg.mvm = True
-        model = model_mvm
     
     model.to(device)#.half() # uncomment for FP16
     model = nn.DataParallel(model)
+    
+    model_mvm.to(device)#.half() # uncomment for FP16
+    model_mvm = nn.DataParallel(model_mvm)
 
     default_transform = {
         'train': get_transform(args.dataset,
@@ -325,7 +307,7 @@ if __name__=='__main__':
 
 #    test(device)
 #    exit(0)
-    act_path = os.path.join(root_path, args.mode)
+    act_path = root_path
     
     if args.mode == 'train':
         dataloader = trainloader
@@ -334,15 +316,15 @@ if __name__=='__main__':
     else:
         raise Exception('Invalid save mode')
         
-    for i in range(1, 20):
-        os.makedirs(act_path + '/relu' + str(i), exist_ok=True)
-    os.makedirs(act_path + '/fc', exist_ok=True)
-    os.makedirs(act_path + '/labels', exist_ok=True)
+#    for i in range(1, 20):
+#        os.makedirs(act_path + '/relu' + str(i), exist_ok=True)
+#    os.makedirs(act_path + '/fc', exist_ok=True)
+#    os.makedirs(act_path + '/labels', exist_ok=True)
     
     
     print("Saving activations to: {}".format(act_path))
     for batch_idx,(data, target) in enumerate(dataloader):
-        reg_hook1(model)
+        reg_hook(model)
         target = target.to(device)
         data_var = torch.autograd.Variable(data.to(device))
         target_var = torch.autograd.Variable(target.to(device))
@@ -358,34 +340,31 @@ if __name__=='__main__':
             if 'xbmodel' not in name:
                 print(name + ': ' + str(activation[name].shape))
 
-    act = {}
-    for name, module in model.module.named_modules():
-        if 'relu' in name and 'xbmodel' not in name:
-            act[name] = torch.zeros([args.batch_size, activation[name].shape[1], activation[name].shape[2], activation[name].shape[3]])
-            print(name + ': ' + str(act[name].shape))
-        if 'fc' in name and 'xbmodel' not in name:
-            act[name] = torch.zeros([args.batch_size, activation[name].shape[1]])
-            print(name + ': ' + str(act[name].shape))
     labels = torch.zeros([args.batch_size])
 
     for batch_idx,(data, target) in enumerate(dataloader):
         base_time = time.time()
         reg_hook(model)
+        reg_hook_mvm(model_mvm)
+        
         target = target.to(device)
         data_var = torch.autograd.Variable(data.to(device))
         target_var = torch.autograd.Variable(target.to(device))
     
         output = model(data_var)
+        outut_mvm = model_mvm(data_var)
         
-#        for name, module in model.module.named_modules():
-#            if 'relu' in name or 'fc' in name:
-#                if 'xbmodel' not in name:
-#                    print('Out: ' + str(act[name].shape))
+
         labels = target
 
-        save_activations(model=model, batch_idx=batch_idx, act=act, labels=labels)
+        save_activations(model=model, batch_idx=batch_idx, act=activation, labels=labels, suf='sram')
+        save_activations(model=model_mvm, batch_idx=batch_idx, act=activation_mvm, labels=labels, suf='rram')
+        
         duration = time.time() - base_time
         print("Batch IDx: {} \t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))
+        
+        if batch_idx > 2:
+            break
     
     print("Done saving activations!")
     exit(0)

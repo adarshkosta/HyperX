@@ -1,0 +1,172 @@
+WARNING: crossbar sizes with different row annd column dimension not supported.
+
+      ==> Arguments:
+          batch_size: 1024
+          dataset: cifar100
+          model: resnet20
+          pretrained: ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar
+          mvm: True
+          nideal: True
+          input_size: None
+          workers: 16
+          half: False
+          gpus: 0,1,2,3
+          rram_layers: 1
+
+      ==> Functional simulator configurations:
+          weight_bits=16
+          weight_bit_frac=12
+          input_bits=16
+          input_bit_frac=12
+          xbar_row_size=128
+          xbar_col_size=128
+          tile_row=2
+          tile_col=2
+          bit_stream=1
+          bit_slice=2
+          adc_bit=14
+          acm_bits=32
+          acm_bit_frac=24
+          mvm=True
+          non-ideality=True
+          
+xbmodel=NN_model(
+  (fc1): Linear(in_features=16512, out_features=500, bias=True)
+  (relu1): ReLU(inplace=True)
+  (do2): Dropout(p=0.5, inplace=False)
+  (fc3): Linear(in_features=500, out_features=128, bias=True)
+)
+          
+xbmodel_weight_path=../xb_models/xbar_128x128_stream1_slice2_100k_600k_250mV.pth.tar
+
+
+DEVICE: cuda
+GPU Id(s) being used: 0,1,2,3
+==> Building RS-model for resnet20 ...
+WARNING: crossbar sizes with different row annd column dimension not supported.
+==> Initializing model with pre-trained parameters ...
+==> Load pretrained model form ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar ...
+Original model accuracy: 69.5999984741211
+Files already downloaded and verified
+[0/10(0%)]	Loss 1.2119 (1.2119)	Prec@1 69.629 (69.629)	Prec@5 89.160 (89.160)
+[1/10(10%)]	Loss 1.1238 (1.1679)	Prec@1 69.531 (69.580)	Prec@5 91.504 (90.332)
+[2/10(20%)]	Loss 1.2022 (1.1793)	Prec@1 68.457 (69.206)	Prec@5 89.160 (89.941)
+[3/10(30%)]	Loss 1.2018 (1.1849)	Prec@1 66.699 (68.579)	Prec@5 90.820 (90.161)
+[4/10(40%)]	Loss 1.2534 (1.1986)	Prec@1 67.383 (68.340)	Prec@5 88.965 (89.922)
+[5/10(50%)]	Loss 1.0998 (1.1822)	Prec@1 70.996 (68.783)	Prec@5 90.918 (90.088)
+[6/10(60%)]	Loss 1.2534 (1.1923)	Prec@1 67.871 (68.652)	Prec@5 88.965 (89.927)
+[7/10(70%)]	Loss 1.2509 (1.1996)	Prec@1 67.480 (68.506)	Prec@5 89.844 (89.917)
+[8/10(80%)]	Loss 1.1144 (1.1902)	Prec@1 69.531 (68.620)	Prec@5 91.504 (90.093)
+[9/10(90%)]	Loss 1.1062 (1.1836)	Prec@1 69.133 (68.660)	Prec@5 91.709 (90.220)
+ * Prec@1 68.660 Prec@5 90.220
+WARNING: crossbar sizes with different row annd column dimension not supported.
+
+      ==> Arguments:
+          batch_size: 1024
+          dataset: cifar100
+          model: resnet20
+          pretrained: ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar
+          mvm: True
+          nideal: True
+          input_size: None
+          workers: 16
+          half: False
+          gpus: 0,1,2,3
+          rram_layers: 3
+
+      ==> Functional simulator configurations:
+          weight_bits=16
+          weight_bit_frac=12
+          input_bits=16
+          input_bit_frac=12
+          xbar_row_size=128
+          xbar_col_size=128
+          tile_row=2
+          tile_col=2
+          bit_stream=1
+          bit_slice=2
+          adc_bit=14
+          acm_bits=32
+          acm_bit_frac=24
+          mvm=True
+          non-ideality=True
+          
+xbmodel=NN_model(
+  (fc1): Linear(in_features=16512, out_features=500, bias=True)
+  (relu1): ReLU(inplace=True)
+  (do2): Dropout(p=0.5, inplace=False)
+  (fc3): Linear(in_features=500, out_features=128, bias=True)
+)
+          
+xbmodel_weight_path=../xb_models/xbar_128x128_stream1_slice2_100k_600k_250mV.pth.tar
+
+
+DEVICE: cuda
+GPU Id(s) being used: 0,1,2,3
+==> Building RS-model for resnet20 ...
+WARNING: crossbar sizes with different row annd column dimension not supported.
+==> Initializing model with pre-trained parameters ...
+==> Load pretrained model form ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar ...
+Original model accuracy: 69.5999984741211
+Files already downloaded and verified
+[0/10(0%)]	Loss 1.2632 (1.2632)	Prec@1 69.238 (69.238)	Prec@5 88.281 (88.281)
+[1/10(10%)]	Loss 1.1718 (1.2175)	Prec@1 68.652 (68.945)	Prec@5 90.625 (89.453)
+[2/10(20%)]	Loss 1.2435 (1.2262)	Prec@1 66.504 (68.132)	Prec@5 88.770 (89.225)
+[3/10(30%)]	Loss 1.2436 (1.2305)	Prec@1 66.992 (67.847)	Prec@5 90.332 (89.502)
+[4/10(40%)]	Loss 1.2977 (1.2440)	Prec@1 65.234 (67.324)	Prec@5 88.086 (89.219)
+[5/10(50%)]	Loss 1.1528 (1.2288)	Prec@1 69.531 (67.692)	Prec@5 90.430 (89.421)
+[6/10(60%)]	Loss 1.2950 (1.2382)	Prec@1 66.309 (67.494)	Prec@5 88.574 (89.300)
+[7/10(70%)]	Loss 1.2969 (1.2456)	Prec@1 66.016 (67.310)	Prec@5 88.867 (89.246)
+[8/10(80%)]	Loss 1.1568 (1.2357)	Prec@1 69.141 (67.513)	Prec@5 90.430 (89.377)
+[9/10(90%)]	Loss 1.1464 (1.2287)	Prec@1 69.005 (67.630)	Prec@5 90.561 (89.470)
+ * Prec@1 67.630 Prec@5 89.470
+WARNING: crossbar sizes with different row annd column dimension not supported.
+
+      ==> Arguments:
+          batch_size: 1024
+          dataset: cifar100
+          model: resnet20
+          pretrained: ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar
+          mvm: True
+          nideal: True
+          input_size: None
+          workers: 16
+          half: False
+          gpus: 0,1,2,3
+          rram_layers: 5
+
+      ==> Functional simulator configurations:
+          weight_bits=16
+          weight_bit_frac=12
+          input_bits=16
+          input_bit_frac=12
+          xbar_row_size=128
+          xbar_col_size=128
+          tile_row=2
+          tile_col=2
+          bit_stream=1
+          bit_slice=2
+          adc_bit=14
+          acm_bits=32
+          acm_bit_frac=24
+          mvm=True
+          non-ideality=True
+          
+xbmodel=NN_model(
+  (fc1): Linear(in_features=16512, out_features=500, bias=True)
+  (relu1): ReLU(inplace=True)
+  (do2): Dropout(p=0.5, inplace=False)
+  (fc3): Linear(in_features=500, out_features=128, bias=True)
+)
+          
+xbmodel_weight_path=../xb_models/xbar_128x128_stream1_slice2_100k_600k_250mV.pth.tar
+
+
+DEVICE: cuda
+GPU Id(s) being used: 0,1,2,3
+==> Building RS-model for resnet20 ...
+WARNING: crossbar sizes with different row annd column dimension not supported.
+==> Initializing model with pre-trained parameters ...
+==> Load pretrained model form ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar ...
+Original model accuracy: 69.5999984741211
+Files already downloaded and verified

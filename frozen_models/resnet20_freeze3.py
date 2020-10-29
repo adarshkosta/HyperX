@@ -93,7 +93,7 @@ class resnet(nn.Module):
         out = self.relu18(out)
         out = self.conv19(out)
         
-        out = self.dropout(out)
+#        out = self.dropout(out)
         
         out = self.bn19(out)
         out+=residual
@@ -104,6 +104,8 @@ class resnet(nn.Module):
         #########Layer################ 
         x=out
         x = self.avgpool(x)
+        
+        
 
         x = x.view(x.size(0), -1)
 
@@ -195,7 +197,7 @@ class ResNet_cifar(resnet):
         #########Layer################ 
         self.avgpool=nn.AvgPool2d(8)
         
-        self.dropout = nn.Dropout2d(p=p, inplace=True)
+        self.dropout = nn.Dropout2d(p=p)
         
         self.bn20= nn.BatchNorm1d(64*self.inflate)
         self.fc=nn.Linear(64*self.inflate,num_classes, bias = False)

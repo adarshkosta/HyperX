@@ -224,19 +224,19 @@ parser.add_argument('--savedir', default='../pretrained_models/frozen/',
 
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
             help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', default=20, type=int, metavar='N',
+parser.add_argument('--epochs', default=250, type=int, metavar='N',
             help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
             help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=128, type=int,
             metavar='N', help='mini-batch size (default: 128)')
-parser.add_argument('--lr', '--learning-rate', default=0.001, type=float,
+parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
             metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
             help='momentum')
-parser.add_argument('--weight-decay', '--wd', default=5e-4, type=float, metavar='W', 
+parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar='W', 
             help='weight decay (default: 5e-4)')
-parser.add_argument('--milestones', default=[8, 15], 
+parser.add_argument('--milestones', default=[50, 100, 150], 
             help='Milestones for LR decay')
 parser.add_argument('--gamma', default=0.8, type=float,
             help='learning rate decay')
@@ -262,7 +262,7 @@ parser.add_argument('--save-every', dest='save_every',
                     help='Saves checkpoints at every specified number of epochs',
                     type=int, default=10)
 parser.add_argument('--gpus', default='0', help='gpus (default: 0)')
-parser.add_argument('--frozen-layers', default=1, type=int, help='number of frozen layers in the model')
+parser.add_argument('--frozen-layers', default=3, type=int, help='number of frozen layers in the model')
 
 args = parser.parse_args()
 
@@ -402,7 +402,9 @@ else:
     raise NotImplementedError
 
 lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer,
-                                                    milestones=args.milestones, gamma=args.gamma, last_epoch=args.start_epoch - 1)
+                                                    milestones=args.milestones, 
+                                                    gamma=args.gamma, 
+                                                    last_epoch=args.start_epoch - 1)
 
 
 if args.evaluate:

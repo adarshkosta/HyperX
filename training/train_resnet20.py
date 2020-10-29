@@ -57,15 +57,17 @@ from utils.preprocess import get_transform
 from utils.utils import *
 
 #Seeding
-new_manual_seed = 0
-torch.manual_seed(new_manual_seed)
-torch.cuda.manual_seed_all(new_manual_seed)
-np.random.seed(new_manual_seed)
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
-random.seed(new_manual_seed)
-os.environ['PYTHONHASHSEED'] = str(new_manual_seed)
+def reset_seed():
+    new_manual_seed = 0
+    torch.manual_seed(new_manual_seed)
+    torch.cuda.manual_seed_all(new_manual_seed)
+    np.random.seed(new_manual_seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    random.seed(new_manual_seed)
+    os.environ['PYTHONHASHSEED'] = str(new_manual_seed)
 
+reset_seed()
 #Create available models list
 model_names = []
 for path, dirs, files in os.walk(models_dir):
@@ -102,6 +104,12 @@ parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
 parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar='W', 
                     help='weight decay (default: 1e-4)')
+
+parser.add_argument('--milestones', default=[100, 150], 
+            help='Milestones for LR decay')
+parser.add_argument('--gamma', default=0.1, type=float,
+            help='learning rate decay')
+
 parser.add_argument('--input_size', type=int, default=None,
                     help='image input size')
 parser.add_argument('--print-freq', '-p', default=50, type=int,
@@ -204,7 +212,10 @@ def main():
                                 weight_decay=args.weight_decay)
 
     lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,
-                                                        milestones=[100, 150], last_epoch=args.start_epoch - 1)
+                                                        milestones=args.milestones, 
+                                                        gamma=args.gamma, 
+                                                        last_epoch=args.start_epoch - 1)
+
 
 
     if args.evaluate:
