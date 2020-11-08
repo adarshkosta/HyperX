@@ -245,21 +245,40 @@ if args.half:
 
 model = torch.nn.DataParallel(model)
 
-default_transform = {
-    'train': get_transform(args.dataset,
-                           input_size=args.input_size, augment=True),
-    'eval': get_transform(args.dataset,
-                          input_size=args.input_size, augment=False)
-}
-transform = getattr(model, 'input_transform', default_transform)
+image_transforms = {
+        'train':
+            transforms.Compose([
+                    # transforms.Resize(size=40),
+                    # transforms.CenterCrop(size=32),
+                    transforms.ToTensor(),
+                    transforms.Normalize([0.485, 0.456, 0.406],
+                                         [0.229, 0.224, 0.225])
+                    ]),
+        'eval':
+            transforms.Compose([
+                    # transforms.Resize(size=40),
+                    # transforms.CenterCrop(size=32),
+                    transforms.ToTensor(),
+                    transforms.Normalize([0.485, 0.456, 0.406],
+                                         [0.229, 0.224, 0.225])
+                    ]),
+        }
 
-train_data = get_dataset(args.dataset, 'train', transform['train'])
+# default_transform = {
+#     'train': get_transform(args.dataset,
+#                            input_size=args.input_size, augment=True),
+#     'eval': get_transform(args.dataset,
+#                           input_size=args.input_size, augment=False)
+# }
+# transform = getattr(model, 'input_transform', default_transform)
+
+train_data = get_dataset(args.dataset, 'train', image_transforms['train'], download=True)
 train_loader = torch.utils.data.DataLoader(
     train_data,
     batch_size=args.batch_size, shuffle=False,
     num_workers=args.workers, pin_memory=True)
 
-test_data = get_dataset(args.dataset, 'val', transform['eval'], download=True)
+test_data = get_dataset(args.dataset, 'val', image_transforms['eval'], download=True)
 test_loader = torch.utils.data.DataLoader(
     test_data,
     batch_size=args.batch_size, shuffle=False,

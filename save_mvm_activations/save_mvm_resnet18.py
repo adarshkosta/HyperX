@@ -180,9 +180,6 @@ def save_activations(model, batch_idx, act, labels):
                 torch.save(act[name], os.path.join(act_path, name) + '/act_' + name + '_' + str(batch_idx) + '.pth.tar')
     torch.save(labels, act_path+'/labels/labels_' +str(batch_idx) + '.pth.tar')
 
-class MyDataParallel(nn.DataParallel):
-    def __getattr(self, name):
-        return getattr(self.module, name)
     
 #%%
 if __name__=='__main__':
@@ -204,6 +201,9 @@ if __name__=='__main__':
                 help='Add xbar non-idealities')
     parser.add_argument('--mode', default='test', 
                 help='save activations for \'train\' or \'test\' sets')
+
+    parser.add_argument('--start-batch', type=int, default=0,
+                help='Start batch number')  
     parser.add_argument('--input_size', type=int, default=None,
                 help='image input size')
     parser.add_argument('-j', '--workers', default=8, type=int, metavar='J',
@@ -336,9 +336,6 @@ if __name__=='__main__':
             if m.bias is not None:
                m.bias.data.uniform_(-stdv, stdv)
 
-
-    # Move required model to GPU (if applicable)
-#    summary(model.to(device), (3,224,224))
     if args.mvm:
         cfg.mvm = True
         model = model_mvm

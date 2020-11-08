@@ -78,8 +78,6 @@ model_names.sort()
 # Evaluate on a model
 def test(test_loader, model, criterion, device):
     global best_acc
-    flag = True
-    training = False
     model.eval()
     losses = AverageMeter()
     top1 = AverageMeter()
@@ -111,6 +109,7 @@ def test(test_loader, model, criterion, device):
 
     print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'
           .format(top1=top1, top5=top5))
+    
     acc = top1.avg
     return acc, losses.avg
 
@@ -254,21 +253,41 @@ if args.half:
     model.half() # FP16
 
 model = torch.nn.DataParallel(model)
-default_transform = {
-    'train': get_transform(args.dataset,
-                           input_size=args.input_size, augment=True),
-    'eval': get_transform(args.dataset,
-                          input_size=args.input_size, augment=False)
-}
-transform = getattr(model, 'input_transform', default_transform)
 
-train_data = get_dataset(args.dataset, 'train', transform['train'])
+image_transforms = {
+        'train':
+            transforms.Compose([
+                    # transforms.Resize(size=40),
+                    # transforms.CenterCrop(size=32),
+                    transforms.ToTensor(),
+                    transforms.Normalize([0.485, 0.456, 0.406],
+                                         [0.229, 0.224, 0.225])
+                    ]),
+        'eval':
+            transforms.Compose([
+                    # transforms.Resize(size=256),
+                    # transforms.CenterCrop(size=224),
+                    transforms.ToTensor(),
+                    transforms.Normalize([0.485, 0.456, 0.406],
+                                         [0.229, 0.224, 0.225])
+                    ]),
+        }
+
+# default_transform = {
+#     'train': get_transform(args.dataset,
+#                            input_size=args.input_size, augment=True),
+#     'eval': get_transform(args.dataset,
+#                           input_size=args.input_size, augment=False)
+# }
+# transform = getattr(model, 'input_transform', default_transform)
+
+train_data = get_dataset(args.dataset, 'train', image_transforms['train'], download=True)
 train_loader = torch.utils.data.DataLoader(
     train_data,
     batch_size=args.batch_size, shuffle=False,
     num_workers=args.workers, pin_memory=True)
 
-test_data = get_dataset(args.dataset, 'val', transform['eval'], download=True)
+test_data = get_dataset(args.dataset, 'val', image_transforms['eval'], download=True)
 test_loader = torch.utils.data.DataLoader(
     test_data,
     batch_size=args.batch_size, shuffle=False,

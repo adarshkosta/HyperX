@@ -124,7 +124,7 @@ def train(train_loader, model, criterion, optimizer, epoch, device):
     
     print('Total train loss: {loss.avg:.4f}\n'.format(loss=losses))
 
-# Evaluate
+# Evaluate on a model
 def test(test_loader, model, criterion, device):
     """
     Run evaluation
@@ -133,21 +133,18 @@ def test(test_loader, model, criterion, device):
     data_time = AverageMeter()
     losses = AverageMeter()
     top1 = AverageMeter()
+    top5 = AverageMeter()
 
     # switch to evaluate mode
     model.eval()
 
-    end = time.time()
-    
-    batch_freq = int(len(test_loader)/args.print_freq)
-    
     with torch.no_grad():
         for batch_idx, batch in enumerate(test_loader):
-            # measure data loading time
-            data_time.update(time.time() - end)
-            
             input_var = batch['data']
             target_var = batch['target'].type(torch.LongTensor)
+            
+#            print('Input shape:', input_var.shape)
+#            print('Target shape:', target_var.shape)
     
             if args.half:
                 input_var = input_var.half()
@@ -158,33 +155,81 @@ def test(test_loader, model, criterion, device):
             output = model(input_var)
             loss = criterion(output, target_var)
 
-            output = output.float()
-            loss = loss.float()
-            
-            # measure accuracy and record loss
-            prec1 = accuracy(output.data, batch['target'].to(device))[0]
-            losses.update(loss.item(), batch['data'].size(0))
-            top1.update(prec1.item(), batch['data'].size(0))
+            prec1, prec5 = accuracy(output.data, target_var.data, topk=(1, 5))
+            losses.update(loss.data, batch['data'].size(0))
+            top1.update(prec1[0], batch['data'].size(0))
+            top5.update(prec5[0], batch['data'].size(0))
     
-            # measure elapsed time
-            batch_time.update(time.time() - end)
-            end = time.time()
-            
-            if (batch_idx+1) % batch_freq == 0:
-                print('Test: [{0}/{1}]\t'
-                      'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
-                          batch_idx, len(test_loader), loss=losses, top1=top1))
-    print('Prec@1: {top1.avg:.3f}'.format(top1=top1))
-    
+            if batch_idx % 1 == 0:
+                    print('[{0}/{1}({2:.0f}%)]\t'
+                        'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                        'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+                        'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
+                        batch_idx, len(test_loader), 100. *float(batch_idx)/len(test_loader),
+                        loss=losses, top1=top1, top5=top5))
 
-    return top1.avg
+
+    print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'
+          .format(top1=top1, top5=top5))
+    acc = top1.avg
+    return acc, losses.avg
+
+## Evaluate
+#def test(test_loader, model, criterion, device):
+#    """
+#    Run evaluation
+#    """
+#    batch_time = AverageMeter()
+#    data_time = AverageMeter()
+#    losses = AverageMeter()
+#    top1 = AverageMeter()
+#
+#    # switch to evaluate mode
+#    model.eval()
+#
+#    end = time.time()
+#    
+#    batch_freq = int(len(test_loader)/args.print_freq)
+#    
+#    with torch.no_grad():
+#        for batch_idx, batch in enumerate(test_loader):
+#            # measure data loading time
+#            data_time.update(time.time() - end)
+#            
+#            input_var = batch['data']
+#            target_var = batch['target'].type(torch.LongTensor)
+#    
+#            if args.half:
+#                input_var = input_var.half()
+#    
+#            input_var, target_var = input_var.to(device), target_var.to(device)
+#            
+#            # compute output
+#            output = model(input_var)
+#            loss = criterion(output, target_var)
+#
+#            output = output.float()
+#            loss = loss.float()
+#            
+#            # measure accuracy and record loss
+#            prec1 = accuracy(output.data, batch['target'].to(device))[0]
+#            losses.update(loss.item(), batch['data'].size(0))
+#            top1.update(prec1.item(), batch['data'].size(0))
+#    
+#            # measure elapsed time
+#            batch_time.update(time.time() - end)
+#            end = time.time()
+#            
+#            if (batch_idx+1) % batch_freq == 0:
+#                print('Test: [{0}/{1}]\t'
+#                      'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
+#                          batch_idx, len(test_loader), loss=losses, top1=top1))
+#    print('Prec@1: {top1.avg:.3f}'.format(top1=top1))
+#    
+#
+#    return top1.avg
   
 
-
-class MyDataParallel(nn.DataParallel):
-    def __getattr(self, name):
-        return getattr(self.module, name)
-    
 class SplitActivations_Dataset(Dataset):
     def __init__(self, datapath, tgtpath, train_len = True):
         self.datapath = datapath
@@ -193,7 +238,11 @@ class SplitActivations_Dataset(Dataset):
         
     def __getitem__(self, index):
 #        print('Index = ', index)
-        x = torch.load(self.datapath+'/act_relu'+str(args.frozen_layers)+'_'+str(index)+'.pth.tar')
+        if args.frozen_layers == 20:
+            x = torch.load(os.path.join(self.datapath, 'act_fc'+'_'+str(index)+'.pth.tar'))
+        else: 
+            x = torch.load(os.path.join(self.datapath, 'act_relu'+str(args.frozen_layers)+'_'+str(index)+'.pth.tar'))
+        
         y = torch.load(self.tgtpath+'/labels_'+str(index)+'.pth.tar')
         return {'data': x[0], 'target': y[0]}
     
@@ -211,7 +260,7 @@ def print_args(args):
 
 #Parse arguments
 parser = argparse.ArgumentParser(description= ' Re-training')
-parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
+parser.add_argument('--dataset', metavar='DATASET', default='cifar100',
             help='dataset name')
 parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
             choices=model_names,
@@ -247,7 +296,7 @@ parser.add_argument('--optim', type=str, default='sgd',
 parser.add_argument('--dropout', type=float, default=0.5,
             help='Dropout probability')
 
-parser.add_argument('--pretrained', action='store', default=None, #'../pretrained_models/ideal/resnet20fp_cifar10.pth.tar',
+parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20fp_cifar100.pth.tar',
             help='the path to the ideal pretrained model')
 parser.add_argument('--print-freq', '-p', default=5, type=int,
                 metavar='N', help='print frequency (default: 5)')
@@ -288,9 +337,9 @@ else:
     raise Exception(args.model+' is currently not supported')
 
 if args.dataset == 'cifar10':
-    model = model.net(num_classes=10, p=args.dropout)
+    model = model.net(num_classes=10)
 elif args.dataset == 'cifar100':
-    model = model.net(num_classes=100, p=args.dropout)
+    model = model.net(num_classes=100)
 else:
   raise Exception(args.dataset + 'is currently not supported')
 
@@ -368,6 +417,7 @@ tgtpath_train = str(args.load_dir)+str(args.dataset)+'/'+str(args.model)+'/train
 datapath_test = str(args.load_dir)+str(args.dataset)+'/'+str(args.model)+'/test/relu' + str(args.frozen_layers)
 tgtpath_test = str(args.load_dir)+str(args.dataset)+'/'+str(args.model)+'/test/labels'
 
+print(datapath_test, tgtpath_test)
 
 train_data = SplitActivations_Dataset(datapath_train, tgtpath_train, train_len = True)
 train_loader = torch.utils.data.DataLoader(
@@ -408,7 +458,7 @@ lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer,
 
 
 if args.evaluate:
-    acc = test(test_loader, model, criterion, device)
+    acc, loss = test(test_loader, model, criterion, device)
     print('Prec@1 with ' + str(args.frozen_layers) + ' layers frozen = ', acc)
 else:
     acc = test(test_loader, model, criterion, device)
@@ -426,7 +476,7 @@ else:
         train(train_loader, model, criterion, optimizer, epoch, device)
     
         # evaluate on validation set
-        acc = test(test_loader, model, criterion, device)
+        acc, loss = test(test_loader, model, criterion, device)
         
         lr_scheduler.step()
     

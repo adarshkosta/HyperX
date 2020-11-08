@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Sep 25 22:42:24 2020
+Created on Fri Oct 29 22:42:24 2020
 
 @author: akosta 
 """
@@ -9,7 +9,6 @@ import os
 import sys
 import time
 import collections
-
 
 #Filepath handling
 root_dir = os.path.dirname(os.getcwd())
@@ -39,8 +38,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision.utils import save_image
 from torchsummary import summary
-
-#torch.set_default_tensor_type(torch.HalfTensor)
 
 # User-defined packages
 import models
@@ -86,7 +83,8 @@ def test(test_loader, model, criterion, device):
         target_var = target.to(device)
 
         
-        output = model(data_var)
+        output_acts = model(data_var)
+        output = output_acts['out']
         
         loss= criterion(output, target_var)
         prec1, prec5 = accuracy(output.data, target_var.data, topk=(1, 5))
@@ -109,36 +107,7 @@ def test(test_loader, model, criterion, device):
     
     acc = top1.avg
     return acc, losses.avg
-  
-# Intermediate feature maps
-activation = {}
-activation_mvm = {}
-
-def get_activation(name):
-    def hook(module, input, output):
-        activation[name] = output
-        
-    return hook
-
-def reg_hook(model):
-    for name, module in model.module.named_modules():
-        if 'relu' in name or 'fc' in name:
-            if 'xbmodel' not in name:
-                module.register_forward_hook(get_activation(name))
-                
-                
-                
-def get_activation_mvm(name):
-    def hook_mvm(module, input, output):
-        activation_mvm[name] = output
-        
-    return hook_mvm
-
-def reg_hook_mvm(model):
-    for name, module in model.module.named_modules():
-        if 'relu' in name or 'fc' in name:
-            if 'xbmodel' not in name:
-                module.register_forward_hook(get_activation_mvm(name))
+ 
 
 def save_activations(model, batch_idx, act, labels, suf):
     global act_path
@@ -147,7 +116,7 @@ def save_activations(model, batch_idx, act, labels, suf):
             if 'xbmodel' not in name:
                 torch.save(act[name], os.path.join(act_path, suf, name) + '/act_' + name + '_' + str(batch_idx) + '.pth.tar')
     torch.save(labels, os.path.join(act_path, suf, 'labels', 'labels_' +str(batch_idx) + '.pth.tar'))
-    torch.save(act['out'], os.path.join(act_path, suf, 'out', 'act_out_' +str(batch_idx) + '.pth.tar'))
+    torch.save(act['out'], os.path.join(act_path, suf, 'out' + '/act_out' + '_' + str(batch_idx) + '.pth.tar'))
 
 #%%
 if __name__=='__main__':
@@ -205,9 +174,9 @@ if __name__=='__main__':
     print('GPU Id(s) being used:', args.gpus)
 
     print('==> Building model and model_mvm for', args.model, '...')
-    if (args.model in model_names and args.model+'_mvm' in model_names):
-        model = (__import__(args.model)) #import module using the string/variable_name
-        model_mvm = (__import__(args.model+'_mvm'))
+    if (args.model+'_direct' in model_names and args.model+'_mvm_direct' in model_names):
+        model = (__import__(args.model+'_direct')) #import module using the string/variable_name
+        model_mvm = (__import__(args.model+'_mvm_direct'))
     else:
         raise Exception(args.model+'is currently not supported')
         
@@ -322,59 +291,39 @@ if __name__=='__main__':
         raise Exception('Invalid save mode')
         
     for i in range(1, 20):
-        os.makedirs(act_path + '/rram/relu' + str(i), exist_ok=True)
-        os.makedirs(act_path + '/sram/relu' + str(i), exist_ok=True)
-    os.makedirs(act_path + '/rram/fc', exist_ok=True)
-    os.makedirs(act_path + '/rram/labels', exist_ok=True)
-    os.makedirs(act_path + '/sram/fc', exist_ok=True)
-    os.makedirs(act_path + '/sram/labels', exist_ok=True)
-    os.makedirs(act_path + '/rram/out', exist_ok=True)
-    os.makedirs(act_path + '/sram/out', exist_ok=True)
+        os.makedirs(act_path + '/rram_direct/relu' + str(i), exist_ok=True)
+        os.makedirs(act_path + '/sram_direct/relu' + str(i), exist_ok=True)
+    os.makedirs(act_path + '/rram_direct/fc', exist_ok=True)
+    os.makedirs(act_path + '/rram_direct/labels', exist_ok=True)
+    os.makedirs(act_path + '/sram_direct/fc', exist_ok=True)
+    os.makedirs(act_path + '/sram_direct/labels', exist_ok=True)
+    os.makedirs(act_path + '/sram_direct/out', exist_ok=True)
+    os.makedirs(act_path + '/rram_direct/out', exist_ok=True)
+
     
     acc, loss = test(dataloader, model, criterion, device)
     
     print("Saving activations to: {}".format(act_path))
-    for batch_idx,(data, target) in enumerate(dataloader):
-        reg_hook(model)
-        
-        data_var = data.to(device)
-        target_var = target.to(device)
-        print('Dry run for computing activation sizes...')
-        output = model(data_var)
-#        print(activation['relu1'].shape())
-        print('Dry run finished...')
-        
-        break
-    
-    for name, module in model.module.named_modules():
-        if 'relu' in name or 'fc' in name:
-            if 'xbmodel' not in name:
-                print(name + ': ' + str(activation[name].shape))
+
 
     labels = torch.zeros([args.batch_size])
 
     for batch_idx,(data, target) in enumerate(dataloader):
 
         base_time = time.time()
-        reg_hook(model)
-        reg_hook_mvm(model_mvm)
         
-        data_var = data.to(device)
-        target_var = target.to(device)
-
-#        target = target.to(device)
-#        data_var = torch.autograd.Variable(data.to(device))
-#        target_var = torch.autograd.Variable(target.to(device))
+#        data_var = data.to(device)
+#        target_var = target.to(device)
+        
+        target = target.to(device)
+        data_var = torch.autograd.Variable(data.to(device))
+        target_var = torch.autograd.Variable(target.to(device))
     
-        output = model(data_var)
-        output_mvm = model_mvm(data_var)
-        
-        activation['out'] = output
-        activation_mvm['out'] = output_mvm
+        acts = model(data_var)
+#        acts_mvm = model_mvm(data_var)
 
-
-        save_activations(model=model, batch_idx=batch_idx, act=activation, labels=target, suf='sram')
-        save_activations(model=model_mvm, batch_idx=batch_idx, act=activation_mvm, labels=target, suf='rram')
+        save_activations(model=model, batch_idx=batch_idx, act=acts, labels=target, suf='sram_direct')
+#        save_activations(model=model_mvm, batch_idx=batch_idx, act=acts_mvm, labels=labels, suf='rram_direct')
         
         duration = time.time() - base_time
         print("Batch IDx: {} \t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))

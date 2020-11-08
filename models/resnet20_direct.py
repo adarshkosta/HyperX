@@ -3,16 +3,6 @@ import torch
 import torch.nn.functional as F
 import sys
 import time
-
-import config as cfg
-
-if cfg.if_bit_slicing and not cfg.dataset:
-    from src.pytorch_mvm_class_v3 import *
-elif cfg.dataset:
-    from geneix.pytorch_mvm_class_dataset import *   # import mvm class from geneix folder
-else:
-    from src.pytorch_mvm_class_no_bitslice import *
-    
 __all__ = ['net']
 
 class resnet(nn.Module):
@@ -21,105 +11,167 @@ class resnet(nn.Module):
         super(resnet, self).__init__()
 
     def forward(self, x):
+        acts = {}
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu1(x)
+
+        acts['relu1'] = x
+
         residual = x.clone() 
         out = x.clone()
         out = self.conv2(out)
         out = self.bn2(out)
         out = self.relu2(out)
+
+        acts['relu2'] = out
+
         out = self.conv3(out)
         out = self.bn3(out)
         out+=residual
         out = self.relu3(out)
+
+        acts['relu3'] = out
+
         residual = out.clone() 
         ################################### 
         out = self.conv4(out)
         out = self.bn4(out)
         out = self.relu4(out)
+
+        acts['relu4'] = out
+
         out = self.conv5(out)
         out = self.bn5(out)
         out+=residual
         out = self.relu5(out)
+
+        acts['relu5'] = out
+
         residual = out.clone() 
         ################################### 
         out = self.conv6(out)
         out = self.bn6(out)
         out = self.relu6(out)
+
+        acts['relu6'] = out
+
         out = self.conv7(out)
         out = self.bn7(out)
         out+=residual
         out = self.relu7(out)
+
+        acts['relu7'] = out
+
         residual = out.clone() 
         ################################### 
-        #########Layer################ 
         out = self.conv8(out)
         out = self.bn8(out)
         out = self.relu8(out)
+
+        acts['relu8'] = out
+
         out = self.conv9(out)
         out = self.bn9(out)
         residual = self.resconv1(residual)
         out+=residual
         out = self.relu9(out)
+
+        acts['relu9'] = out
+
         residual = out.clone() 
         ################################### 
         out = self.conv10(out)
         out = self.bn10(out)
         out = self.relu10(out)
+
+        acts['relu10'] = out
+
         out = self.conv11(out)
         out = self.bn11(out)
         out+=residual
         out = self.relu11(out)
+
+        acts['relu11'] = out
+
         residual = out.clone() 
         ################################### 
         out = self.conv12(out)
         out = self.bn12(out)
         out = self.relu12(out)
+
+        acts['relu12'] = out
+
         out = self.conv13(out)
         out = self.bn13(out)
         out+=residual
         out = self.relu13(out)
+
+        acts['relu13'] = out
+
         residual = out.clone() 
         ################################### 
-        #########Layer################ 
         out = self.conv14(out)
         out = self.bn14(out)
         out = self.relu14(out)
+
+        acts['relu14'] = out
+
         out = self.conv15(out)
         out = self.bn15(out)
         residual = self.resconv2(residual)
         out+=residual
         out = self.relu15(out)
+
+        acts['relu15'] = out
+
         residual = out.clone() 
         ################################### 
         out = self.conv16(out)
         out = self.bn16(out)
         out = self.relu16(out)
+
+        acts['relu16'] = out
+
         out = self.conv17(out)
         out = self.bn17(out)
         out+=residual
         out = self.relu17(out)
+
+        acts['relu17'] = out
+
         residual = out.clone() 
         ################################### 
         out = self.conv18(out)
         out = self.bn18(out)
         out = self.relu18(out)
+
+        acts['relu18'] = out
+
         out = self.conv19(out)
         out = self.bn19(out)
         out+=residual
         out = self.relu19(out)
+
+        acts['relu19'] = out
+
         residual = out.clone() 
         ################################### 
-        #########Layer################ 
+        
         x=out
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
         x = self.bn20(x)
         x = self.fc(x)
+
+        acts['fc'] = x
+
         x = self.bn21(x)
         x = self.logsoftmax(x)
-        return x
+        
+        acts['out'] = x
+
+        return acts
 
 class ResNet_cifar(resnet):
 
@@ -210,7 +262,7 @@ class ResNet_cifar(resnet):
         #########Layer################ 
         self.avgpool=nn.AvgPool2d(8)
         self.bn20= nn.BatchNorm1d(64*self.inflate)
-        self.fc= Linear_mvm(64*self.inflate,num_classes, bias=False)
+        self.fc=nn.Linear(64*self.inflate,num_classes, bias=False)
         self.bn21= nn.BatchNorm1d(num_classes)
         self.logsoftmax=nn.LogSoftmax(dim=1)
 

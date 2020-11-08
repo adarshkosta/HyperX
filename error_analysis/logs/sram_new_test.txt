@@ -1,0 +1,40 @@
+
+      ==> Arguments:
+          dataset: cifar100
+          model: resnet20
+          batch_size: 1024
+          load_dir: /home/nano01/a/esoufler/activations/error_analysis/one_batch/
+          type: sram_new
+          savedir: ../pretrained_models/frozen/
+          pretrained: ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar
+          input_size: None
+          workers: 16
+          half: False
+          gpus: 1
+          frozen_layers: 1
+DEVICE: cuda
+GPU Id(s) being used: 1
+==> Building model for resnet20 ...
+==> Initializing model with pre-trained parameters ...
+==> Load pretrained model form ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar ...
+Original model accuracy: 69.5999984741211
+
+      ==> Arguments:
+          dataset: cifar100
+          model: resnet20
+          batch_size: 1024
+          load_dir: /home/nano01/a/esoufler/activations/error_analysis/one_batch/
+          type: sram_new
+          savedir: ../pretrained_models/frozen/
+          pretrained: ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar
+          input_size: None
+          workers: 16
+          half: False
+          gpus: 1
+          frozen_layers: 3
+DEVICE: cuda
+GPU Id(s) being used: 1
+==> Building model for resnet20 ...
+==> Initializing model with pre-trained parameters ...
+==> Load pretrained model form ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar ...
+Original model accuracy: 69.5999984741211

@@ -112,55 +112,79 @@ def test(test_loader, model, criterion, device):
   
 # Intermediate feature maps
 activation = {}
-activation_mvm = {}
+act = {}
 
-def get_activation(name):
-    def hook(module, input, output):
+def get_activation1(name):
+    def hook1(module, input, output):
         activation[name] = output
         
+    return hook1
+
+def get_activation(name): #only works with 4 GPUs
+    def hook(module, input, output):
+        batch_split = int(args.batch_size/4)
+        
+        if len(args.gpus) == 7: #4 GPUS
+            batch_split = int(args.batch_size/4) #0,1,2,3
+            
+            if str(output.device)[-1] == args.gpus[0]:
+                act[name][0:batch_split] = output
+            elif str(output.device)[-1] == args.gpus[2]:
+                act[name][batch_split:2*batch_split] = output
+            elif str(output.device)[-1] == args.gpus[4]:
+                act[name][2*batch_split:3*batch_split] = output
+            elif str(output.device)[-1] == args.gpus[6]:
+                act[name][3*batch_split:4*batch_split] = output
+            
+        elif len(args.gpus) == 3: #2 GPUS
+            batch_split = int(args.batch_size/2) #0,1 config ONLY
+            
+            if str(output.device)[-1] == args.gpus[0]:
+                act[name][0:batch_split] = output
+            elif str(output.device)[-1] == args.gpus[2]:
+                act[name][batch_split:2*batch_split] = output
+            
+        elif len(args.gpus) == 1: # 1 GPU
+            act[name] = output
+        else:
+            raise Exception('Odd multi-gpu numbers (3) not supported.')
+            
     return hook
 
+def reg_hook1(model):
+    for name, module in model.module.named_modules():
+        if 'relu' in name or 'fc' in name:
+            if 'xbmodel' not in name:
+                module.register_forward_hook(get_activation1(name))
+        
 def reg_hook(model):
     for name, module in model.module.named_modules():
         if 'relu' in name or 'fc' in name:
             if 'xbmodel' not in name:
                 module.register_forward_hook(get_activation(name))
-                
-                
-                
-def get_activation_mvm(name):
-    def hook_mvm(module, input, output):
-        activation_mvm[name] = output
-        
-    return hook_mvm
 
-def reg_hook_mvm(model):
-    for name, module in model.module.named_modules():
-        if 'relu' in name or 'fc' in name:
-            if 'xbmodel' not in name:
-                module.register_forward_hook(get_activation_mvm(name))
-
-def save_activations(model, batch_idx, act, labels, suf):
+def save_activations(model, batch_idx, act, labels):
     global act_path
     for name, module in model.module.named_modules():
         if 'relu' in name or 'fc' in name:
             if 'xbmodel' not in name:
-                torch.save(act[name], os.path.join(act_path, suf, name) + '/act_' + name + '_' + str(batch_idx) + '.pth.tar')
-    torch.save(labels, os.path.join(act_path, suf, 'labels', 'labels_' +str(batch_idx) + '.pth.tar'))
-    torch.save(act['out'], os.path.join(act_path, suf, 'out', 'act_out_' +str(batch_idx) + '.pth.tar'))
+                torch.save(act[name], os.path.join(act_path, name, 'act_' + name + '_' + str(batch_idx) + '.pth.tar'))
+    torch.save(labels, os.path.join(act_path, 'labels', 'labels_' +str(batch_idx) + '.pth.tar'))
+    torch.save(act['out'], os.path.join(act_path,'out', 'act_out_' +str(batch_idx) + '.pth.tar'))
 
+    
 #%%
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-b', '--batch-size', default=250, type=int, metavar='N', 
+    parser.add_argument('-b', '--batch-size', default=1000, type=int, metavar='N', 
                 help='mini-batch size (default: 256)')
     parser.add_argument('--dataset', metavar='DATASET', default='cifar100',
                 help='dataset name or folder')
+    parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/multiple_batches/',
+                help='base path for saving activations')
     parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
                 choices=model_names,
                 help='name of the model')
-    parser.add_argument('--savedir', type=str, default='/home/nano01/a/esoufler/activations/error_analysis/multiple_batches/',
-                help='Save Directory')
     parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20fp_cifar100.pth.tar',
                 help='the path to the pretrained model')
     parser.add_argument('--mvm', action='store_true', default=False,
@@ -194,10 +218,7 @@ if __name__=='__main__':
 
     cfg.dump_config()
     
-    root_path = os.path.join(args.savedir, args.dataset)
-    
-    if not os.path.exists(root_path):
-        os.makedirs(root_path)
+    root_path = os.path.join(args.savedir, args.dataset, args.model)
     
     os.environ['CUDA_VISIBLE_DEVICES']= args.gpus
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -312,7 +333,7 @@ if __name__=='__main__':
 
 #    test(device)
 #    exit(0)
-    act_path = root_path
+    act_path = os.path.join(root_path, args.mode)
     
     if args.mode == 'train':
         dataloader = train_loader
@@ -322,26 +343,19 @@ if __name__=='__main__':
         raise Exception('Invalid save mode')
         
     for i in range(1, 20):
-        os.makedirs(act_path + '/rram/relu' + str(i), exist_ok=True)
-        os.makedirs(act_path + '/sram/relu' + str(i), exist_ok=True)
-    os.makedirs(act_path + '/rram/fc', exist_ok=True)
-    os.makedirs(act_path + '/rram/labels', exist_ok=True)
-    os.makedirs(act_path + '/sram/fc', exist_ok=True)
-    os.makedirs(act_path + '/sram/labels', exist_ok=True)
-    os.makedirs(act_path + '/rram/out', exist_ok=True)
-    os.makedirs(act_path + '/sram/out', exist_ok=True)
+        os.makedirs(act_path + '/relu' + str(i), exist_ok=True)
+    os.makedirs(act_path + '/fc', exist_ok=True)
+    os.makedirs(act_path + '/labels', exist_ok=True)
+    os.makedirs(act_path + '/out', exist_ok=True)
     
-    acc, loss = test(dataloader, model, criterion, device)
     
     print("Saving activations to: {}".format(act_path))
     for batch_idx,(data, target) in enumerate(dataloader):
-        reg_hook(model)
-        
+        reg_hook1(model)
         data_var = data.to(device)
         target_var = target.to(device)
         print('Dry run for computing activation sizes...')
         output = model(data_var)
-#        print(activation['relu1'].shape())
         print('Dry run finished...')
         
         break
@@ -351,35 +365,28 @@ if __name__=='__main__':
             if 'xbmodel' not in name:
                 print(name + ': ' + str(activation[name].shape))
 
+    for name, module in model.module.named_modules():
+        if 'relu' in name and 'xbmodel' not in name:
+            act[name] = torch.zeros([args.batch_size, activation[name].shape[1], activation[name].shape[2], activation[name].shape[3]])
+            print(name + ': ' + str(act[name].shape))
+        if 'fc' in name and 'xbmodel' not in name:
+            act[name] = torch.zeros([args.batch_size, activation[name].shape[1]])
+            print(name + ': ' + str(act[name].shape))
     labels = torch.zeros([args.batch_size])
 
     for batch_idx,(data, target) in enumerate(dataloader):
-
         base_time = time.time()
         reg_hook(model)
-        reg_hook_mvm(model_mvm)
         
         data_var = data.to(device)
         target_var = target.to(device)
-
-#        target = target.to(device)
-#        data_var = torch.autograd.Variable(data.to(device))
-#        target_var = torch.autograd.Variable(target.to(device))
     
         output = model(data_var)
-        output_mvm = model_mvm(data_var)
+        act['out'] = output
         
-        activation['out'] = output
-        activation_mvm['out'] = output_mvm
-
-
-        save_activations(model=model, batch_idx=batch_idx, act=activation, labels=target, suf='sram')
-        save_activations(model=model_mvm, batch_idx=batch_idx, act=activation_mvm, labels=target, suf='rram')
-        
+        save_activations(model=model, batch_idx=batch_idx, act=act, labels=target)
         duration = time.time() - base_time
         print("Batch IDx: {} \t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))
-        
-        
     
     print("Done saving activations!")
     exit(0)
