@@ -10,10 +10,10 @@
           input_size: None
           workers: 16
           half: False
-          gpus: 2
+          gpus: 0
           frozen_layers: 1
 DEVICE: cuda
-GPU Id(s) being used: 2
+GPU Id(s) being used: 0
 ==> Building model for resnet20 ...
 ==> Initializing model with pre-trained parameters ...
 ==> Load pretrained model form ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar ...
@@ -42,10 +42,10 @@ Prec@1 with 1 layers frozen =  69.5999984741211 %	 Loss =  1.1696690320968628
           input_size: None
           workers: 16
           half: False
-          gpus: 2
+          gpus: 0
           frozen_layers: 3
 DEVICE: cuda
-GPU Id(s) being used: 2
+GPU Id(s) being used: 0
 ==> Building model for resnet20 ...
 ==> Initializing model with pre-trained parameters ...
 ==> Load pretrained model form ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar ...
@@ -74,10 +74,10 @@ Prec@1 with 3 layers frozen =  69.5999984741211 %	 Loss =  1.1696690320968628
           input_size: None
           workers: 16
           half: False
-          gpus: 2
+          gpus: 0
           frozen_layers: 5
 DEVICE: cuda
-GPU Id(s) being used: 2
+GPU Id(s) being used: 0
 ==> Building model for resnet20 ...
 ==> Initializing model with pre-trained parameters ...
 ==> Load pretrained model form ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar ...
@@ -106,10 +106,10 @@ Prec@1 with 5 layers frozen =  69.5999984741211 %	 Loss =  1.1696690320968628
           input_size: None
           workers: 16
           half: False
-          gpus: 2
+          gpus: 0
           frozen_layers: 7
 DEVICE: cuda
-GPU Id(s) being used: 2
+GPU Id(s) being used: 0
 ==> Building model for resnet20 ...
 ==> Initializing model with pre-trained parameters ...
 ==> Load pretrained model form ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar ...
@@ -138,84 +138,11 @@ Prec@1 with 7 layers frozen =  69.5999984741211 %	 Loss =  1.1696690320968628
           input_size: None
           workers: 16
           half: False
-          gpus: 2
+          gpus: 0
           frozen_layers: 9
 DEVICE: cuda
-GPU Id(s) being used: 2
+GPU Id(s) being used: 0
 ==> Building model for resnet20 ...
 ==> Initializing model with pre-trained parameters ...
 ==> Load pretrained model form ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar ...
 Original model accuracy: 69.5999984741211
-[0/10(0%)]	Loss 1.1950 (1.1950)	Prec@1 70.996 (70.996)	Prec@5 89.355 (89.355)
-[1/10(10%)]	Loss 1.1052 (1.1501)	Prec@1 70.215 (70.605)	Prec@5 91.309 (90.332)
-[2/10(20%)]	Loss 1.1984 (1.1662)	Prec@1 67.871 (69.694)	Prec@5 90.039 (90.234)
-[3/10(30%)]	Loss 1.1676 (1.1665)	Prec@1 68.164 (69.312)	Prec@5 91.602 (90.576)
-[4/10(40%)]	Loss 1.2188 (1.1770)	Prec@1 68.750 (69.199)	Prec@5 90.039 (90.469)
-[5/10(50%)]	Loss 1.0959 (1.1635)	Prec@1 71.680 (69.613)	Prec@5 91.504 (90.641)
-[6/10(60%)]	Loss 1.2516 (1.1760)	Prec@1 68.359 (69.434)	Prec@5 89.355 (90.458)
-[7/10(70%)]	Loss 1.2441 (1.1846)	Prec@1 67.969 (69.250)	Prec@5 89.941 (90.393)
-[8/10(80%)]	Loss 1.1037 (1.1756)	Prec@1 71.387 (69.488)	Prec@5 91.309 (90.495)
-[9/10(90%)]	Loss 1.1003 (1.1697)	Prec@1 70.918 (69.600)	Prec@5 91.454 (90.570)
- * Prec@1 69.600 Prec@5 90.570
-Prec@1 with 9 layers frozen =  69.5999984741211 %	 Loss =  1.1696690320968628
-
-      ==> Arguments:
-          dataset: cifar100
-          model: resnet20
-          batch_size: 1024
-          load_dir: /home/nano01/a/esoufler/activations/error_analysis/one_batch/
-          type: sram
-          savedir: ../pretrained_models/frozen/
-          pretrained: ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar
-          input_size: None
-          workers: 16
-          half: False
-          gpus: 2
-          frozen_layers: 11
-DEVICE: cuda
-GPU Id(s) being used: 2
-==> Building model for resnet20 ...
-==> Initializing model with pre-trained parameters ...
-==> Load pretrained model form ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar ...
-Original model accuracy: 69.5999984741211
-[0/10(0%)]	Loss 1.1950 (1.1950)	Prec@1 70.996 (70.996)	Prec@5 89.355 (89.355)
-[1/10(10%)]	Loss 1.1052 (1.1501)	Prec@1 70.215 (70.605)	Prec@5 91.309 (90.332)
-[2/10(20%)]	Loss 1.1984 (1.1662)	Prec@1 67.871 (69.694)	Prec@5 90.039 (90.234)
-[3/10(30%)]	Loss 1.1676 (1.1665)	Prec@1 68.164 (69.312)	Prec@5 91.602 (90.576)
-[4/10(40%)]	Loss 1.2188 (1.1770)	Prec@1 68.750 (69.199)	Prec@5 90.039 (90.469)
-[5/10(50%)]	Loss 1.0959 (1.1635)	Prec@1 71.680 (69.613)	Prec@5 91.504 (90.641)
-[6/10(60%)]	Loss 1.2516 (1.1760)	Prec@1 68.359 (69.434)	Prec@5 89.355 (90.458)
-[7/10(70%)]	Loss 1.2441 (1.1846)	Prec@1 67.969 (69.250)	Prec@5 89.941 (90.393)
-[8/10(80%)]	Loss 1.1037 (1.1756)	Prec@1 71.387 (69.488)	Prec@5 91.309 (90.495)
-[9/10(90%)]	Loss 1.1003 (1.1697)	Prec@1 70.918 (69.600)	Prec@5 91.454 (90.570)
- * Prec@1 69.600 Prec@5 90.570
-Prec@1 with 11 layers frozen =  69.5999984741211 %	 Loss =  1.1696690320968628
-
-      ==> Arguments:
-          dataset: cifar100
-          model: resnet20
-          batch_size: 1024
-          load_dir: /home/nano01/a/esoufler/activations/error_analysis/one_batch/
-          type: sram
-          savedir: ../pretrained_models/frozen/
-          pretrained: ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar
-          input_size: None
-          workers: 16
-          half: False
-          gpus: 2
-          frozen_layers: 13
-DEVICE: cuda
-GPU Id(s) being used: 2
-==> Building model for resnet20 ...
-==> Initializing model with pre-trained parameters ...
-==> Load pretrained model form ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar ...
-Original model accuracy: 69.5999984741211
-[0/10(0%)]	Loss 1.1950 (1.1950)	Prec@1 70.996 (70.996)	Prec@5 89.355 (89.355)
-[1/10(10%)]	Loss 1.1052 (1.1501)	Prec@1 70.215 (70.605)	Prec@5 91.309 (90.332)
-[2/10(20%)]	Loss 1.1984 (1.1662)	Prec@1 67.871 (69.694)	Prec@5 90.039 (90.234)
-[3/10(30%)]	Loss 1.1676 (1.1665)	Prec@1 68.164 (69.312)	Prec@5 91.602 (90.576)
-[4/10(40%)]	Loss 1.2188 (1.1770)	Prec@1 68.750 (69.199)	Prec@5 90.039 (90.469)
-[5/10(50%)]	Loss 1.0959 (1.1635)	Prec@1 71.680 (69.613)	Prec@5 91.504 (90.641)
-[6/10(60%)]	Loss 1.2516 (1.1760)	Prec@1 68.359 (69.434)	Prec@5 89.355 (90.458)
-[7/10(70%)]	Loss 1.2441 (1.1846)	Prec@1 67.969 (69.250)	Prec@5 89.941 (90.393)
-[8/10(80%)]	Loss 1.1037 (1.1756)	Prec@1 71.387 (69.488)	Prec@5 91.309 (90.495)

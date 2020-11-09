@@ -11,7 +11,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-base_dir = './activations'
+base_dir = '/home/nano01/a/esoufler/activations/error_analysis/one_batch/'
 dataset = 'cifar100'
 type = ['sram', 'rram']
 layers = ['relu1', 'relu3', 'relu5', 'relu7', 'relu11', 'relu13', 'relu15', 'relu17', 'relu19'
@@ -20,48 +20,55 @@ idx = '0'
 
 layer = 'relu1'
 
-def load_activations(layer):
-    sram_path = os.path.join(base_dir, dataset, 'rram_direct', 'act_' + layer + '_' + idx + '.pth.tar')
-    rram_path = os.path.join(base_dir, dataset, 'rram', 'act_' + layer + '_' + idx + '.pth.tar')
+def load_activations(layer, name1, name2):
+    path1 = os.path.join(base_dir, dataset, name1, layer, 'act_' + layer + '_' + idx + '.pth.tar')
+    path2 = os.path.join(base_dir, dataset, name2, layer, 'act_' + layer + '_' + idx + '.pth.tar')
     
-    sram_acts = torch.load(sram_path)
-    rram_acts = torch.load(rram_path)
+    acts1 = torch.load(path1)
+    acts2 = torch.load(path2)
     
-    return sram_acts, rram_acts
+    return acts1, acts2
 
-def compare_acts(layer, metric='mean'):
-    sram_acts, rram_acts = load_activations(layer)
+def compare_acts(layer, name1, name2, metric='mean'):
+    acts1, acts2 = load_activations(layer, name1, name2)
     
     if metric == 'mean':
-        sram_mean = torch.mean(sram_acts)
-        rram_mean = torch.mean(rram_acts)
+        mean1 = torch.mean(acts1)
+        mean2 = torch.mean(acts2)
         
-        err_mean = sram_mean - rram_mean
+        err_mean = mean1 - mean2
     
-        print('SRAM mean: {:.4f} \nRRAM mean: {:.4f} \nMeandiff: {:.4f}'.format(sram_mean.item(), rram_mean.item(), err_mean.item()))
+        print('Mean1: {:.4f} \nMean2: {:.4f} \nMeandiff: {:.4f}'.format(mean1.item(), mean2.item(), err_mean.item()))
     
     elif metric == 'mse':
-        sqerr = (sram_acts - rram_acts)*(sram_acts - rram_acts)
+        sqerr = (acts1 - acts2)*(acts1 - acts2)
         
         mse = torch.mean(sqerr)
         
         print('MSE: {:.4f}'.format(mse.item()))
     
     elif metric == 'bool':
-        check = torch.equal(sram_acts, rram_acts)
+        check = torch.equal(acts1, acts2)
+        diff = acts1 - acts2
+        
+        nzero = torch.nonzero(diff, as_tuple=True)
+        
         
         if check == True:
             print(layer + ' activations are EQUAL!')
         else:
             print(layer + ' activations are NOT-EQUAL!!')
+#            print(str(len(nzero)) + ' elements differ')
+            print(nzero)
+            
     
 
+name1 = 'sram'
+name2 = 'sram_direct'
+for layer in layers:
+    print('\nLayer: ', layer)
+    compare_acts(layer, name1, name2, metric='bool')
 
-# for layer in layers:
-#     print('\nLayer: ', layer)
-    # compare_acts(layer, metric='mean')
-    # compare_acts(layer, metric='mse')
-compare_acts(layer, metric='bool')
 
 
 

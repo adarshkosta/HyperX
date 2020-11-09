@@ -318,12 +318,14 @@ if __name__=='__main__':
         target = target.to(device)
         data_var = torch.autograd.Variable(data.to(device))
         target_var = torch.autograd.Variable(target.to(device))
-    
+        
         acts = model(data_var)
-#        acts_mvm = model_mvm(data_var)
-
         save_activations(model=model, batch_idx=batch_idx, act=acts, labels=target, suf='sram_direct')
-#        save_activations(model=model_mvm, batch_idx=batch_idx, act=acts_mvm, labels=labels, suf='rram_direct')
+        
+    
+#        acts_mvm = model_mvm(data_var)
+#        save_activations(model=model_mvm, batch_idx=batch_idx, act=acts_mvm, labels=target, suf='rram_direct')
+
         
         duration = time.time() - base_time
         print("Batch IDx: {} \t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))

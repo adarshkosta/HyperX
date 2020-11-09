@@ -10,12 +10,6 @@ import sys
 import time
 import collections
 
-#Min
-#savedir = '/home/min/a/akosta/Current_Projects/Hybrid_RRAM-SRAM/activations/multiple_batches/'
-
-#Nano
-#savedir= '/home/nano01/a/esoufler/activations/multiple_batches/'
-
 #Filepath handling
 root_dir = os.path.dirname(os.getcwd())
 inference_dir = os.path.join(root_dir, "inference")
@@ -54,12 +48,8 @@ from utils.preprocess import get_transform
 from utils.utils import *
 import src.config as cfg
 
-if cfg.if_bit_slicing and not cfg.dataset:
-    from src.pytorch_mvm_class_v3 import *
-elif cfg.dataset:
-    from geneix.pytorch_mvm_class_dataset import *   # import mvm class from geneix folder
-else:
-    from src.pytorch_mvm_class_no_bitslice import *
+from src.pytorch_mvm_class_v3 import *
+
 
 #Seeding
 def reset_seed():
@@ -84,39 +74,39 @@ model_names.sort()
 
 #%%
 # Evaluate on a model
-def test(device):
+def test(test_loader, model, criterion, device):
     global best_acc
-    flag = True
-    training = False
     model.eval()
     losses = AverageMeter()
     top1 = AverageMeter()
     top5 = AverageMeter()
 
-    for batch_idx,(data, target) in enumerate(testloader):
+    for batch_idx,(data, target) in enumerate(test_loader):
         data_var = data.to(device)
         target_var = target.to(device)
+
         
         output = model(data_var)
+        
         loss= criterion(output, target_var)
         prec1, prec5 = accuracy(output.data, target_var.data, topk=(1, 5))
         losses.update(loss.data, data.size(0))
         top1.update(prec1[0], data.size(0))
         top5.update(prec5[0], data.size(0))
 
-        if flag == True:
-            if batch_idx % 1 == 0:
-                print('[{0}/{1}({2:.0f}%)]\t'
-                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                      'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
-                      'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
-                       batch_idx, len(testloader), 100. *float(batch_idx)/len(testloader),
-                       loss=losses, top1=top1, top5=top5))
-        # if batch_idx == 10:
-        #     break
+
+        if batch_idx % 1 == 0:
+            print('[{0}/{1}({2:.0f}%)]\t'
+                  'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                  'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+                  'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
+                   batch_idx, len(test_loader), 100. *float(batch_idx)/len(test_loader),
+                   loss=losses, top1=top1, top5=top5))
+
 
     print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'
           .format(top1=top1, top5=top5))
+    
     acc = top1.avg
     return acc, losses.avg
   
@@ -128,34 +118,53 @@ def get_activation1(name):
     def hook1(module, input, output):
         out = output.detach()
         activation[name] = out
-#        print('In: ' + str(activation[name].shape) + '  Out Device: ' + str(output.device)[-1])
         
     return hook1
 
-def get_activation(name): #only works with 4 GPUs
-    def hook(module, input, output):
-        batch_split = int(args.batch_size/4)
-        
-        out = output.detach()
-        
-        if str(output.device)[-1] == '0':
-            act[name][0:batch_split] = out
-        elif str(output.device)[-1] == '1':
-            act[name][batch_split:2*batch_split] = out
-        elif str(output.device)[-1] == '2':
-            act[name][2*batch_split:3*batch_split] = out
-        elif str(output.device)[-1] == '3':
-            act[name][3*batch_split:4*batch_split] = out
-
-#        print('In: ' + str(act[name].shape) + '  Out Device: ' + str(output.device)[-1])
-    return hook
 
 def reg_hook1(model):
+    hook_handler1 = {}
     for name, module in model.module.named_modules():
         if 'relu' in name or 'fc' in name:
             if 'xbmodel' not in name:
-                module.register_forward_hook(get_activation1(name))
+                hook_handler1[name] = module.register_forward_hook(get_activation1(name))
+    return hook_handler1
+
+def unreg_hook1(hook_handler):
+    for name in hook_handler.keys():
+        hook_handler[name].remove()
+
+def get_activation(name): #only works with 4 and 2 GPUs as of now
+    def hook(module, input, output):
         
+        if len(args.gpus) == 7: #4 GPUS
+            batch_split = int(args.batch_size/4) #0,1,2,3
+            
+            if str(output.device)[-1] == args.gpus[0]:
+                act[name][0:batch_split] = output
+            elif str(output.device)[-1] == args.gpus[2]:
+                act[name][batch_split:2*batch_split] = output
+            elif str(output.device)[-1] == args.gpus[4]:
+                act[name][2*batch_split:3*batch_split] = output
+            elif str(output.device)[-1] == args.gpus[6]:
+                act[name][3*batch_split:4*batch_split] = output
+            
+        elif len(args.gpus) == 3: #2 GPUS
+            batch_split = int(args.batch_size/2) #0,1 config ONLY
+            
+            if str(output.device)[-1] == args.gpus[0]:
+                act[name][0:batch_split] = output
+            elif str(output.device)[-1] == args.gpus[2]:
+                act[name][batch_split:2*batch_split] = output
+            
+        elif len(args.gpus) == 1: # 1 GPU
+            act[name] = output
+        else:
+            raise Exception('Odd multi-gpu numbers (3) not supported.')
+
+    return hook
+
+
 def reg_hook(model):
     for name, module in model.module.named_modules():
         if 'relu' in name or 'fc' in name:
@@ -170,10 +179,7 @@ def save_activations(model, batch_idx, act, labels):
                 torch.save(act[name], os.path.join(act_path, name) + '/act_' + name + '_' + str(batch_idx) + '.pth.tar')
     torch.save(labels, act_path+'/labels/labels_' +str(batch_idx) + '.pth.tar')
 
-class MyDataParallel(nn.DataParallel):
-    def __getattr(self, name):
-        return getattr(self.module, name)
-    
+
 #%%
 if __name__=='__main__':
     parser = argparse.ArgumentParser()

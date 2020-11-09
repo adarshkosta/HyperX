@@ -4,7 +4,7 @@ import numpy as np
 import os
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-b_test', default=250, type=int,
+parser.add_argument('--b-test', '-btest',  default=1000, type=int,
                      metavar='N', help='mini-batch size (default: 250)')
 parser.add_argument('--dataset', metavar='DATASET', default='cifar100', help='dataset name or folder')
 parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20', help='name of the model')

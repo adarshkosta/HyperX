@@ -39,6 +39,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision.utils import save_image
 from torchsummary import summary
+from torch.utils.data import Dataset, DataLoader
 
 # User-defined packages
 import models
@@ -79,11 +80,14 @@ for path, dirs, files in os.walk(frozen_models_dir):
     break # only traverse top level directory
 frozen_model_names.sort()
 
+
+
 # Evaluate on a model
 def test(test_loader, model, criterion, device):
     """
     Run evaluation
     """
+    global suf
     losses = AverageMeter()
     top1 = AverageMeter()
     top5 = AverageMeter()
@@ -110,8 +114,10 @@ def test(test_loader, model, criterion, device):
             losses.update(loss.data, data.size(0))
             top1.update(prec1[0], data.size(0))
             top5.update(prec5[0], data.size(0))
-    
-            if batch_idx % 1 == 0:
+            
+            if save: 
+                save_activations(output_acts, target_var, batch_idx, suf)
+            elif batch_idx % 1 == 0:
                     print('[{0}/{1}({2:.0f}%)]\t'
                         'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                         'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
@@ -120,24 +126,22 @@ def test(test_loader, model, criterion, device):
                         loss=losses, top1=top1, top5=top5))
 
 
-    print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'
+    print('Baseline: Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'
           .format(top1=top1, top5=top5))
     
     acc = top1.avg
     return acts, labels, acc, losses.avg
 
-def save_activations(acts, labels, suf):
+def save_activations(acts, labels, batch_idx, suf):
     global act_path
     
-    for batch_idx in range(40):
-        print('Batch IDx: ', batch_idx)
-        for elem in range(250):
-            for name in acts[batch_idx].keys():
-                if 'relu' in name or 'fc' in name:
-                    if 'xbmodel' not in name:
-                        torch.save(acts[batch_idx][name][elem], os.path.join(act_path, suf, name) + '/act_' + name + '_' + str(batch_idx*250+elem) + '.pth.tar')
-            torch.save(labels[batch_idx][elem], os.path.join(act_path, suf, 'labels', 'labels_' +str(batch_idx*250+elem) + '.pth.tar'))
-            torch.save(acts[batch_idx]['out'][elem], os.path.join(act_path, suf, 'out' + '/act_out' + '_' + str(batch_idx*250+elem) + '.pth.tar'))
+    print('Batch IDx: ', batch_idx)
+    for name in acts.keys():
+        if 'relu' in name or 'fc' in name:
+            if 'xbmodel' not in name:
+                torch.save(acts[name], os.path.join(act_path, suf, name) + '/act_' + name + '_' + str(batch_idx) + '.pth.tar')
+    torch.save(labels, os.path.join(act_path, suf, 'labels', 'labels_' +str(batch_idx) + '.pth.tar'))
+    torch.save(acts['out'], os.path.join(act_path, suf, 'out' + '/act_out' + '_' + str(batch_idx) + '.pth.tar'))
 
 
 def split_init(original_model, frozen_layers):
@@ -222,6 +226,7 @@ else:
   
 #print(model_mvm)
 
+
 print('==> Initializing model parameters ...')
 weights_conv = []
 weights_lin = []
@@ -277,6 +282,8 @@ model = nn.DataParallel(model)
 model_mvm.to(device)#.half() # uncomment for FP16
 model_mvm = nn.DataParallel(model_mvm)
 
+#%%
+
 image_transforms = {
     'train':
         transforms.Compose([
@@ -317,11 +324,21 @@ elif args.mode == 'test':
 else:
     raise Exception('Invalid save mode')
     
-    
-#%% TEST
-acts, labels, acc, loss = test(dataloader, model, criterion, device)
 
-#%%
+act_path = '/home/nano01/a/esoufler/activations/error_analysis/multiple_batches/cifar100/'
+for i in range(1, 20):
+    os.makedirs(act_path + '/sram_new/relu' + str(i), exist_ok=True)
+os.makedirs(act_path + '/sram_new/fc', exist_ok=True)
+os.makedirs(act_path + '/sram_new/labels', exist_ok=True)
+os.makedirs(act_path + '/sram_new/out', exist_ok=True)
+    
+suf = 'sram_new'
+print('Saving activations to: ' + str(act_path) + str(suf))
+
+#%% TEST and SAVE_ACTIVATIONS
+acts, labels, acc, loss = test(dataloader, model, criterion, device, save=True)
+
+#%% TEST ON PART NETWORKS
 for j in range(1,20,2):
     name = 'relu' + str(j)
     M = split_init(model, j).to(device)
@@ -347,18 +364,170 @@ for j in range(1,20,2):
     #            i, 40, 100. *float(i)/40, top1=top1, top5=top5))
     
     
-    print(' Freeze {0}:  Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'
+    print('Freeze {0}:  Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'
               .format(j, top1=top1, top5=top5))
 
-#%%
-act_path = '/home/nano01/a/esoufler/activations/error_analysis/one_batch/cifar100/'
+del acts, labels, M
 
-for i in range(1, 20):
-    os.makedirs(act_path + '/sram_new/relu' + str(i), exist_ok=True)
-os.makedirs(act_path + '/sram_new/fc', exist_ok=True)
-os.makedirs(act_path + '/sram_new/labels', exist_ok=True)
-os.makedirs(act_path + '/sram_new/out', exist_ok=True)
+#%% SAVE SINGLE ACTIVATIONS
+
+args.dataset = 'cifar100'
+args.type = 'sram_new'
+args.b_test = args.batch_size
+################ SAVE THE LABELS (we do it only once)
+base_src_path = os.path.join('/home/nano01/a/esoufler/activations/error_analysis/multiple_batches/', args.dataset, args.type, 'labels')
+base_dst_path = os.path.join('/home/nano01/a/esoufler/activations/error_analysis/one_batch/', args.dataset, args.type, 'labels')
+
+if not os.path.exists(base_dst_path):
+    os.makedirs(base_dst_path)
     
-suf = 'sram_new'
-print('Saving activations...')
-save_activations(acts, labels, suf)
+batch_size = args.b_test
+num = int(10000/batch_size)
+
+print('Saving Test labels...')
+for batch in range(num):
+#    print(batch)
+    filename = os.path.join(base_src_path, 'labels_' + str(batch) + '.pth.tar')
+    src_value = torch.load(filename)
+
+    element_in_index = 0
+    for element in src_value.detach().cpu().numpy().tolist():
+        dst_tensor = torch.Tensor([element])
+        dst_filename = os.path.join(base_dst_path, 'labels_' + str(batch_size * batch + element_in_index) + '.pth.tar') 
+        torch.save(dst_tensor, dst_filename)
+        element_in_index += 1
+
+################ SAVE THE ACTIVATIONS 
+print('Saving Test activations...')
+for i in range(1,20,2):
+    # testset
+    base_src_path = os.path.join('/home/nano01/a/esoufler/activations/error_analysis/multiple_batches/', args.dataset, args.type, 'relu'+ str(i))
+    base_dst_path = os.path.join('/home/nano01/a/esoufler/activations/error_analysis/one_batch/', args.dataset, args.type, 'relu'+ str(i))
+    
+    print('relu' + str(i))
+
+    if not os.path.exists(base_dst_path):
+        os.makedirs(base_dst_path)
+    
+    batch_size = args.b_test
+    num = int(10000/batch_size)
+
+    for batch in range(num):
+#        print(batch)
+        filename = os.path.join(base_src_path, 'act_relu'+ str(i) +'_' + str(batch) + '.pth.tar')
+        src_value = torch.load(filename)
+
+        element_in_index = 0
+        for element in src_value.detach().cpu().numpy().tolist():
+            dst_tensor = torch.Tensor([element])
+            dst_filename = os.path.join(base_dst_path, 'act_relu'+ str(i) +'_' + str(batch_size * batch + element_in_index) + '.pth.tar')
+            torch.save(dst_tensor, dst_filename)
+            element_in_index += 1
+
+#################SAVE FC ACTIVATINS-----------------------------
+# testset
+base_src_path = os.path.join('/home/nano01/a/esoufler/activations/error_analysis/multiple_batches/', args.dataset, args.type, 'fc')
+base_dst_path = os.path.join('/home/nano01/a/esoufler/activations/error_analysis/one_batch/', args.dataset, args.type, 'fc')
+
+print('fc')
+
+if not os.path.exists(base_dst_path):
+    os.makedirs(base_dst_path)
+    
+batch_size = args.b_test
+num = int(10000/batch_size)
+
+for batch in range(num):
+#        print(batch)
+    filename = os.path.join(base_src_path, 'act_fc' +'_' + str(batch) + '.pth.tar')
+    src_value = torch.load(filename)
+
+    element_in_index = 0
+    for element in src_value.detach().cpu().numpy().tolist():
+        dst_tensor = torch.Tensor([element])
+        dst_filename = os.path.join(base_dst_path, 'act_fc' + '_' + str(batch_size * batch + element_in_index) + '.pth.tar') 
+        torch.save(dst_tensor, dst_filename)
+        element_in_index += 1
+        
+        
+#%% ACTIVATIONS DATALOADER
+class SplitActivations_Dataset(Dataset):
+    def __init__(self, datapath, tgtpath, frozen_layers, train_len = True):
+        self.datapath = datapath
+        self.tgtpath = tgtpath
+        self.train_len = train_len
+        self.frozen_layers = frozen_layers
+        
+    def __getitem__(self, index):
+#        print('Index = ', index)
+        if self.frozen_layers == 20:
+            x = torch.load(os.path.join(self.datapath, 'act_fc'+'_'+str(index)+'.pth.tar'))
+        else: 
+            x = torch.load(os.path.join(self.datapath, 'act_relu'+str(self.frozen_layers)+'_'+str(index)+'.pth.tar'))
+        
+        y = torch.load(self.tgtpath+'/labels_'+str(index)+'.pth.tar')
+        return {'data': x[0], 'target': y[0]}
+    
+    def __len__(self):
+        if self.train_len == True:
+            return 50000 
+        else :
+            return 10000
+
+args.load_dir = '/home/nano01/a/esoufler/activations/error_analysis/one_batch/'
+args.type = 'sram_new'
+args.batch_size = 1000
+
+for j in range(1,20,2):
+    name = 'relu' + str(j)
+    datapath_test = os.path.join(args.load_dir, args.dataset, args.type, name)
+    tgtpath_test = os.path.join(args.load_dir, args.dataset, args.type, 'labels')
+    
+    
+    test_data = SplitActivations_Dataset(datapath_test, tgtpath_test, frozen_layers=j, train_len=False)
+    test_loader = torch.utils.data.DataLoader(
+        test_data,
+        batch_size=args.batch_size, shuffle=False,
+        num_workers=args.workers, pin_memory=True)
+    
+    criterion = nn.CrossEntropyLoss().to(device)
+    
+    M = split_init(model, j).to(device)
+    
+    M.eval()
+    
+    top1 = AverageMeter()
+    top5 = AverageMeter()
+    losses = AverageMeter()
+    
+    with torch.no_grad():
+        for batch_idx, inputs in enumerate(test_loader):
+            data = inputs['data']
+            data_var = inputs['data'].to(device)
+            target_var = inputs['target'].long().to(device)
+            
+            # compute output
+            output = M(data_var)
+            
+            loss = criterion(output, target_var)
+
+            prec1, prec5 = accuracy(output.data, target_var.data, topk=(1, 5))
+            losses.update(loss.data, data.size(0))
+            top1.update(prec1[0], data.size(0))
+            top5.update(prec5[0], data.size(0))
+            
+#            if save: 
+#                save_activations(output_acts, target_var, batch_idx, suf)
+            if batch_idx % 2 == 0:
+                    print('[{0}/{1}({2:.0f}%)]\t'
+                        'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                        'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+                        'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
+                        batch_idx, len(test_loader), 100. *float(batch_idx)/len(test_loader),
+                        loss=losses, top1=top1, top5=top5))
+
+
+    print('Freeze {0}: Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}\n'
+          .format(j, top1=top1, top5=top5))
+
+

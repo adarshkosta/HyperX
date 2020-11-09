@@ -70,8 +70,6 @@ def test(test_loader, model, criterion, device):
     """
     Run evaluation
     """
-    batch_time = AverageMeter()
-    data_time = AverageMeter()
     losses = AverageMeter()
     top1 = AverageMeter()
     top5 = AverageMeter()

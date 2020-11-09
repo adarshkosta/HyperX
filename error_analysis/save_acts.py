@@ -111,14 +111,56 @@ def test(test_loader, model, criterion, device):
     return acc, losses.avg
   
 # Intermediate feature maps
-activation = {}
-activation_mvm = {}
+acts1 = {}
+acts = {}
 
-def get_activation(name):
+def get_activation1(name):
     def hook(module, input, output):
-        activation[name] = output
-        
+        acts1[name] = output
     return hook
+
+def reg_hook1(model):
+    hook_handler1 = {}
+    for name, module in model.module.named_modules():
+        if 'relu' in name or 'fc' in name:
+            if 'xbmodel' not in name:
+                hook_handler1[name] = module.register_forward_hook(get_activation1(name))
+    return hook_handler1
+
+def unreg_hook(hook_handler):
+    for name in hook_handler.keys():
+        hook_handler[name].remove()
+        
+def get_activation(name): #only works with 4 and 2 GPUs as of now
+    def hook(module, input, output):
+        
+        if len(args.gpus) == 7: #4 GPUS
+            batch_split = int(args.batch_size/4) #0,1,2,3
+            
+            if str(output.device)[-1] == args.gpus[0]:
+                acts[name][0:batch_split] = output
+            elif str(output.device)[-1] == args.gpus[2]:
+                acts[name][batch_split:2*batch_split] = output
+            elif str(output.device)[-1] == args.gpus[4]:
+                acts[name][2*batch_split:3*batch_split] = output
+            elif str(output.device)[-1] == args.gpus[6]:
+                acts[name][3*batch_split:4*batch_split] = output
+            
+        elif len(args.gpus) == 3: #2 GPUS
+            batch_split = int(args.batch_size/2) #0,1 config ONLY
+            
+            if str(output.device)[-1] == args.gpus[0]:
+                acts[name][0:batch_split] = output
+            elif str(output.device)[-1] == args.gpus[2]:
+                acts[name][batch_split:2*batch_split] = output
+            
+        elif len(args.gpus) == 1: # 1 GPU
+            acts[name] = output
+        else:
+            raise Exception('Odd multi-gpu numbers (3) not supported.')
+
+    return hook
+
 
 def reg_hook(model):
     for name, module in model.module.named_modules():
@@ -126,13 +168,39 @@ def reg_hook(model):
             if 'xbmodel' not in name:
                 module.register_forward_hook(get_activation(name))
                 
-                
-                
-def get_activation_mvm(name):
-    def hook_mvm(module, input, output):
-        activation_mvm[name] = output
+
+acts_mvm = {}
+
+def get_activation_mvm(name): #only works with 4 and 2 GPUs as of now
+    def hook(module, input, output):
         
-    return hook_mvm
+        if len(args.gpus) == 7: #4 GPUS
+            batch_split = int(args.batch_size/4) #0,1,2,3
+            
+            if str(output.device)[-1] == args.gpus[0]:
+                acts_mvm[name][0:batch_split] = output
+            elif str(output.device)[-1] == args.gpus[2]:
+                acts_mvm[name][batch_split:2*batch_split] = output
+            elif str(output.device)[-1] == args.gpus[4]:
+                acts_mvm[name][2*batch_split:3*batch_split] = output
+            elif str(output.device)[-1] == args.gpus[6]:
+                acts_mvm[name][3*batch_split:4*batch_split] = output
+            
+        elif len(args.gpus) == 3: #2 GPUS
+            batch_split = int(args.batch_size/2) #0,1 config ONLY
+            
+            if str(output.device)[-1] == args.gpus[0]:
+                acts_mvm[name][0:batch_split] = output
+            elif str(output.device)[-1] == args.gpus[2]:
+                acts_mvm[name][batch_split:2*batch_split] = output
+            
+        elif len(args.gpus) == 1: # 1 GPU
+            acts_mvm[name] = output
+        else:
+            raise Exception('Odd multi-gpu numbers (3) not supported.')
+
+    return hook
+
 
 def reg_hook_mvm(model):
     for name, module in model.module.named_modules():
@@ -163,9 +231,9 @@ if __name__=='__main__':
                 help='Save Directory')
     parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20fp_cifar100.pth.tar',
                 help='the path to the pretrained model')
-    parser.add_argument('--mvm', action='store_true', default=False,
+    parser.add_argument('--mvm', action='store_true', default=True,
                 help='if running functional simulator backend')
-    parser.add_argument('--nideal', action='store_true', default=False,
+    parser.add_argument('--nideal', action='store_true', default=True,
                 help='Add xbar non-idealities')
     parser.add_argument('--mode', default='test', 
                 help='save activations for \'train\' or \'test\' sets')
@@ -334,47 +402,50 @@ if __name__=='__main__':
     acc, loss = test(dataloader, model, criterion, device)
     
     print("Saving activations to: {}".format(act_path))
-    for batch_idx,(data, target) in enumerate(dataloader):
-        reg_hook(model)
-        
-        data_var = data.to(device)
-        target_var = target.to(device)
-        print('Dry run for computing activation sizes...')
-        output = model(data_var)
+    data, target = next(iter(dataloader))
+    handler = reg_hook1(model)
+    
+    data_var = data.to(device)
+    target_var = target.to(device)
+    print('Dry run for computing activation sizes...')
+    output = model(data_var)
 #        print(activation['relu1'].shape())
-        print('Dry run finished...')
-        
-        break
+    print('Dry run finished...')
+    
+    unreg_hook(handler)
     
     for name, module in model.module.named_modules():
         if 'relu' in name or 'fc' in name:
             if 'xbmodel' not in name:
-                print(name + ': ' + str(activation[name].shape))
-
-    labels = torch.zeros([args.batch_size])
+                print(name + ': ' + str(acts1[name].shape))
+    
+    for name, module in model.module.named_modules():
+        if 'relu' in name and 'xbmodel' not in name:
+            acts[name] = torch.zeros([args.batch_size, acts1[name].shape[1], acts1[name].shape[2], acts1[name].shape[3]])
+            acts_mvm[name] = torch.zeros([args.batch_size, acts1[name].shape[1], acts1[name].shape[2], acts1[name].shape[3]])
+            print(name + ': ' + str(acts[name].shape))
+        if 'fc' in name and 'xbmodel' not in name:
+            acts[name] = torch.zeros([args.batch_size, acts1[name].shape[1]])
+            acts_mvm[name] = torch.zeros([args.batch_size, acts1[name].shape[1]])
+            print(name + ': ' + str(acts[name].shape))
 
     for batch_idx,(data, target) in enumerate(dataloader):
 
         base_time = time.time()
         reg_hook(model)
-        reg_hook_mvm(model_mvm)
+#        reg_hook_mvm(model_mvm)
         
         data_var = data.to(device)
         target_var = target.to(device)
 
-#        target = target.to(device)
-#        data_var = torch.autograd.Variable(data.to(device))
-#        target_var = torch.autograd.Variable(target.to(device))
     
         output = model(data_var)
-        output_mvm = model_mvm(data_var)
+        acts['out'] = output
+        save_activations(model=model, batch_idx=batch_idx, act=acts, labels=target, suf='sram')
         
-        activation['out'] = output
-        activation_mvm['out'] = output_mvm
-
-
-        save_activations(model=model, batch_idx=batch_idx, act=activation, labels=target, suf='sram')
-        save_activations(model=model_mvm, batch_idx=batch_idx, act=activation_mvm, labels=target, suf='rram')
+#        output_mvm = model_mvm(data_var)
+#        acts_mvm['out'] = output_mvm
+#        save_activations(model=model_mvm, batch_idx=batch_idx, act=acts_mvm, labels=target, suf='rram')
         
         duration = time.time() - base_time
         print("Batch IDx: {} \t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))
