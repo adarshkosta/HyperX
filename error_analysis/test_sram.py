@@ -80,7 +80,7 @@ def test(test_loader, model, criterion, device):
     with torch.no_grad():
         for batch_idx, batch in enumerate(test_loader):
             input_var = batch['data']
-            target_var = batch['target'].type(torch.LongTensor)
+            target_var = batch['target'].long()
     
             if args.half:
                 input_var = input_var.half()
