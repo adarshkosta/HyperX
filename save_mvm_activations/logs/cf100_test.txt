@@ -1,0 +1,92 @@
+WARNING: crossbar sizes with different row annd column dimension not supported.
+
+      ==> Arguments:
+          batch_size: 52
+          dataset: cifar100
+          savedir: /home/nano01/a/esoufler/activations/multiple_batches/
+          model: resnet18
+          pretrained: ../pretrained_models/ideal/resnet18fp_imnet.pth.tar
+          mvm: True
+          nideal: True
+          mode: test
+          input_size: None
+          workers: 8
+          gpus: 0,1,2,3
+          experiment: 128x128
+          batch_start: 0
+
+      ==> Functional simulator configurations:
+          weight_bits=16
+          weight_bit_frac=12
+          input_bits=16
+          input_bit_frac=12
+          xbar_row_size=128
+          xbar_col_size=128
+          tile_row=custom
+          tile_col=custom
+          bit_stream=1
+          bit_slice=2
+          adc_bit=14
+          acm_bits=32
+          acm_bit_frac=24
+          mvm=True
+          non-ideality=True
+          
+xbmodel=NN_model(
+  (fc1): Linear(in_features=16512, out_features=500, bias=True)
+  (relu1): ReLU(inplace=True)
+  (do2): Dropout(p=0.5, inplace=False)
+  (fc3): Linear(in_features=500, out_features=128, bias=True)
+)
+          
+xbmodel_weight_path=../xb_models/xbar_128x128_stream1_slice2_100k_600k_250mV.pth.tar
+
+
+DEVICE: cuda
+4 GPU devices being used. ID(s) 0,1,2,3
+==> Building model and model_mvm for resnet18 ...
+WARNING: crossbar sizes with different row annd column dimension not supported.
+==> Initializing model parameters ...
+==> Load pretrained model form ../pretrained_models/ideal/resnet18fp_imnet.pth.tar ...
+Pretrained model accuracy: 69.93189239501953
+Files already downloaded and verified
+Files already downloaded and verified
+Saving activations to: /home/nano01/a/esoufler/activations/multiple_batches/cifar100/resnet18/test
+Dry run for computing activation sizes...
+Dry run finished...
+relu1: torch.Size([13, 64, 112, 112])
+relu2: torch.Size([13, 64, 56, 56])
+relu3: torch.Size([13, 64, 56, 56])
+relu4: torch.Size([13, 64, 56, 56])
+relu5: torch.Size([13, 64, 56, 56])
+relu6: torch.Size([13, 128, 28, 28])
+relu7: torch.Size([13, 128, 28, 28])
+relu8: torch.Size([13, 128, 28, 28])
+relu9: torch.Size([13, 128, 28, 28])
+relu10: torch.Size([13, 256, 14, 14])
+relu11: torch.Size([13, 256, 14, 14])
+relu12: torch.Size([13, 256, 14, 14])
+relu13: torch.Size([13, 256, 14, 14])
+relu14: torch.Size([13, 512, 7, 7])
+relu15: torch.Size([13, 512, 7, 7])
+relu16: torch.Size([13, 512, 7, 7])
+relu17: torch.Size([13, 512, 7, 7])
+fc: torch.Size([13, 100])
+relu1: torch.Size([52, 64, 112, 112])
+relu2: torch.Size([52, 64, 56, 56])
+relu3: torch.Size([52, 64, 56, 56])
+relu4: torch.Size([52, 64, 56, 56])
+relu5: torch.Size([52, 64, 56, 56])
+relu6: torch.Size([52, 128, 28, 28])
+relu7: torch.Size([52, 128, 28, 28])
+relu8: torch.Size([52, 128, 28, 28])
+relu9: torch.Size([52, 128, 28, 28])
+relu10: torch.Size([52, 256, 14, 14])
+relu11: torch.Size([52, 256, 14, 14])
+relu12: torch.Size([52, 256, 14, 14])
+relu13: torch.Size([52, 256, 14, 14])
+relu14: torch.Size([52, 512, 7, 7])
+relu15: torch.Size([52, 512, 7, 7])
+relu16: torch.Size([52, 512, 7, 7])
+relu17: torch.Size([52, 512, 7, 7])
+fc: torch.Size([52, 100])

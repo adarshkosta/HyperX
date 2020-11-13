@@ -10,12 +10,6 @@ import sys
 import time
 import collections
 
-#Min
-#savedir = '/home/min/a/akosta/Current_Projects/Hybrid_RRAM-SRAM/activations/multiple_batches/'
-
-#Nano
-#savedir= '/home/nano01/a/esoufler/activations/multiple_batches/'
-
 #Filepath handling
 root_dir = os.path.dirname(os.getcwd())
 inference_dir = os.path.join(root_dir, "inference")
@@ -79,38 +73,41 @@ model_names.sort()
 
 #%%
 # Evaluate on a model
-def test(device):
+def test(test_loader, model, criterion, device):
     global best_acc
-    flag = True
-    training = False
+
     model.eval()
     losses = AverageMeter()
+
     top1 = AverageMeter()
     top5 = AverageMeter()
 
-    for batch_idx,(data, target) in enumerate(testloader):
+    for batch_idx,(data, target) in enumerate(test_loader):
         data_var = data.to(device)
         target_var = target.to(device)
+
         
         output = model(data_var)
+        
         loss= criterion(output, target_var)
         prec1, prec5 = accuracy(output.data, target_var.data, topk=(1, 5))
         losses.update(loss.data, data.size(0))
         top1.update(prec1[0], data.size(0))
         top5.update(prec5[0], data.size(0))
 
-        if flag == True:
-            if batch_idx % 1 == 0:
-                print('[{0}/{1}({2:.0f}%)]\t'
-                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                      'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
-                      'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
-                       batch_idx, len(testloader), 100. *float(batch_idx)/len(testloader),
-                       loss=losses, top1=top1, top5=top5))
+
+        if batch_idx % 1 == 0:
+            print('[{0}/{1}({2:.0f}%)]\t'
+                  'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                  'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+                  'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
+                   batch_idx, len(test_loader), 100. *float(batch_idx)/len(test_loader),
+                   loss=losses, top1=top1, top5=top5))
 
 
     print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'
           .format(top1=top1, top5=top5))
+    
     acc = top1.avg
     return acc, losses.avg
   
@@ -120,51 +117,48 @@ act = {}
 
 def get_activation1(name):
     def hook1(module, input, output):
-        out = output.detach()
-        activation[name] = out
-#        print('In: ' + name + ' ' +  str(activation[name].shape) + '  Out Device: ' + str(output.device)[-1])
-        
+        activation[name] = output
     return hook1
+
+def reg_hook1(model):
+    hook_handler1 = {}
+    for name, module in model.module.named_modules():
+        if 'relu' in name or 'fc' in name:
+            if 'xbmodel' not in name:
+                hook_handler1[name] = module.register_forward_hook(get_activation1(name))
+    return hook_handler1
+
+def unreg_hook(hook_handler):
+    for name in hook_handler.keys():
+        hook_handler[name].remove()
 
 def get_activation(name): #only works with 4 and 2 GPUs as of now
     def hook(module, input, output):
-        
-        out = output.detach()
-        
         if len(args.gpus) == 7: #4 GPUS
             batch_split = int(args.batch_size/4) #0,1,2,3
             
             if str(output.device)[-1] == args.gpus[0]:
-                act[name][0:batch_split] = out
+                act[name][0:batch_split] = output
             elif str(output.device)[-1] == args.gpus[2]:
-                act[name][batch_split:2*batch_split] = out
+                act[name][batch_split:2*batch_split] = output
             elif str(output.device)[-1] == args.gpus[4]:
-                act[name][2*batch_split:3*batch_split] = out
+                act[name][2*batch_split:3*batch_split] = output
             elif str(output.device)[-1] == args.gpus[6]:
-                act[name][3*batch_split:4*batch_split] = out
+                act[name][3*batch_split:4*batch_split] = output
             
         elif len(args.gpus) == 3: #2 GPUS
             batch_split = int(args.batch_size/2) #0,1 config ONLY
             
             if str(output.device)[-1] == args.gpus[0]:
-                act[name][0:batch_split] = out
+                act[name][0:batch_split] = output
             elif str(output.device)[-1] == args.gpus[2]:
-                act[name][batch_split:2*batch_split] = out
+                act[name][batch_split:2*batch_split] = output
             
         elif len(args.gpus) == 1: # 1 GPU
-            act[name] = out
+            act[name] = output
         else:
             raise Exception('Odd multi-gpu numbers (3) not supported.')
-
-#        print('In: ' + str(act[name].shape) + '  Out Device: ' + str(output.device)[-1])
     return hook
-
-def reg_hook1(model):
-    for name, module in model.module.named_modules():
-        if 'relu' in name or 'fc' in name:
-            if 'xbmodel' not in name:
-#                print(name)
-                module.register_forward_hook(get_activation1(name))
         
 def reg_hook(model):
     for name, module in model.module.named_modules():
@@ -178,7 +172,8 @@ def save_activations(model, batch_idx, act, labels):
         if 'relu' in name or 'fc' in name:
             if 'xbmodel' not in name:
                 torch.save(act[name], os.path.join(act_path, name) + '/act_' + name + '_' + str(batch_idx) + '.pth.tar')
-    torch.save(labels, act_path+'/labels/labels_' +str(batch_idx) + '.pth.tar')
+    torch.save(labels, os.path.join(act_path, 'labels', 'labels_' +str(batch_idx) + '.pth.tar'))
+    torch.save(act['out'], os.path.join(act_path, 'out', 'act_out_' +str(batch_idx) + '.pth.tar'))
 
     
 #%%
@@ -195,15 +190,13 @@ if __name__=='__main__':
                 help='name of the model')
     parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet18fp_imnet.pth.tar',
                 help='the path to the pretrained model')
-    parser.add_argument('--mvm', action='store_true', default=False,
+    parser.add_argument('--mvm', action='store_true', default=True,
                 help='if running functional simulator backend')
-    parser.add_argument('--nideal', action='store_true', default=False,
+    parser.add_argument('--nideal', action='store_true', default=True,
                 help='Add xbar non-idealities')
     parser.add_argument('--mode', default='test', 
                 help='save activations for \'train\' or \'test\' sets')
-
-    parser.add_argument('--start-batch', type=int, default=0,
-                help='Start batch number')  
+ 
     parser.add_argument('--input_size', type=int, default=None,
                 help='image input size')
     parser.add_argument('-j', '--workers', default=8, type=int, metavar='J',
@@ -211,6 +204,8 @@ if __name__=='__main__':
     parser.add_argument('--gpus', default='0,1,2,3', help='gpus (default: 0,1,2,3)')
     parser.add_argument('-exp', '--experiment', default='128x128', metavar='N',
                 help='experiment name')
+    parser.add_argument('--batch-start', default=0, type=int, metavar='N', 
+                help='Start batch')
     args = parser.parse_args()
     
     print('\n' + ' '*6 + '==> Arguments:')
@@ -262,8 +257,6 @@ if __name__=='__main__':
         model_mvm = model_mvm.net(num_classes=100)
     else:
       raise Exception(args.dataset + 'is currently not supported')
-      
-    #print(model_mvm)
 
     print('==> Initializing model parameters ...')
     weights_conv = []
@@ -274,6 +267,7 @@ if __name__=='__main__':
     running_var = []
     num_batches = []
     
+    #Get params from pretrained model
     if not args.pretrained:
         raise Exception('Provide pretrained model for evalution')
     else:
@@ -285,7 +279,7 @@ if __name__=='__main__':
         for m in base_model.modules():
             if isinstance(m, nn.Conv2d):
                 weights_conv.append(m.weight.data.clone())
-            elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.BatchNorm1d):
+            elif isinstance(m, nn.BatchNorm2d):
                 bn_data.append(m.weight.data.clone())
                 bn_bias.append(m.bias.data.clone())
                 running_mean.append(m.running_mean.data.clone())
@@ -294,6 +288,7 @@ if __name__=='__main__':
             elif isinstance(m, nn.Linear):
                 weights_lin.append(m.weight.data.clone())
 
+    #Initialize Ideal model params
     i=j=k=0
     for m in model.modules():
         if isinstance(m, nn.Conv2d):
@@ -314,7 +309,8 @@ if __name__=='__main__':
             m.weight.data.uniform_(-stdv, stdv)
             if m.bias is not None:
                m.bias.data.uniform_(-stdv, stdv)
-            
+    
+    #Intitalize MVM model params
     i=j=k=0
     for m in model_mvm.modules():
         if isinstance(m, Conv2d_mvm):
@@ -338,13 +334,15 @@ if __name__=='__main__':
 
     if args.mvm:
         cfg.mvm = True
-        model = model_mvm
     
+    #Dataparallel models
     model.to(device)#.half() # uncomment for FP16
     model = nn.DataParallel(model)
+
+    model_mvm.to(device)#.half() # uncomment for FP16
+    model_mvm = nn.DataParallel(model_mvm)
     
-    
-    
+    #Input transforms
     image_transforms = {
         'train':
             transforms.Compose([
@@ -364,6 +362,7 @@ if __name__=='__main__':
                     ]),
         }
     
+    #Data and dataloaders
     train_data = get_dataset(args.dataset, 'train', image_transforms['train'], download=True)
     trainloader = torch.utils.data.DataLoader(
         train_data,
@@ -378,73 +377,78 @@ if __name__=='__main__':
 
     criterion = nn.CrossEntropyLoss()
 
-#    test(device)
-#    exit(0)
     act_path = os.path.join(root_path, args.mode)
     
+    #Save train or test activations
     if args.mode == 'train':
         dataloader = trainloader
     elif args.mode == 'test':
         dataloader = testloader
     else:
         raise Exception('Invalid save mode')
-        
+
+    #Create required dirs for saving activations    
     for i in range(1, 18):
         os.makedirs(act_path + '/relu' + str(i), exist_ok=True)
     os.makedirs(act_path + '/fc', exist_ok=True)
     os.makedirs(act_path + '/labels', exist_ok=True)
+    os.makedirs(act_path + '/out', exist_ok=True)
     
-#    for name, module in model.module.named_modules():
-#        if 'relu' in name or 'fc' in name:
-#            if 'xbmodel' not in name:
-#                print(name)
+    #Ideal model set to eval mode
+    model.eval()
     
     print("Saving activations to: {}".format(act_path))
+
+    #Dry run to compute activation sizes
+    data, target = next(iter(dataloader))
+    handler = reg_hook1(model)
     
-    for batch_idx,(data, target) in enumerate(dataloader):
-        base_time = time.time()
-        reg_hook1(model)
-        target = target.to(device)
-        data_var = torch.autograd.Variable(data.to(device))
-        target_var = torch.autograd.Variable(target.to(device))
-        print('Dry run for computing activation sizes...')
-        output = model(data_var)
-#        print(activation['relu1'].shape())
-        print('Dry run finished...')
-        duration = time.time() - base_time
-        print("Time taken: {}m {}secs".format(int(duration)//60, int(duration)%60))
-        break
+    data_var = data.to(device)
+    target_var = target.to(device)
+    print('Dry run for computing activation sizes...')
+    output = model(data_var)
+    print('Dry run finished...')
     
-    for name, module in model.module.named_modules():
+    #Delete ideal model and its hook handler
+    unreg_hook(handler)
+    del model
+    
+    #Single GPU activation shapes
+    for name, module in model_mvm.module.named_modules():
         if 'relu' in name or 'fc' in name:
             if 'xbmodel' not in name:
                 print(name + ': ' + str(activation[name].shape))
 
+    #Multi-GPU activation shapes
     act = {}
-    for name, module in model.module.named_modules():
+    for name, module in model_mvm.module.named_modules():
         if 'relu' in name and 'xbmodel' not in name:
             act[name] = torch.zeros([args.batch_size, activation[name].shape[1], activation[name].shape[2], activation[name].shape[3]])
             print(name + ': ' + str(act[name].shape))
         if 'fc' in name and 'xbmodel' not in name:
             act[name] = torch.zeros([args.batch_size, activation[name].shape[1]])
             print(name + ': ' + str(act[name].shape))
-    labels = torch.zeros([args.batch_size])
 
-    model.eval()
+    #Set mvm model to eval
+    model_mvm.eval()
+
+    #Iterate over dataloader and save activations
     for batch_idx,(data, target) in enumerate(dataloader):
-        base_time = time.time()
-        reg_hook(model)
-        target = target.to(device)
-        data_var = torch.autograd.Variable(data.to(device))
-        target_var = torch.autograd.Variable(target.to(device))
-    
-        output = model(data_var)
 
-        labels = target
+        if batch_idx >= args.batch_start:
+            base_time = time.time()
+            reg_hook(model_mvm)
+            
+            data_var = data.to(device)
+            target_var = target.to(device)
+            
+            output = model_mvm(data_var)
+            act['out'] = output
 
-        save_activations(model=model, batch_idx=batch_idx, act=act, labels=labels)
-        duration = time.time() - base_time
-        print("Batch IDx: {} \t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))
+            save_activations(model=model_mvm, batch_idx=batch_idx, act=act, labels=target)
+            
+            duration = time.time() - base_time
+            print("Batch IDx: {} \t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))
     
     print("Done saving activations!")
     exit(0)

@@ -76,7 +76,9 @@ model_names.sort()
 # Evaluate on a model
 def test(test_loader, model, criterion, device):
     global best_acc
+
     model.eval()
+
     losses = AverageMeter()
     top1 = AverageMeter()
     top5 = AverageMeter()
@@ -117,7 +119,6 @@ act = {}
 def get_activation1(name):
     def hook1(module, input, output):
         activation[name] = output
-        
     return hook1
 
 
@@ -159,7 +160,6 @@ def get_activation(name): #only works with 4 and 2 GPUs as of now
             act[name] = output
         else:
             raise Exception('Odd multi-gpu numbers (3) not supported.')
-
     return hook
 
 
@@ -199,6 +199,7 @@ if __name__=='__main__':
                 help='Add xbar non-idealities')
     parser.add_argument('--mode', default='test', 
                 help='save activations for \'train\' or \'test\' sets')
+
     parser.add_argument('--input_size', type=int, default=None,
                 help='image input size')
     parser.add_argument('-j', '--workers', default=8, type=int, metavar='J',
@@ -303,10 +304,12 @@ if __name__=='__main__':
     # Move required model to GPU (if applicable)
     if args.mvm:
         cfg.mvm = True
-        model = model_mvm
     
     model.to(device)#.half() # uncomment for FP16
     model = nn.DataParallel(model)
+
+    model_mvm.to(device)#.half() # uncomment for FP16
+    model_mvm = nn.DataParallel(model_mvm)
 
     default_transform = {
         'train': get_transform(args.dataset,
@@ -358,14 +361,15 @@ if __name__=='__main__':
     print('Dry run finished...')
     
     unreg_hook(handler)
+    del model
     
-    for name, module in model.module.named_modules():
+    for name, module in model_mvm.module.named_modules():
         if 'relu' in name or 'fc' in name:
             if 'xbmodel' not in name:
                 print(name + ': ' + str(activation[name].shape))
 
     act = {}
-    for name, module in model.module.named_modules():
+    for name, module in model_mvm.module.named_modules():
         if 'relu' in name and 'xbmodel' not in name:
             act[name] = torch.zeros([args.batch_size, activation[name].shape[1], activation[name].shape[2], activation[name].shape[3]])
             print(name + ': ' + str(act[name].shape))
@@ -377,16 +381,18 @@ if __name__=='__main__':
     top1 = AverageMeter()
     top5 = AverageMeter()
 
+    model_mvm.eval()
+
     for batch_idx,(data, target) in enumerate(dataloader):
 
         if batch_idx >= args.batch_start:
             base_time = time.time()
-            reg_hook(model)
+            reg_hook(model_mvm)
             
             data_var = data.to(device)
             target_var = target.to(device)
             
-            output = model(data_var)
+            output = model_mvm(data_var)
             act['out'] = output
 
             loss= criterion(output, target_var)
@@ -402,7 +408,7 @@ if __name__=='__main__':
                     batch_idx, len(dataloader), 100. *float(batch_idx)/len(dataloader),
                     loss=losses, top1=top1, top5=top5))
 
-            save_activations(model=model, batch_idx=batch_idx, act=act, labels=target)
+            save_activations(model=model_mvm, batch_idx=batch_idx, act=act, labels=target)
             
             duration = time.time() - base_time
             print("Batch IDx: {} \t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))
