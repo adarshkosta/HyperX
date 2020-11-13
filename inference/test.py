@@ -70,8 +70,6 @@ def test(test_loader, model, criterion, device):
     """
     Run evaluation
     """
-    batch_time = AverageMeter()
-    data_time = AverageMeter()
     losses = AverageMeter()
     top1 = AverageMeter()
     top5 = AverageMeter()
@@ -82,7 +80,7 @@ def test(test_loader, model, criterion, device):
     with torch.no_grad():
         for batch_idx, batch in enumerate(test_loader):
             input_var = batch['data']
-            target_var = batch['target'].type(torch.LongTensor)
+            target_var = batch['target'].long()
     
             if args.half:
                 input_var = input_var.half()
@@ -114,19 +112,20 @@ def test(test_loader, model, criterion, device):
   
     
 class SplitActivations_Dataset(Dataset):
-    def __init__(self, datapath, tgtpath, train_len = True):
+    def __init__(self, args, datapath, tgtpath, train_len=False):
         self.datapath = datapath
         self.tgtpath = tgtpath
         self.train_len = train_len
+        self.args = args
         
     def __getitem__(self, index):
 #        print('Index = ', index)
         if args.frozen_layers == 20:
             x = torch.load(os.path.join(self.datapath, 'act_fc'+'_'+str(index)+'.pth.tar'))
         else: 
-            x = torch.load(os.path.join(self.datapath, 'act_relu'+str(args.frozen_layers)+'_'+str(index)+'.pth.tar'))
+            x = torch.load(os.path.join(self.datapath, 'act_relu'+str(self.args.frozen_layers)+'_'+str(index)+'.pth.tar'))
         
-        y = torch.load(self.tgtpath+'/labels_'+str(index)+'.pth.tar')
+        y = torch.load(os.path.join(self.tgtpath, 'labels_'+str(index)+'.pth.tar'))
         return {'data': x[0], 'target': y[0]}
     
     def __len__(self):
@@ -142,20 +141,19 @@ def print_args(args):
 
 
 #Parse arguments
-parser = argparse.ArgumentParser(description= 'Test-S')
+parser = argparse.ArgumentParser(description= 'Test-Frozen')
 parser.add_argument('--dataset', metavar='DATASET', default='cifar100',
             help='dataset name')
 parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
             choices=model_names,
             help='name of the model')
-parser.add_argument('-b', '--batch-size', default=250, type=int,
+parser.add_argument('-b', '--batch-size', default=128, type=int,
             metavar='N', help='mini-batch size (default: 128)')
+parser.add_argument('--mode', default='test', type=str,
+            help='check train or test accuracy')
 
-
-parser.add_argument('--load_dir', default='/home/nano01/a/esoufler/activations/error_analysis/one_batch/',
+parser.add_argument('--load_dir', default='/home/nano01/a/esoufler/activations/one_batch/',
             help='base path for loading activations')
-parser.add_argument('--type', default='sram_direct',
-            help='type of activations to load')
 parser.add_argument('--savedir', default='../pretrained_models/frozen/',
                 help='base path for saving activations')
 
@@ -236,26 +234,20 @@ else: #Initialize params with normal distribution
 model.to(device)
 #%%
 if args.frozen_layers == 20:
-    datapath_test = os.path.join(args.load_dir, args.dataset, args.type, 'fc')
+    datapath = os.path.join(args.load_dir, args.dataset, args.model, args.mode, 'fc')
 else:
-    datapath_test = os.path.join(args.load_dir, args.dataset, args.type, 'relu' + str(args.frozen_layers))
+    datapath = os.path.join(args.load_dir, args.dataset, args.model, args.mode, 'relu' + str(args.frozen_layers))
 
-tgtpath_test = os.path.join(args.load_dir, args.dataset, args.type, 'labels')
+tgtpath = os.path.join(args.load_dir, args.dataset, args.model, args.mode, 'labels')
 
-#if args.frozen_layers == 20:
-#    datapath_test = os.path.join(args.load_dir, args.dataset, args.model, 'test/fc')
-#    datapath_train = os.path.join(args.load_dir, args.dataset, args.model, 'train/fc')
-#else:
-#    datapath_test = os.path.join(args.load_dir, args.dataset, args.model, 'test/relu' + str(args.frozen_layers))
-#    datapath_train = os.path.join(args.load_dir, args.dataset, args.model, 'train/relu' + str(args.frozen_layers))
-#
-#tgtpath_test = os.path.join(args.load_dir, args.dataset, args.model, 'test/labels')
-#tgtpath_train = os.path.join(args.load_dir, args.dataset, args.model, 'train/labels')
+if args.mode == 'train':
+    train_len = True
+else:
+    train_len = False
 
-
-test_data = SplitActivations_Dataset(datapath_test, tgtpath_test, train_len=False)
-test_loader = torch.utils.data.DataLoader(
-    test_data,
+data = SplitActivations_Dataset(args, datapath, tgtpath, train_len=train_len)
+dataloader = torch.utils.data.DataLoader(
+    data,
     batch_size=args.batch_size, shuffle=False,
     num_workers=args.workers, pin_memory=True)
 
@@ -264,6 +256,7 @@ criterion = nn.CrossEntropyLoss()
 if args.half:
     criterion.half()
 
-acc, loss = test(test_loader, model, criterion, device)
+acc, loss = test(dataloader, model, criterion, device)
 print('Prec@1 with ' + str(args.frozen_layers) + ' layers frozen = ', acc.item(),
  '%\t Loss = ', loss.item())
+exit(0)

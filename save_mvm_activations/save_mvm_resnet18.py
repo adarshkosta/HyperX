@@ -430,6 +430,7 @@ if __name__=='__main__':
             print(name + ': ' + str(act[name].shape))
     labels = torch.zeros([args.batch_size])
 
+    model.eval()
     for batch_idx,(data, target) in enumerate(dataloader):
         base_time = time.time()
         reg_hook(model)

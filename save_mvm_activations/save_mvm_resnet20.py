@@ -116,8 +116,7 @@ act = {}
 
 def get_activation1(name):
     def hook1(module, input, output):
-        out = output.detach()
-        activation[name] = out
+        activation[name] = output
         
     return hook1
 
@@ -130,13 +129,12 @@ def reg_hook1(model):
                 hook_handler1[name] = module.register_forward_hook(get_activation1(name))
     return hook_handler1
 
-def unreg_hook1(hook_handler):
+def unreg_hook(hook_handler):
     for name in hook_handler.keys():
         hook_handler[name].remove()
 
 def get_activation(name): #only works with 4 and 2 GPUs as of now
     def hook(module, input, output):
-        
         if len(args.gpus) == 7: #4 GPUS
             batch_split = int(args.batch_size/4) #0,1,2,3
             
@@ -177,7 +175,8 @@ def save_activations(model, batch_idx, act, labels):
         if 'relu' in name or 'fc' in name:
             if 'xbmodel' not in name:
                 torch.save(act[name], os.path.join(act_path, name) + '/act_' + name + '_' + str(batch_idx) + '.pth.tar')
-    torch.save(labels, act_path+'/labels/labels_' +str(batch_idx) + '.pth.tar')
+    torch.save(labels, os.path.join(act_path, 'labels', 'labels_' +str(batch_idx) + '.pth.tar'))
+    torch.save(act['out'], os.path.join(act_path, 'out', 'act_out_' +str(batch_idx) + '.pth.tar'))
 
 
 #%%
@@ -185,18 +184,18 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-b', '--batch-size', default=1000, type=int, metavar='N', 
                 help='mini-batch size (default: 256)')
-    parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
+    parser.add_argument('--dataset', metavar='DATASET', default='cifar100',
                 help='dataset name or folder')
     parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/multiple_batches/',
                 help='base path for saving activations')
     parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
                 choices=model_names,
                 help='name of the model')
-    parser.add_argument('--pretrained', action='store', default=None, #'../pretrained_models/ideal/resnet20fp_cifar10.pth.tar',
+    parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20fp_cifar100.pth.tar',
                 help='the path to the pretrained model')
-    parser.add_argument('--mvm', action='store_true', default=False,
+    parser.add_argument('--mvm', action='store_true', default=True,
                 help='if running functional simulator backend')
-    parser.add_argument('--nideal', action='store_true', default=False,
+    parser.add_argument('--nideal', action='store_true', default=True,
                 help='Add xbar non-idealities')
     parser.add_argument('--mode', default='test', 
                 help='save activations for \'train\' or \'test\' sets')
@@ -207,6 +206,8 @@ if __name__=='__main__':
     parser.add_argument('--gpus', default='0,1,2,3', help='gpus (default: 0,1,2,3)')
     parser.add_argument('-exp', '--experiment', default='128x128', metavar='N',
                 help='experiment name')
+    parser.add_argument('--batch-start', default=0, type=int, metavar='N', 
+                help='Start batch')
     args = parser.parse_args()
     
     print('\n' + ' '*6 + '==> Arguments:')
@@ -327,10 +328,8 @@ if __name__=='__main__':
         batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss().to(device)
 
-#    test(device)
-#    exit(0)
     act_path = os.path.join(root_path, args.mode)
     
     if args.mode == 'train':
@@ -344,20 +343,21 @@ if __name__=='__main__':
         os.makedirs(act_path + '/relu' + str(i), exist_ok=True)
     os.makedirs(act_path + '/fc', exist_ok=True)
     os.makedirs(act_path + '/labels', exist_ok=True)
+    os.makedirs(act_path + '/out', exist_ok=True)
     
+    model.eval()
     
     print("Saving activations to: {}".format(act_path))
-    for batch_idx,(data, target) in enumerate(dataloader):
-        reg_hook1(model)
-        target = target.to(device)
-        data_var = torch.autograd.Variable(data.to(device))
-        target_var = torch.autograd.Variable(target.to(device))
-        print('Dry run for computing activation sizes...')
-        output = model(data_var)
-#        print(activation['relu1'].shape())
-        print('Dry run finished...')
-        
-        break
+    data, target = next(iter(dataloader))
+    handler = reg_hook1(model)
+    
+    data_var = data.to(device)
+    target_var = target.to(device)
+    print('Dry run for computing activation sizes...')
+    output = model(data_var)
+    print('Dry run finished...')
+    
+    unreg_hook(handler)
     
     for name, module in model.module.named_modules():
         if 'relu' in name or 'fc' in name:
@@ -372,26 +372,43 @@ if __name__=='__main__':
         if 'fc' in name and 'xbmodel' not in name:
             act[name] = torch.zeros([args.batch_size, activation[name].shape[1]])
             print(name + ': ' + str(act[name].shape))
-    labels = torch.zeros([args.batch_size])
+
+    losses = AverageMeter()
+    top1 = AverageMeter()
+    top5 = AverageMeter()
 
     for batch_idx,(data, target) in enumerate(dataloader):
-        base_time = time.time()
-        reg_hook(model)
-        target = target.to(device)
-        data_var = torch.autograd.Variable(data.to(device))
-        target_var = torch.autograd.Variable(target.to(device))
-    
-        output = model(data_var)
-        
-#        for name, module in model.module.named_modules():
-#            if 'relu' in name or 'fc' in name:
-#                if 'xbmodel' not in name:
-#                    print('Out: ' + str(act[name].shape))
-        labels = target
 
-        save_activations(model=model, batch_idx=batch_idx, act=act, labels=labels)
-        duration = time.time() - base_time
-        print("Batch IDx: {} \t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))
+        if batch_idx >= args.batch_start:
+            base_time = time.time()
+            reg_hook(model)
+            
+            data_var = data.to(device)
+            target_var = target.to(device)
+            
+            output = model(data_var)
+            act['out'] = output
+
+            loss= criterion(output, target_var)
+            prec1, prec5 = accuracy(output.data, target_var.data, topk=(1, 5))
+            losses.update(loss.data, data.size(0))
+            top1.update(prec1[0], data.size(0))
+            top5.update(prec5[0], data.size(0))
+
+            print('[{0}/{1}({2:.0f}%)]\t'
+                    'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                    'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+                    'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
+                    batch_idx, len(dataloader), 100. *float(batch_idx)/len(dataloader),
+                    loss=losses, top1=top1, top5=top5))
+
+            save_activations(model=model, batch_idx=batch_idx, act=act, labels=target)
+            
+            duration = time.time() - base_time
+            print("Batch IDx: {} \t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))
+
+    print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'
+          .format(top1=top1, top5=top5))
     
     print("Done saving activations!")
     exit(0)

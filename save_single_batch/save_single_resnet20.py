@@ -4,9 +4,9 @@ import numpy as np
 import os
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-b-train', default=1000, type=int,
+parser.add_argument('--b-train', default=1000, type=int,
                      metavar='N', help='mini-batch size (default: 1024)')
-parser.add_argument('-b-test', default=1000, type=int,
+parser.add_argument('--b-test', default=1000, type=int,
                      metavar='N', help='mini-batch size (default: 1024)')
 parser.add_argument('--dataset', metavar='DATASET', default='cifar100', help='dataset name or folder')
 parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20', help='name of the model')

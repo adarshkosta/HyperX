@@ -1,0 +1,17 @@
+#Save activations commands
+#Non-idealities and mvm enabled by default
+#Batch size = 250 per GPU
+#Use 1,2 or 4 GPUs
+
+#CIFAR-10 TEST
+python save_mvm_resnet20.py --dataset='cifar10' --mode='test' --pretrained='../pretrained_models/ideal/resnet20fp_cifar10.pth.tar' -b1000 --gpus='0,1,2,3'
+
+#CIFAR-10 TRAIN
+python save_mvm_resnet20.py --dataset='cifar10' --mode='train' --pretrained='../pretrained_models/ideal/resnet20fp_cifar10.pth.tar' -b1000 --gpus='0,1,2,3'
+
+
+#CIFAR-100 TEST
+python save_mvm_resnet20.py --dataset='cifar100' --mode='test' --pretrained='../pretrained_models/ideal/resnet20fp_cifar100.pth.tar' -b1000 --gpus='0,1,2,3'
+
+#CIFAR-100 TRAIN
+python save_mvm_resnet20.py --dataset='cifar100' --mode='train' --pretrained='../pretrained_models/ideal/resnet20fp_cifar100.pth.tar' -b1000 --gpus='0,1,2,3'
