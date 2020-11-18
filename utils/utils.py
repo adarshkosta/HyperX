@@ -75,7 +75,7 @@ class ResultsLog(object):
         self.figures.append(fig)
 
 
-def save_checkpoint(state, is_best, path='.', filename='checkpoint', save_all=False):
+def save_checkpoint(state, is_best, path='.', filename='checkpoint'):
     file = os.path.join(path, filename + '.pth.tar')
     torch.save(state, file)
     if is_best:

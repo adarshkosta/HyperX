@@ -118,6 +118,7 @@ act = {}
 
 def get_activation1(name):
     def hook1(module, input, output):
+        output = output.detach()
         activation[name] = output
     return hook1
 
@@ -136,6 +137,7 @@ def unreg_hook(hook_handler):
 
 def get_activation(name): #only works with 4 and 2 GPUs as of now
     def hook(module, input, output):
+        output = output.detach()
         if len(args.gpus) == 7: #4 GPUS
             batch_split = int(args.batch_size/4) #0,1,2,3
             

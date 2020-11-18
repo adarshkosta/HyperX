@@ -1,7 +1,7 @@
 WARNING: crossbar sizes with different row annd column dimension not supported.
 
       ==> Arguments:
-          batch_size: 52
+          batch_size: 40
           dataset: cifar100
           savedir: /home/nano01/a/esoufler/activations/multiple_batches/
           model: resnet18
@@ -10,10 +10,10 @@ WARNING: crossbar sizes with different row annd column dimension not supported.
           nideal: True
           mode: test
           input_size: None
-          workers: 8
+          workers: 16
           gpus: 0,1,2,3
           experiment: 128x128
-          batch_start: 0
+          batch_start: 13
 
       ==> Functional simulator configurations:
           weight_bits=16
@@ -54,39 +54,97 @@ Files already downloaded and verified
 Saving activations to: /home/nano01/a/esoufler/activations/multiple_batches/cifar100/resnet18/test
 Dry run for computing activation sizes...
 Dry run finished...
-relu1: torch.Size([13, 64, 112, 112])
-relu2: torch.Size([13, 64, 56, 56])
-relu3: torch.Size([13, 64, 56, 56])
-relu4: torch.Size([13, 64, 56, 56])
-relu5: torch.Size([13, 64, 56, 56])
-relu6: torch.Size([13, 128, 28, 28])
-relu7: torch.Size([13, 128, 28, 28])
-relu8: torch.Size([13, 128, 28, 28])
-relu9: torch.Size([13, 128, 28, 28])
-relu10: torch.Size([13, 256, 14, 14])
-relu11: torch.Size([13, 256, 14, 14])
-relu12: torch.Size([13, 256, 14, 14])
-relu13: torch.Size([13, 256, 14, 14])
-relu14: torch.Size([13, 512, 7, 7])
-relu15: torch.Size([13, 512, 7, 7])
-relu16: torch.Size([13, 512, 7, 7])
-relu17: torch.Size([13, 512, 7, 7])
-fc: torch.Size([13, 100])
-relu1: torch.Size([52, 64, 112, 112])
-relu2: torch.Size([52, 64, 56, 56])
-relu3: torch.Size([52, 64, 56, 56])
-relu4: torch.Size([52, 64, 56, 56])
-relu5: torch.Size([52, 64, 56, 56])
-relu6: torch.Size([52, 128, 28, 28])
-relu7: torch.Size([52, 128, 28, 28])
-relu8: torch.Size([52, 128, 28, 28])
-relu9: torch.Size([52, 128, 28, 28])
-relu10: torch.Size([52, 256, 14, 14])
-relu11: torch.Size([52, 256, 14, 14])
-relu12: torch.Size([52, 256, 14, 14])
-relu13: torch.Size([52, 256, 14, 14])
-relu14: torch.Size([52, 512, 7, 7])
-relu15: torch.Size([52, 512, 7, 7])
-relu16: torch.Size([52, 512, 7, 7])
-relu17: torch.Size([52, 512, 7, 7])
-fc: torch.Size([52, 100])
+relu1: torch.Size([10, 64, 112, 112])
+relu2: torch.Size([10, 64, 56, 56])
+relu3: torch.Size([10, 64, 56, 56])
+relu4: torch.Size([10, 64, 56, 56])
+relu5: torch.Size([10, 64, 56, 56])
+relu6: torch.Size([10, 128, 28, 28])
+relu7: torch.Size([10, 128, 28, 28])
+relu8: torch.Size([10, 128, 28, 28])
+relu9: torch.Size([10, 128, 28, 28])
+relu10: torch.Size([10, 256, 14, 14])
+relu11: torch.Size([10, 256, 14, 14])
+relu12: torch.Size([10, 256, 14, 14])
+relu13: torch.Size([10, 256, 14, 14])
+relu14: torch.Size([10, 512, 7, 7])
+relu15: torch.Size([10, 512, 7, 7])
+relu16: torch.Size([10, 512, 7, 7])
+relu17: torch.Size([10, 512, 7, 7])
+fc: torch.Size([10, 100])
+not saved
+conv1not saved
+conv1.xbmodelnot saved
+conv1.xbmodel.fc1not saved
+conv1.xbmodel.relu1not saved
+conv1.xbmodel.do2not saved
+conv1.xbmodel.fc3not saved
+bn1not saved
+relu1: torch.Size([40, 64, 112, 112])
+maxpoolnot saved
+conv2not saved
+bn2not saved
+relu2: torch.Size([40, 64, 56, 56])
+conv3not saved
+bn3not saved
+relu3: torch.Size([40, 64, 56, 56])
+conv4not saved
+bn4not saved
+relu4: torch.Size([40, 64, 56, 56])
+conv5not saved
+bn5not saved
+relu5: torch.Size([40, 64, 56, 56])
+conv6not saved
+bn6not saved
+resconv1not saved
+resconv1.0not saved
+resconv1.1not saved
+resconv1.2not saved
+relu6: torch.Size([40, 128, 28, 28])
+conv7not saved
+bn7not saved
+relu7: torch.Size([40, 128, 28, 28])
+conv8not saved
+bn8not saved
+relu8: torch.Size([40, 128, 28, 28])
+conv9not saved
+bn9not saved
+relu9: torch.Size([40, 128, 28, 28])
+conv10not saved
+bn10not saved
+resconv2not saved
+resconv2.0not saved
+resconv2.1not saved
+resconv2.2not saved
+relu10: torch.Size([40, 256, 14, 14])
+conv11not saved
+bn11not saved
+relu11: torch.Size([40, 256, 14, 14])
+conv12not saved
+bn12not saved
+relu12: torch.Size([40, 256, 14, 14])
+conv13not saved
+bn13not saved
+relu13: torch.Size([40, 256, 14, 14])
+conv14not saved
+bn14not saved
+resconv3not saved
+resconv3.0not saved
+resconv3.1not saved
+resconv3.2not saved
+relu14: torch.Size([40, 512, 7, 7])
+conv15not saved
+bn15not saved
+relu15: torch.Size([40, 512, 7, 7])
+conv16not saved
+bn16not saved
+relu16: torch.Size([40, 512, 7, 7])
+conv17not saved
+bn17not saved
+relu17: torch.Size([40, 512, 7, 7])
+avgpoolnot saved
+bn18not saved
+fc: torch.Size([40, 100])
+bn19not saved
+logsoftmaxnot saved
+Starting to save activations..
