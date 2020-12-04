@@ -133,21 +133,16 @@ def test(test_loader, model, criterion, device):
     data_time = AverageMeter()
     losses = AverageMeter()
     top1 = AverageMeter()
+    top5 = AverageMeter()
 
     # switch to evaluate mode
     model.eval()
 
-    end = time.time()
-    
-    batch_freq = int(len(test_loader)/args.print_freq)
     
     with torch.no_grad():
         for batch_idx, batch in enumerate(test_loader):
-            # measure data loading time
-            data_time.update(time.time() - end)
-            
             input_var = batch['data']
-            target_var = batch['target'].type(torch.LongTensor)
+            target_var = batch['target'].long()
     
             if args.half:
                 input_var = input_var.half()
@@ -158,43 +153,40 @@ def test(test_loader, model, criterion, device):
             output = model(input_var)
             loss = criterion(output, target_var)
 
-            output = output.float()
-            loss = loss.float()
-            
-            # measure accuracy and record loss
-            prec1 = accuracy(output.data, batch['target'].to(device))[0]
-            losses.update(loss.item(), batch['data'].size(0))
-            top1.update(prec1.item(), batch['data'].size(0))
+            prec1, prec5 = accuracy(output.data, target_var.data, topk=(1, 5))
+            losses.update(loss.data, batch['data'].size(0))
+            top1.update(prec1[0], batch['data'].size(0))
+            top5.update(prec5[0], batch['data'].size(0))
     
-            # measure elapsed time
-            batch_time.update(time.time() - end)
-            end = time.time()
-            
-            if (batch_idx+1) % batch_freq == 0:
-                print('Test: [{0}/{1}]\t'
-                      'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
-                          batch_idx, len(test_loader), loss=losses, top1=top1))
-    print('Prec@1: {top1.avg:.3f}'.format(top1=top1))
-    
+            # if batch_idx % 10 == 0:
+            #         print('[{0}/{1}({2:.0f}%)]\t'
+            #             'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+            #             'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+            #             'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
+            #             batch_idx, len(test_loader), 100. *float(batch_idx)/len(test_loader),
+            #             loss=losses, top1=top1, top5=top5))
 
-    return top1.avg
+
+    print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f} Loss {loss.avg:.4f}'
+          .format(top1=top1, top5=top5, loss=losses))
+    acc = top1.avg
+    return acc, losses.avg
   
-
-
-class MyDataParallel(nn.DataParallel):
-    def __getattr(self, name):
-        return getattr(self.module, name)
     
 class SplitActivations_Dataset(Dataset):
-    def __init__(self, datapath, tgtpath, train_len = True):
+    def __init__(self, args, datapath, tgtpath, train_len = True):
         self.datapath = datapath
         self.tgtpath = tgtpath
         self.train_len = train_len
         
     def __getitem__(self, index):
 #        print('Index = ', index)
-        x = torch.load(self.datapath+'/act_relu'+str(args.frozen_layers)+'_'+str(index)+'.pth.tar')
-        y = torch.load(self.tgtpath+'/labels_'+str(index)+'.pth.tar')
+        if args.frozen_layers == 18:
+            x = torch.load(os.path.join(self.datapath, 'act_fc'+'_'+str(index)+'.pth.tar'))
+        else: 
+            x = torch.load(os.path.join(self.datapath, 'act_relu'+str(self.args.frozen_layers)+'_'+str(index)+'.pth.tar'))
+        
+        y = torch.load(os.path.join(self.tgtpath, 'labels_'+str(index)+'.pth.tar'))
         return {'data': x[0], 'target': y[0]}
     
     def __len__(self):
@@ -221,10 +213,12 @@ parser.add_argument('--load_dir', default='/home/nano01/a/esoufler/activations/o
             help='base path for loading activations')
 parser.add_argument('--savedir', default='../pretrained_models/frozen/',
                 help='base path for saving activations')
+parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet18fp_imnet.pth.tar',
+            help='the path to the ideal pretrained model')
 
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
             help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', default=20, type=int, metavar='N',
+parser.add_argument('--epochs', default=50, type=int, metavar='N',
             help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
             help='manual epoch number (useful on restarts)')
@@ -234,12 +228,14 @@ parser.add_argument('--lr', '--learning-rate', default=0.001, type=float,
             metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
             help='momentum')
-parser.add_argument('--weight-decay', '--wd', default=5e-4, type=float, metavar='W', 
-            help='weight decay (default: 5e-4)')
-parser.add_argument('--milestones', default=[8, 15], 
-            help='Milestones for LR decay')
-parser.add_argument('--gamma', default=0.8, type=float,
+parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar='W', 
+            help='weight decay (default: 1e-4)')
+parser.add_argument('--gamma', default=0.2, type=float,
             help='learning rate decay')
+
+parser.add_argument('--milestones', default=[10], 
+            help='Milestones for LR decay')
+
 parser.add_argument('--loss', type=str, default='crossentropy', 
             help='Loss function to use')
 parser.add_argument('--optim', type=str, default='sgd',
@@ -247,15 +243,14 @@ parser.add_argument('--optim', type=str, default='sgd',
 parser.add_argument('--dropout', type=float, default=0.5,
             help='Dropout probability')
 
-parser.add_argument('--pretrained', action='store', default=None, #'../pretrained_models/ideal/resnet20fp_cifar10.pth.tar',
-            help='the path to the ideal pretrained model')
+
 parser.add_argument('--print-freq', '-p', default=5, type=int,
                 metavar='N', help='print frequency (default: 5)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
                 help='path to latest checkpoint (default: none)')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true', default=False, 
                     help='evaluate model on validation set')
-parser.add_argument('--half', dest='half', action='store_true', default=False,
+parser.add_argument('--half', dest='half', action='store_true', default=True,
                     help='use half-precision(16-bit) ')
 
 parser.add_argument('--save-every', dest='save_every',
@@ -287,16 +282,12 @@ if (args.model+'_freeze'+str(args.frozen_layers) in model_names):
 else:
     raise Exception(args.model+' is currently not supported')
 
-
-if args.model == 'resnet20' and args.frozen_layers % 2 == 0:
-    raise Exception('Value ' + args.frozen_layers + 'for frozen_layers not supported. Enter odd values in the range (1-19).')
-
 # optionally resume from a checkpoint
 if args.resume:
     if args.dataset == 'cifar10':
-        model = model.net(num_classes=10, p=args.dropout)
+        model = model.net(num_classes=10)
     elif args.dataset == 'cifar100':
-        model = model.net(num_classes=100, p=args.dropout)
+        model = model.net(num_classes=100)
     else:
         raise Exception(args.dataset + 'is currently not supported')
         
@@ -314,7 +305,7 @@ if args.resume:
         
 else: #No model to resume from
     if args.pretrained: #Initialize params with pretrained model
-        model = model.net(num_classes=1000, p=args.dropout)
+        model = model.net(num_classes=1000)
         
         print('==> Initializing model with pre-trained parameters (except classifier)...')
         original_model = (__import__(args.model))
@@ -343,21 +334,22 @@ else: #No model to resume from
             raise Exception(args.dataset + 'is currently not supported')
             
         #Initialize classifier params with normal distribution
-        for m in model.modules():
+        for name, m in model.named_modules():
             if isinstance(m, nn.Linear):
                 stdv = 1. / math.sqrt(m.weight.data.size(1))
                 m.weight.data.uniform_(-stdv, stdv)
                 if m.bias is not None:
                     m.bias.data.uniform_(-stdv, stdv)
             elif isinstance(m, nn.BatchNorm1d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
+                if 'bn19' in name:
+                    m.weight.data.fill_(1)
+                    m.bias.data.zero_()
                         
     else: #Initialize all params with normal distribution
         if args.dataset == 'cifar10':
-            model = model.net(num_classes=10, p=args.dropout)
+            model = model.net(num_classes=10)
         elif args.dataset == 'cifar100':
-            model = model.net(num_classes=100, p=args.dropout)
+            model = model.net(num_classes=100)
         else:
             raise Exception(args.dataset + 'is currently not supported')
         
@@ -373,36 +365,27 @@ else: #No model to resume from
                 m.weight.data.uniform_(-stdv, stdv)
                 if m.bias is not None:
                    m.bias.data.uniform_(-stdv, stdv)
-
-#model = nn.DataParallel(model) #Dont need to use dataparallel
-#for name1, m1 in model.named_modules():
-#    for name2, m2 in original_model.named_modules():
-#        if name2 == name1:                   
-#            print(name1, name2)
-#            for p1, p2 in zip(m1.parameters(), m2.parameters()):
-#                print(p1.data.shape, p2.data.shape)
-#                if p1.data.ne(p2.data).sum() > 0:
-#                    print(name1 + ' NOT equal in the two models.')
-#                else:
-#                    print(name1 + ' equal in the two models.')
  
 model.to(device)
 #%%
+if args.frozen_layers == 18:
+    datapath_train = os.path.join(args.load_dir, args.dataset, args.model, 'train', 'fc')
+    datapath_test = os.path.join(args.load_dir, args.dataset, args.model, 'test', 'fc')
+else:
+    datapath_train = os.path.join(args.load_dir, args.dataset, args.model, 'train', 'relu' + str(args.frozen_layers))
+    datapath_test = os.path.join(args.load_dir, args.dataset, args.model, 'test', 'relu' + str(args.frozen_layers))
 
-datapath_train = str(args.load_dir)+str(args.dataset)+'/'+str(args.model)+'/train/relu' + str(args.frozen_layers)
-tgtpath_train = str(args.load_dir)+str(args.dataset)+'/'+str(args.model)+'/train/labels' 
-
-datapath_test = str(args.load_dir)+str(args.dataset)+'/'+str(args.model)+'/test/relu' + str(args.frozen_layers)
-tgtpath_test = str(args.load_dir)+str(args.dataset)+'/'+str(args.model)+'/test/labels'
+tgtpath_train = os.path.join(args.load_dir, args.dataset, args.model, 'train', 'labels')
+tgtpath_test = os.path.join(args.load_dir, args.dataset, args.model, 'test', 'labels')
 
 
-train_data = SplitActivations_Dataset(datapath_train, tgtpath_train, train_len = True)
+train_data = SplitActivations_Dataset(args, datapath_train, tgtpath_train, train_len = True)
 train_loader = torch.utils.data.DataLoader(
     train_data,
     batch_size=args.batch_size, shuffle=True,
     num_workers=args.workers, pin_memory=True)
 
-test_data = SplitActivations_Dataset(datapath_test, tgtpath_test, train_len = False)
+test_data = SplitActivations_Dataset(args, datapath_test, tgtpath_test, train_len = False)
 test_loader = torch.utils.data.DataLoader(
     test_data,
     batch_size=args.batch_size, shuffle=False,
@@ -425,22 +408,22 @@ if args.optim == 'sgd':
                             weight_decay=args.weight_decay)
 elif args.optim == 'adam':
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, 
-                             weight_decay=args.weight_decay)
+                            weight_decay=args.weight_decay)
 else:
     raise NotImplementedError
 
 lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer,
-                                              milestones=args.milestones, 
-                                              gamma=args.gamma, 
-                                              last_epoch=args.start_epoch - 1)
+                                            milestones=args.milestones, 
+                                            gamma=args.gamma, 
+                                            last_epoch=args.start_epoch - 1)
 
 
 if args.evaluate:
-    acc = test(test_loader, model, criterion, device)
+    acc, loss = test(test_loader, model, criterion, device)
     print('Prec@1 with ' + str(args.frozen_layers) + ' layers frozen = ', acc)
 else:
-    acc = test(test_loader, model, criterion, device)
-    print('Pre-trained Prec@1 with ' + str(args.frozen_layers) + ' layers frozen = ', acc)
+    acc, loss = test(test_loader, model, criterion, device)
+    print('Pre-trained Prec@1 with {} layers frozen: {} \t Loss: {}'.format(args.frozen_layers, acc.item(), loss.item()))
     print('\nStarting training on SRAM layers...')
     
 #    print('Params getting trained: \n')
@@ -454,7 +437,7 @@ else:
         train(train_loader, model, criterion, optimizer, epoch, device)
     
         # evaluate on validation set
-        acc = test(test_loader, model, criterion, device)
+        acc, loss = test(test_loader, model, criterion, device)
         
         lr_scheduler.step()
     
@@ -466,12 +449,14 @@ else:
             save_checkpoint({
                 'state_dict': model.state_dict(),
                 'best_acc': best_acc,
-            }, is_best, path= save_dir, filename='freeze' + str(args.frozen_layers) + '_half')
+                'optimizer': optimizer,
+            }, is_best, path=save_dir, filename='freeze' + str(args.frozen_layers) + '_hp')
         else:
             save_checkpoint({
                 'state_dict': model.state_dict(),
                 'best_acc': best_acc,
-            }, is_best, path=save_dir, filename='freeze' + str(args.frozen_layers) + '_full')
+                'optimizer': optimizer,
+            }, is_best, path=save_dir, filename='freeze' + str(args.frozen_layers) + '_fp')
     
         print('Best acc: {:.3f}'.format(best_acc))
         print('-'*80)

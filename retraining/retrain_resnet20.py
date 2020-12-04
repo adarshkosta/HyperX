@@ -302,6 +302,7 @@ if args.resume:
               .format(args.evaluate, checkpoint['epoch']))
     else:
         raise Exception(args.resume + ' does not exists')
+
 else: #No model to resume from
     if args.pretrained: #Initialize params with pretrained model
         print('==> Initializing model with pre-trained parameters ...')
@@ -325,12 +326,12 @@ else: #No model to resume from
                     if 'resconv' in name1 or 'conv' in name1 or 'fc' in name1 or 'bn' in name1:
                         m1.load_state_dict(m2.state_dict())
                         
-    else: #Initialize params with normal distribution
+    else: #Initialize all params with normal distribution
         for m in model.modules():
             if isinstance(m, nn.Conv2d):
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
                 m.weight.data.normal_(0, math.sqrt(2. / n))
-            elif isinstance(m, nn.BatchNorm2d):
+            elif isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d)):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
             elif isinstance(m, nn.Linear):
@@ -380,14 +381,15 @@ if args.optim == 'sgd':
                             momentum=args.momentum,
                             weight_decay=args.weight_decay)
 elif args.optim == 'adam':
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, 
+                            weight_decay=args.weight_decay)
 else:
     raise NotImplementedError
 
 lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer,
-                                                    milestones=args.milestones, 
-                                                    gamma=args.gamma, 
-                                                    last_epoch=args.start_epoch - 1)
+                                            milestones=args.milestones, 
+                                            gamma=args.gamma, 
+                                            last_epoch=args.start_epoch - 1)
 
 
 if args.evaluate:
@@ -417,12 +419,14 @@ else:
             save_checkpoint({
                 'state_dict': model.state_dict(),
                 'best_acc': best_acc,
-            }, is_best, path= args.savedir, filename='freeze' + str(args.frozen_layers) + '_hp')
+                'optimizer': optimizer,
+            }, is_best, path=save_dir, filename='freeze' + str(args.frozen_layers) + '_hp')
         else:
             save_checkpoint({
                 'state_dict': model.state_dict(),
                 'best_acc': best_acc,
-            }, is_best, path=args.savedir, filename='freeze' + str(args.frozen_layers) + '_fp')
+                'optimizer': optimizer,
+            }, is_best, path=save_dir, filename='freeze' + str(args.frozen_layers) + '_fp')
     
         print('Best acc: {:.3f}'.format(best_acc))
         print('-'*80)
