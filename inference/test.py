@@ -254,7 +254,8 @@ dataloader = torch.utils.data.DataLoader(
 criterion = nn.CrossEntropyLoss()
 
 if args.half:
-    criterion.half()
+    moel = model.half()
+    criterion = criterion.half()
 
 acc, loss = test(dataloader, model, criterion, device)
 print('Prec@1 with ' + str(args.frozen_layers) + ' layers frozen = ', acc.item(),

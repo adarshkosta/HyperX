@@ -217,22 +217,22 @@ parser.add_argument('--pretrained', action='store', default='../pretrained_model
 
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
             help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', default=100, type=int, metavar='N',
+parser.add_argument('--epochs', default=50, type=int, metavar='N',
             help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
             help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=128, type=int,
             metavar='N', help='mini-batch size (default: 128)')
-parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
+parser.add_argument('--lr', '--learning-rate', default=0.001, type=float,
             metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
             help='momentum')
 parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar='W', 
-            help='weight decay (default: 5e-4)')
-parser.add_argument('--gamma', default=0.1, type=float,
+            help='weight decay (default: 1e-4)')
+parser.add_argument('--gamma', default=0.2, type=float,
             help='learning rate decay')
 
-parser.add_argument('--milestones', default=[50, 100, 150], 
+parser.add_argument('--milestones', default=[10], 
             help='Milestones for LR decay')
 
 parser.add_argument('--loss', type=str, default='crossentropy', 
@@ -249,7 +249,7 @@ parser.add_argument('--resume', default='', type=str, metavar='PATH',
                 help='path to latest checkpoint (default: none)')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true', default=False, 
                     help='evaluate model on validation set')
-parser.add_argument('--half', dest='half', action='store_true', default=False,
+parser.add_argument('--half', dest='half', action='store_true', default=True,
                     help='use half-precision(16-bit) ')
 
 parser.add_argument('--save-every', dest='save_every',
@@ -398,10 +398,6 @@ else:
     print('Pre-trained Prec@1 with {} layers frozen: {} \t Loss: {}'.format(args.frozen_layers, acc.item(), loss.item()))
     print('\nStarting training on SRAM layers...')
     
-#    print('Params getting trained: \n')
-#    for name, param in model.named_parameters():
-#      if param.requires_grad == True:
-#        print('\t', name)
     
     best_acc = 0
     for epoch in range(args.start_epoch, args.epochs):

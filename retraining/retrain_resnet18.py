@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Oct 27 05:16:27 2020
+Created on Tue Dec 3 21:16:27 2020
 
 @author: akosta
 """
@@ -88,7 +88,7 @@ def train(train_loader, model, criterion, optimizer, epoch, device):
         data_time.update(time.time() - end)
         
         input_var = batch['data']
-        target_var = batch['target'].type(torch.LongTensor)
+        target_var = batch['target'].long()
 
         if args.half:
             input_var = input_var.half()
@@ -124,7 +124,7 @@ def train(train_loader, model, criterion, optimizer, epoch, device):
     
     print('Total train loss: {loss.avg:.4f}\n'.format(loss=losses))
 
-# Evaluate
+# Evaluate on a model
 def test(test_loader, model, criterion, device):
     """
     Run evaluation
