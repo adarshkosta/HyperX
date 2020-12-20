@@ -18,7 +18,6 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as models
 
-from mobilenet_v2_unrolled import mobilenet_v2
 from mobilenet_v2 import mobilenet
 import copy 
 
