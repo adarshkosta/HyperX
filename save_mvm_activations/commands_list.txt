@@ -19,16 +19,36 @@ python save_mvm_resnet20.py --dataset='cifar100' --mode='train' --pretrained='..
 
 
 
-##ResNet18################################
-#CIFAR-10 TEST
-python save_mvm_resnet18.py --dataset='cifar10' --mode='test' --pretrained='../pretrained_models/ideal/resnet18fp_imnet.pth.tar' -b64 --gpus='0,1,2,3'
+##ResNet18 - RRAM ################################
+#CIFAR-10 
+#TEST
+python save_mvm_resnet18.py --dataset='cifar10' --mode='test' --pretrained='../pretrained_models/ideal/resnet18fp_imnet.pth.tar' -b40 --gpus='0,1,2,3' --nideal
 
-#CIFAR-10 TRAIN
+#TRAIN
+python save_mvm_resnet18.py --dataset='cifar10' --mode='train' --pretrained='../pretrained_models/ideal/resnet18fp_imnet.pth.tar' -b40 --gpus='0,1,2,3' --nideal
+
+
+#CIFAR-100
+#TEST
+python save_mvm_resnet18.py --dataset='cifar100' --mode='test' --pretrained='../pretrained_models/ideal/resnet18fp_imnet.pth.tar' -b40 --gpus='0,1,2,3' --nideal
+
+#TRAIN
+python save_mvm_resnet18.py --dataset='cifar100' --mode='train' --pretrained='../pretrained_models/ideal/resnet18fp_imnet.pth.tar' -b40 --gpus='0,1,2,3' --nideal
+
+
+
+##ResNet18 - SRAM ################################
+#CIFAR-10 
+#TEST
+python save_mvm_resnet18.py --dataset='cifar10' --mode='test' --pretrained='../pretrained_models/ideal/resnet18fp_imnet.pth.tar' -b40 --gpus='0,1,2,3'
+
+#TRAIN
 python save_mvm_resnet18.py --dataset='cifar10' --mode='train' --pretrained='../pretrained_models/ideal/resnet18fp_imnet.pth.tar' -b40 --gpus='0,1,2,3'
 
 
-#CIFAR-100 TEST
-python save_mvm_resnet18.py --dataset='cifar100' --mode='test' --pretrained=''../pretrained_models/ideal/resnet18fp_imnet.pth.tar' -b40 --gpus='0,1,2,3'
+#CIFAR-100
+#TEST 
+python save_mvm_resnet18.py --dataset='cifar100' --mode='test' --pretrained='../pretrained_models/ideal/resnet18fp_imnet.pth.tar' -b40 --gpus='0,1,2,3'
 
-#CIFAR-100 TRAIN
+#TRAIN
 python save_mvm_resnet18.py --dataset='cifar100' --mode='train' --pretrained='../pretrained_models/ideal/resnet18fp_imnet.pth.tar' -b40 --gpus='0,1,2,3'

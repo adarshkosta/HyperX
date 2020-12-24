@@ -124,7 +124,7 @@ def get_activation1(name):
 def reg_hook1(model):
     hook_handler1 = {}
     for name, module in model.module.named_modules():
-        if 'relu' in name or 'fc' in name:
+        if 'InvertedResidual' in name or 'ConvBNReLU' in name or 'fc' in name:
             if 'xbmodel' not in name:
                 hook_handler1[name] = module.register_forward_hook(get_activation1(name))
     return hook_handler1
@@ -164,14 +164,14 @@ def get_activation(name): #only works with 4 and 2 GPUs as of now
         
 def reg_hook(model):
     for name, module in model.module.named_modules():
-        if 'relu' in name or 'fc' in name:
+        if 'InvertedResidual' in name or 'ConvBNReLU' in name or 'fc' in name:
             if 'xbmodel' not in name:
                 module.register_forward_hook(get_activation(name))
 
 def save_activations(model, batch_idx, labels):
     global act_path, act
     for name, module in model.module.named_modules():
-        if 'relu' in name or 'fc' in name:
+        if 'InvertedResidual' in name or 'ConvBNReLU' in name or 'fc' in name:
             if 'xbmodel' not in name:
                 torch.save(act[name], os.path.join(act_path, name) + '/act_' + name + '_' + str(batch_idx) + '.pth.tar')
     torch.save(labels, os.path.join(act_path, 'labels', 'labels_' +str(batch_idx) + '.pth.tar'))
@@ -181,20 +181,20 @@ def save_activations(model, batch_idx, labels):
 #%%
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-b', '--batch-size', default=40, type=int, metavar='N', 
-            help='mini-batch size (default: 40)')
+parser.add_argument('-b', '--batch-size', default=100, type=int, metavar='N', 
+            help='mini-batch size (default: 100)')
 parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
             help='dataset name or folder')
-parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/sram/multiple_batches/',
+parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/multiple_batches/',
             help='base path for saving activations')
-parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18',
+parser.add_argument('--model', '-a', metavar='MODEL', default='mobilenet',
             choices=model_names,
             help='name of the model')
-parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet18fp_imnet.pth.tar',
+parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/mobilenetv2fp_imnet.pth.tar',
             help='the path to the pretrained model')
 parser.add_argument('--mvm', action='store_true', default=True,
             help='if running functional simulator backend')
-parser.add_argument('--nideal', action='store_true', default=False,
+parser.add_argument('--nideal', action='store_true', default=True,
             help='Add xbar non-idealities')
 parser.add_argument('--mode', default='test', 
             help='save activations for \'train\' or \'test\' sets')
@@ -225,10 +225,10 @@ else:
     cfg.mvm = False
 
 #Using custom tiling
-cfg.ifglobal_tile_col = False
-cfg.ifglobal_tile_row = False
-cfg.tile_row = 'custom'
-cfg.tile_col = 'custom'
+# cfg.ifglobal_tile_col = False
+# cfg.ifglobal_tile_row = False
+# cfg.tile_row = 'custom'
+# cfg.tile_col = 'custom'
 
 
 cfg.dump_config()
@@ -275,9 +275,19 @@ if not args.pretrained:
 else:
     print('==> Load pretrained model form', args.pretrained, '...')
     pretrained_model = torch.load(args.pretrained, map_location=torch.device('cpu'))
-    best_acc = pretrained_model['best_acc']
+    best_acc = pretrained_model['best_acc1']
     print('Pretrained model accuracy: {}'.format(best_acc))
-    base_model.load_state_dict(pretrained_model['state_dict'])
+    state_dict = pretrained_model['state_dict']
+
+    #Remove module from loaded state_dict
+    from collections import OrderedDict
+    new_state_dict = OrderedDict()
+    for k,v in state_dict.items():
+        name = k[7:]
+        new_state_dict[name] = v
+
+    base_model.load_state_dict(new_state_dict)
+
     for m in base_model.modules():
         if isinstance(m, nn.Conv2d):
             weights_conv.append(m.weight.data.clone())
@@ -328,7 +338,7 @@ for m in model_mvm.modules():
     elif isinstance(m, nn.BatchNorm1d):
         m.weight.data.fill_(1)
         m.bias.data.zero_()
-    elif isinstance(m, nn.Linear):
+    elif isinstance(m, Linear_mvm):
         stdv = 1. / math.sqrt(m.weight.data.size(1))
         m.weight.data.uniform_(-stdv, stdv)
         if m.bias is not None:
@@ -393,7 +403,9 @@ else:
 
 #Create required dirs for saving activations    
 for i in range(1, 18):
-    os.makedirs(act_path + '/relu' + str(i), exist_ok=True)
+    os.makedirs(act_path + '/InvertedResidual' + str(i), exist_ok=True)
+os.makedirs(act_path + '/ConvBNReLU1', exist_ok=True)
+os.makedirs(act_path + '/ConvBNReLU2', exist_ok=True)
 os.makedirs(act_path + '/fc', exist_ok=True)
 os.makedirs(act_path + '/labels', exist_ok=True)
 os.makedirs(act_path + '/out', exist_ok=True)
@@ -417,27 +429,30 @@ output = model(data_var)
 print('Dry run finished...')
 
 #Delete ideal model and its hook handler
-unreg_hook(handler)
-del model
+# unreg_hook(handler)
+# del model
 
 #Single GPU activation shapes
+print('Feature maps on single GPU')
 for name, module in model_mvm.module.named_modules():
-    if 'relu' in name or 'fc' in name:
+    if 'InvertedResidual' in name or 'ConvBNReLU' in name or 'fc' in name:
         if 'xbmodel' not in name:
             print(name + ': ' + str(activation[name].shape))
 
 #Multi-GPU activation shapes
+print('Feature maps on multiple GPUs')
 for name, module in model_mvm.module.named_modules():
-    if 'relu' in name and 'xbmodel' not in name:
+    if 'InvertedResidual' in name and 'xbmodel' not in name:
         act[name] = torch.zeros([args.batch_size, activation[name].shape[1], activation[name].shape[2], activation[name].shape[3]])
         print(name + ': ' + str(act[name].shape))
+    elif 'ConvBNReLU' in name and 'xbmodel' not in name:
+        act[name] = torch.zeros([args.batch_size, activation[name].shape[1], activation[name].shape[2], activation[name].shape[3]])
+        print(name + ': ' + str(act[name].shape))  
     elif 'fc' in name and 'xbmodel' not in name:
         act[name] = torch.zeros([args.batch_size, activation[name].shape[1]])
         print(name + ': ' + str(act[name].shape))
     else:
         continue
-
-
 
 print('Starting to save activations..')
 

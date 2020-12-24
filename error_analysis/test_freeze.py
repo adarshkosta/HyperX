@@ -250,7 +250,7 @@ if args.mvm:
 model.to(device)
 
 if args.half:
-    model.half() # FP16
+    model = model.half() # FP16
 
 model = torch.nn.DataParallel(model)
 

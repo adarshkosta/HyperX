@@ -1,0 +1,48 @@
+
+      ==> Arguments:
+          dataset: cifar100
+          model: resnet18
+          load_dir: /home/nano01/a/esoufler/activations/one_batch/
+          savedir: ../pretrained_models/frozen/
+          pretrained: ../pretrained_models/ideal/resnet18fp_imnet.pth.tar
+          workers: 8
+          epochs: 40
+          start_epoch: 0
+          batch_size: 256
+          lr: 0.01
+          momentum: 0.9
+          weight_decay: 0.0001
+          gamma: 0.2
+          milestones: [10, 20, 30]
+          loss: crossentropy
+          optim: sgd
+          dropout: 0.5
+          print_freq: 5
+          resume: 
+          evaluate: False
+          half: True
+          save_every: 10
+          gpus: 0
+          frozen_layers: 1
+DEVICE: cuda
+GPU Id(s) being used: 0
+==> Building model for resnet18 ...
+==> Initializing model with pre-trained parameters (except classifier)...
+==> Load pretrained model form ../pretrained_models/ideal/resnet18fp_imnet.pth.tar ...
+Original model accuracy on ImageNet: 69.93189239501953
+ * Prec@1 0.790 Prec@5 4.430 Loss 4.6211
+Avg Loading time: 0.8859 seconds
+Avg Batch time: 1.1516 seconds
+
+Pre-trained Prec@1 with 1 layers frozen: 0.7899999618530273 	 Loss: 4.62109375
+
+Starting training on SRAM layers...
+Epoch: [0][38/196]	LR: 0.01	DT: 0.000 (3.031)	BT: 0.274 (3.358)	Loss 2.4336 (3.5652)	Prec@1 45.312 (23.037)	
+Epoch: [0][77/196]	LR: 0.01	DT: 0.000 (4.838)	BT: 0.299 (5.173)	Loss 1.7852 (2.8277)	Prec@1 59.375 (38.216)	
+Epoch: [0][116/196]	LR: 0.01	DT: 0.000 (7.986)	BT: 0.317 (8.323)	Loss 1.4209 (2.4264)	Prec@1 61.328 (46.287)	
+Epoch: [0][155/196]	LR: 0.01	DT: 52.204 (11.266)	BT: 52.591 (11.601)	Loss 1.3613 (2.1673)	Prec@1 66.797 (51.490)	
+Epoch: [0][194/196]	LR: 0.01	DT: 0.000 (13.573)	BT: 0.310 (13.909)	Loss 1.2529 (1.9872)	Prec@1 72.656 (54.940)	
+Total train loss: 1.9858
+Avg Loading time: 13.5035 seconds
+Avg Batch time: 13.8393 seconds
+

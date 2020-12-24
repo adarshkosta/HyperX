@@ -118,11 +118,16 @@ def train(train_loader, model, criterion, optimizer, epoch, device):
         if (batch_idx+1) % batch_freq == 0:
             print('Epoch: [{0}][{1}/{2}]\t'
                   'LR: {3}\t'
+                  'DT: {data_time.val:.3f} ({data_time.avg:.3f})\t'
+                  'BT: {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                   'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'.format(
-                      epoch, batch_idx, len(train_loader), optimizer.param_groups[0]['lr'], loss=losses, top1=top1, ))
+                      epoch, batch_idx, len(train_loader), optimizer.param_groups[0]['lr'], 
+                      data_time=data_time, batch_time=batch_time, loss=losses, top1=top1))
     
-    print('Total train loss: {loss.avg:.4f}\n'.format(loss=losses))
+    print('Total train loss: {loss.avg:.4f}'.format(loss=losses))
+    print('Avg Loading time: {duration.avg:.4f} seconds'.format(duration=data_time))
+    print('Avg Batch time: {duration.avg:.4f} seconds\n'.format(duration=batch_time))
 
 # Evaluate on a model
 def test(test_loader, model, criterion, device):
@@ -138,9 +143,14 @@ def test(test_loader, model, criterion, device):
     # switch to evaluate mode
     model.eval()
 
+    end = time.time()
+
     
     with torch.no_grad():
         for batch_idx, batch in enumerate(test_loader):
+            # measure data loading time
+            data_time.update(time.time() - end)
+
             input_var = batch['data']
             target_var = batch['target'].long()
     
@@ -157,6 +167,11 @@ def test(test_loader, model, criterion, device):
             losses.update(loss.data, batch['data'].size(0))
             top1.update(prec1[0], batch['data'].size(0))
             top5.update(prec5[0], batch['data'].size(0))
+
+            # measure elapsed time
+            batch_time.update(time.time() - end)
+            end = time.time()
+
     
             # if batch_idx % 10 == 0:
             #         print('[{0}/{1}({2:.0f}%)]\t'
@@ -169,6 +184,8 @@ def test(test_loader, model, criterion, device):
 
     print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f} Loss {loss.avg:.4f}'
           .format(top1=top1, top5=top5, loss=losses))
+    print('Avg Loading time: {duration.avg:.4f} seconds'.format(duration=data_time))
+    print('Avg Batch time: {duration.avg:.4f} seconds\n'.format(duration=batch_time))
     acc = top1.avg
     return acc, losses.avg
   
@@ -178,6 +195,7 @@ class SplitActivations_Dataset(Dataset):
         self.datapath = datapath
         self.tgtpath = tgtpath
         self.train_len = train_len
+        self.args = args
         
     def __getitem__(self, index):
 #        print('Index = ', index)
@@ -209,7 +227,7 @@ parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18',
             choices=model_names,
             help='name of the model')
 
-parser.add_argument('--load_dir', default='/home/nano01/a/esoufler/activations/one_batch/',
+parser.add_argument('--load-dir', default='/home/nano01/a/esoufler/activations/one_batch/',
             help='base path for loading activations')
 parser.add_argument('--savedir', default='../pretrained_models/frozen/',
                 help='base path for saving activations')
@@ -218,22 +236,22 @@ parser.add_argument('--pretrained', action='store', default='../pretrained_model
 
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
             help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', default=50, type=int, metavar='N',
+parser.add_argument('--epochs', default=100, type=int, metavar='N',
             help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
             help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=128, type=int,
-            metavar='N', help='mini-batch size (default: 128)')
-parser.add_argument('--lr', '--learning-rate', default=0.001, type=float,
+            metavar='N', help='mini-batch size (default: 256)')
+parser.add_argument('--lr', '--learning-rate', default=1.0, type=float,
             metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
             help='momentum')
 parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar='W', 
             help='weight decay (default: 1e-4)')
-parser.add_argument('--gamma', default=0.2, type=float,
+parser.add_argument('--gamma', default=0.8, type=float,
             help='learning rate decay')
 
-parser.add_argument('--milestones', default=[10], 
+parser.add_argument('--milestones', default=[30,60,80], 
             help='Milestones for LR decay')
 
 parser.add_argument('--loss', type=str, default='crossentropy', 
@@ -432,10 +450,13 @@ else:
 #        print('\t', name)
     
     best_acc = 0
+    end = time.time()
     for epoch in range(args.start_epoch, args.epochs):
         # train for one epoch
         train(train_loader, model, criterion, optimizer, epoch, device)
-    
+        print('Train time: {}'.format(time.time()-end))
+        end = time.time()
+
         # evaluate on validation set
         acc, loss = test(test_loader, model, criterion, device)
         
@@ -460,6 +481,9 @@ else:
     
         print('Best acc: {:.3f}'.format(best_acc))
         print('-'*80)
+
+        print('Test time: {}\n'.format(time.time()-end))
+        end = time.time()
 
 #if __name__=='__main__':
 #    main()

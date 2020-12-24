@@ -51,8 +51,7 @@ parser.add_argument('--wd', '--weight-decay', default=1e-4, type=float,
                     dest='weight_decay')
 parser.add_argument('-p', '--print-freq', default=10, type=int,
                     metavar='N', help='print frequency (default: 10)')
-parser.add_argument('--resume', default='./finetuned_unrolled_model.pth.tar' , type=str, metavar='', #'./checkpoint.pth.tar'
-                    help='path to latest checkpoint (default: none)')
+parser.add_argument('--resume', default='./mobilenet_finetuned.pth.tar' , type=str, metavar='')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
 parser.add_argument('--world-size', default=-1, type=int,
@@ -240,7 +239,7 @@ def main_worker(gpu, ngpus_per_node, args):
         if args.gpu is not None:
             # best_acc1 may be from a checkpoint from a different GPU
             best_acc1 = best_acc1.to(args.gpu)
-        model_unrolled_finetuned = torch.nn.DataParallel(model_unrolled_finetuned).cuda()
+        # model_unrolled_finetuned = torch.nn.DataParallel(model_unrolled_finetuned).cuda()
         model_unrolled_finetuned.load_state_dict(checkpoint['state_dict'])
         # optimizer.load_state_dict(checkpoint['optimizer'])
         print("=> loaded checkpoint '{}' (epoch {})"
