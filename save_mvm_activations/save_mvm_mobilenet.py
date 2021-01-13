@@ -125,7 +125,7 @@ def reg_hook1(model):
     hook_handler1 = {}
     for name, module in model.module.named_modules():
         if 'InvertedResidual' in name or 'ConvBNReLU' in name or 'fc' in name:
-            if 'xbmodel' not in name:
+            if 'xbmodel' not in name and '.' not in name:
                 hook_handler1[name] = module.register_forward_hook(get_activation1(name))
     return hook_handler1
 
@@ -165,14 +165,14 @@ def get_activation(name): #only works with 4 and 2 GPUs as of now
 def reg_hook(model):
     for name, module in model.module.named_modules():
         if 'InvertedResidual' in name or 'ConvBNReLU' in name or 'fc' in name:
-            if 'xbmodel' not in name:
+            if 'xbmodel' not in name and '.' not in name:
                 module.register_forward_hook(get_activation(name))
 
 def save_activations(model, batch_idx, labels):
     global act_path, act
     for name, module in model.module.named_modules():
         if 'InvertedResidual' in name or 'ConvBNReLU' in name or 'fc' in name:
-            if 'xbmodel' not in name:
+            if 'xbmodel' not in name and '.' not in name:
                 torch.save(act[name], os.path.join(act_path, name) + '/act_' + name + '_' + str(batch_idx) + '.pth.tar')
     torch.save(labels, os.path.join(act_path, 'labels', 'labels_' +str(batch_idx) + '.pth.tar'))
     torch.save(act['out'], os.path.join(act_path, 'out', 'act_out_' +str(batch_idx) + '.pth.tar'))
@@ -181,7 +181,7 @@ def save_activations(model, batch_idx, labels):
 #%%
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-b', '--batch-size', default=100, type=int, metavar='N', 
+parser.add_argument('-b', '--batch-size', default=64, type=int, metavar='N', 
             help='mini-batch size (default: 100)')
 parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
             help='dataset name or folder')
@@ -225,10 +225,10 @@ else:
     cfg.mvm = False
 
 #Using custom tiling
-# cfg.ifglobal_tile_col = False
-# cfg.ifglobal_tile_row = False
-# cfg.tile_row = 'custom'
-# cfg.tile_col = 'custom'
+cfg.ifglobal_tile_col = False
+cfg.ifglobal_tile_row = False
+cfg.tile_row = 'custom'
+cfg.tile_col = 'custom'
 
 
 cfg.dump_config()
@@ -325,7 +325,7 @@ for m in model.modules():
 #Intitalize MVM model params
 i=j=k=0
 for m in model_mvm.modules():
-    if isinstance(m, Conv2d_mvm):
+    if isinstance(m, (Conv2d_mvm, nn.Conv2d)):
         m.weight.data = weights_conv[i]
         i = i+1
     elif isinstance(m, nn.BatchNorm2d):
@@ -433,22 +433,22 @@ print('Dry run finished...')
 # del model
 
 #Single GPU activation shapes
-print('Feature maps on single GPU')
+print('\nFeature maps on single GPU')
 for name, module in model_mvm.module.named_modules():
     if 'InvertedResidual' in name or 'ConvBNReLU' in name or 'fc' in name:
-        if 'xbmodel' not in name:
+        if 'xbmodel' not in name and '.' not in name:
             print(name + ': ' + str(activation[name].shape))
 
 #Multi-GPU activation shapes
-print('Feature maps on multiple GPUs')
+print('\nFeature maps on multiple GPUs')
 for name, module in model_mvm.module.named_modules():
-    if 'InvertedResidual' in name and 'xbmodel' not in name:
+    if 'InvertedResidual' in name and 'xbmodel' not in name and '.' not in name:
         act[name] = torch.zeros([args.batch_size, activation[name].shape[1], activation[name].shape[2], activation[name].shape[3]])
         print(name + ': ' + str(act[name].shape))
-    elif 'ConvBNReLU' in name and 'xbmodel' not in name:
+    elif 'ConvBNReLU' in name and 'xbmodel' not in name and '.' not in name:
         act[name] = torch.zeros([args.batch_size, activation[name].shape[1], activation[name].shape[2], activation[name].shape[3]])
         print(name + ': ' + str(act[name].shape))  
-    elif 'fc' in name and 'xbmodel' not in name:
+    elif 'fc' in name and 'xbmodel' not in name and '.' not in name:
         act[name] = torch.zeros([args.batch_size, activation[name].shape[1]])
         print(name + ': ' + str(act[name].shape))
     else:
@@ -472,6 +472,7 @@ for batch_idx,(data, target) in enumerate(dataloader):
         
         duration = time.time() - base_time
         print("Batch IDx: {}\t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))
+
 
 print("Done saving activations!")
 exit(0)

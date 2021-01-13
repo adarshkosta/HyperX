@@ -13,13 +13,15 @@ from src.pytorch_mvm_class_v3 import *
 __all__ = ['net']
 
 class ConvBNReLU(nn.Sequential):
-    def __init__(self, in_planes, out_planes, kernel_size=3, stride=1, groups=1, norm_layer=None):
+    def __init__(self, in_planes, out_planes, kernel_size=3, stride=1, groups=1, norm_layer=None, tile_size=1):
         self.inflate = 1
         padding = (kernel_size - 1) // 2
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         super(ConvBNReLU, self).__init__(
-            Conv2d_mvm(int(in_planes*self.inflate), int(out_planes*self.inflate), kernel_size, stride, padding, bias=False),
+            Conv2d_mvm(in_channels=int(in_planes*self.inflate), out_channels=int(out_planes*self.inflate), 
+                    kernel_size=kernel_size, stride=stride, padding=padding, bias=False, 
+                    tile_row=tile_size, tile_col=tile_size),
             norm_layer(out_planes),
             nn.ReLU6(inplace=True)
         )
@@ -90,82 +92,82 @@ class MobileNet(mobilenet):
         norm_layer = nn.BatchNorm2d
 
         self.inflate = 1
-        self.ConvBNReLU1 = ConvBNReLU(3,32, kernel_size=3, stride=2)
+        self.ConvBNReLU1 = ConvBNReLU(3,32, kernel_size=3, stride=2, tile_size=16)
         self.InvertedResidual1 = nn.Sequential(ConvBNReLU_with_groups(32,32, kernel_size=3, stride=1, groups=32),
-                                Conv2d_mvm(int(32*self.inflate), int(16*self.inflate), kernel_size=1, stride=1, bias = False),
+                                Conv2d_mvm(int(32*self.inflate), int(16*self.inflate), kernel_size=1, stride=1, bias=False, tile_row=16, tile_col=16),
                                 nn.BatchNorm2d(16))
-        self.InvertedResidual2 = nn.Sequential(ConvBNReLU(16,96, kernel_size=1, stride=1),
+        self.InvertedResidual2 = nn.Sequential(ConvBNReLU(16,96, kernel_size=1, stride=1, tile_size=16),
                                 ConvBNReLU_with_groups(96,96, kernel_size=3, stride=2, groups=96),
-                                Conv2d_mvm(int(96*self.inflate), int(24*self.inflate), kernel_size=1, stride=1, bias=False),
+                                Conv2d_mvm(int(96*self.inflate), int(24*self.inflate), kernel_size=1, stride=1, bias=False, tile_row=8, tile_col=8),
                                 nn.BatchNorm2d(24))
-        self.InvertedResidual3 = nn.Sequential(ConvBNReLU(24,144, kernel_size=1, stride=1),
+        self.InvertedResidual3 = nn.Sequential(ConvBNReLU(24,144, kernel_size=1, stride=1, tile_size=8),
                                 ConvBNReLU_with_groups(144,144, kernel_size=3, stride=1, groups=144),
-                                Conv2d_mvm(int(144*self.inflate), int(24*self.inflate), kernel_size=1, stride=1, bias = False),
+                                Conv2d_mvm(int(144*self.inflate), int(24*self.inflate), kernel_size=1, stride=1, bias=False, tile_row=8, tile_col=8),
                                 nn.BatchNorm2d(24))
-        self.InvertedResidual4 = nn.Sequential(ConvBNReLU(24,144, kernel_size=1, stride=1),
+        self.InvertedResidual4 = nn.Sequential(ConvBNReLU(24,144, kernel_size=1, stride=1, tile_size=8),
                                 ConvBNReLU_with_groups(144,144, kernel_size=3, stride=2, groups=144),
-                                Conv2d_mvm(int(144*self.inflate), int(32*self.inflate), kernel_size=1, stride=1, bias = False),
+                                Conv2d_mvm(int(144*self.inflate), int(32*self.inflate), kernel_size=1, stride=1, bias=False, tile_row=4, tile_col=4),
                                 nn.BatchNorm2d(32))
-        self.InvertedResidual5 = nn.Sequential(ConvBNReLU(32,192, kernel_size=1, stride=1),
+        self.InvertedResidual5 = nn.Sequential(ConvBNReLU(32,192, kernel_size=1, stride=1, tile_size=4),
                                 ConvBNReLU_with_groups(192,192, kernel_size=3, stride=1,groups=192),
-                                Conv2d_mvm(int(192*self.inflate), int(32*self.inflate), kernel_size=1, stride=1,  bias = False),
+                                Conv2d_mvm(int(192*self.inflate), int(32*self.inflate), kernel_size=1, stride=1,  bias=False, tile_row=4, tile_col=4),
                                 nn.BatchNorm2d(32))
-        self.InvertedResidual6 = nn.Sequential(ConvBNReLU(32,192, kernel_size=1, stride=1),
+        self.InvertedResidual6 = nn.Sequential(ConvBNReLU(32,192, kernel_size=1, stride=1, tile_size=4),
                                 ConvBNReLU_with_groups(192,192, kernel_size=3, stride=1, groups=192),
-                                Conv2d_mvm(int(192*self.inflate), int(32*self.inflate), kernel_size=1, stride=1,  bias = False),
+                                Conv2d_mvm(int(192*self.inflate), int(32*self.inflate), kernel_size=1, stride=1,  bias=False, tile_row=4, tile_col=4),
                                 nn.BatchNorm2d(32))
-        self.InvertedResidual7 = nn.Sequential(ConvBNReLU(32,192, kernel_size=1, stride=1),
+        self.InvertedResidual7 = nn.Sequential(ConvBNReLU(32,192, kernel_size=1, stride=1, tile_size=4),
                                 ConvBNReLU_with_groups(192,192, kernel_size=3, stride=2, groups=192),
-                                Conv2d_mvm(int(192*self.inflate), int(64*self.inflate), kernel_size=1, stride=1,  bias = False),
+                                Conv2d_mvm(int(192*self.inflate), int(64*self.inflate), kernel_size=1, stride=1,  bias=False, tile_row=2, tile_col=2),
                                 nn.BatchNorm2d(64))
-        self.InvertedResidual8 = nn.Sequential(ConvBNReLU(64,384, kernel_size=1, stride=1),
+        self.InvertedResidual8 = nn.Sequential(ConvBNReLU(64,384, kernel_size=1, stride=1, tile_size=2),
                                 ConvBNReLU_with_groups(384,384, kernel_size=3, stride=1, groups=384),
-                                Conv2d_mvm(int(384*self.inflate), int(64*self.inflate), kernel_size=1, stride=1, bias = False),
+                                Conv2d_mvm(int(384*self.inflate), int(64*self.inflate), kernel_size=1, stride=1, bias=False, tile_row=2, tile_col=2),
                                 nn.BatchNorm2d(64))
-        self.InvertedResidual9 = nn.Sequential(ConvBNReLU(64,384, kernel_size=1, stride=1),
+        self.InvertedResidual9 = nn.Sequential(ConvBNReLU(64,384, kernel_size=1, stride=1, tile_size=2),
                                 ConvBNReLU_with_groups(384,384, kernel_size=3, stride=1, groups=384),
-                                Conv2d_mvm(int(384*self.inflate), int(64*self.inflate), kernel_size=1, stride=1,  bias = False),
+                                Conv2d_mvm(int(384*self.inflate), int(64*self.inflate), kernel_size=1, stride=1,  bias=False, tile_row=2, tile_col=2),
                                 nn.BatchNorm2d(64))
-        self.InvertedResidual10 = nn.Sequential(ConvBNReLU(64,384, kernel_size=1, stride=1),
+        self.InvertedResidual10 = nn.Sequential(ConvBNReLU(64,384, kernel_size=1, stride=1, tile_size=2),
                                 ConvBNReLU_with_groups(384,384, kernel_size=3, stride=1, groups=384),
-                                Conv2d_mvm(int(384*self.inflate), int(64*self.inflate), kernel_size=1, stride=1,  bias = False),
+                                Conv2d_mvm(int(384*self.inflate), int(64*self.inflate), kernel_size=1, stride=1,  bias=False, tile_row=2, tile_col=2),
                                 nn.BatchNorm2d(64))
-        self.InvertedResidual11 = nn.Sequential(ConvBNReLU(64,384, kernel_size=1, stride=1),
+        self.InvertedResidual11 = nn.Sequential(ConvBNReLU(64,384, kernel_size=1, stride=1, tile_size=2),
                                 ConvBNReLU_with_groups(384,384, kernel_size=3, stride=1, groups=384),
-                                Conv2d_mvm(int(384*self.inflate), int(96*self.inflate), kernel_size=1, stride=1,  bias = False),
+                                Conv2d_mvm(int(384*self.inflate), int(96*self.inflate), kernel_size=1, stride=1,  bias=False, tile_row=2, tile_col=2),
                                 nn.BatchNorm2d(96))
-        self.InvertedResidual12 = nn.Sequential(ConvBNReLU(96,576, kernel_size=1, stride=1),
+        self.InvertedResidual12 = nn.Sequential(ConvBNReLU(96,576, kernel_size=1, stride=1, tile_size=2),
                                 ConvBNReLU_with_groups(576,576, kernel_size=3, stride=1, groups=576),
-                                Conv2d_mvm(int(576*self.inflate), int(96*self.inflate), kernel_size=1, stride=1, bias = False),
+                                Conv2d_mvm(int(576*self.inflate), int(96*self.inflate), kernel_size=1, stride=1, bias=False, tile_row=2, tile_col=2),
                                 nn.BatchNorm2d(96))
-        self.InvertedResidual13 = nn.Sequential(ConvBNReLU(96,576, kernel_size=1, stride=1),
+        self.InvertedResidual13 = nn.Sequential(ConvBNReLU(96,576, kernel_size=1, stride=1, tile_size=2),
                                 ConvBNReLU_with_groups(576,576, kernel_size=3, stride=1, groups=576),
-                                Conv2d_mvm(int(576*self.inflate), int(96*self.inflate), kernel_size=1, stride=1, bias = False),
+                                Conv2d_mvm(int(576*self.inflate), int(96*self.inflate), kernel_size=1, stride=1, bias=False, tile_row=2, tile_col=2),
                                 nn.BatchNorm2d(96))
-        self.InvertedResidual14 = nn.Sequential(ConvBNReLU(96,576, kernel_size=1, stride=1),
+        self.InvertedResidual14 = nn.Sequential(ConvBNReLU(96,576, kernel_size=1, stride=1, tile_size=2),
                                 ConvBNReLU_with_groups(576,576, kernel_size=3, stride=2, groups=576),
-                                Conv2d_mvm(int(576*self.inflate), int(160*self.inflate), kernel_size=1, stride=1,  bias = False),
+                                Conv2d_mvm(int(576*self.inflate), int(160*self.inflate), kernel_size=1, stride=1,  bias=False, tile_row=1, tile_col=1),
                                 nn.BatchNorm2d(160))
-        self.InvertedResidual15 = nn.Sequential(ConvBNReLU(160,960, kernel_size=1, stride=1),
+        self.InvertedResidual15 = nn.Sequential(ConvBNReLU(160,960, kernel_size=1, stride=1, tile_size=1),
                                 ConvBNReLU_with_groups(960,960, kernel_size=3, stride=1, groups=960),
-                                Conv2d_mvm(int(960*self.inflate), int(160*self.inflate), kernel_size=1, stride=1,  bias = False),
+                                Conv2d_mvm(int(960*self.inflate), int(160*self.inflate), kernel_size=1, stride=1,  bias=False, tile_row=1, tile_col=1),
                                 nn.BatchNorm2d(160))
-        self.InvertedResidual16 = nn.Sequential(ConvBNReLU(160,960, kernel_size=1, stride=1),
+        self.InvertedResidual16 = nn.Sequential(ConvBNReLU(160,960, kernel_size=1, stride=1, tile_size=1),
                                 ConvBNReLU_with_groups(960,960, kernel_size=3, stride=1, groups=960),
-                                Conv2d_mvm(int(960*self.inflate), int(160*self.inflate), kernel_size=1, stride=1,  bias = False),
+                                Conv2d_mvm(int(960*self.inflate), int(160*self.inflate), kernel_size=1, stride=1,  bias=False, tile_row=1, tile_col=1),
                                 nn.BatchNorm2d(160))
-        self.InvertedResidual17 = nn.Sequential(ConvBNReLU(160,960, kernel_size=1, stride=1),
+        self.InvertedResidual17 = nn.Sequential(ConvBNReLU(160,960, kernel_size=1, stride=1, tile_size=1),
                                 ConvBNReLU_with_groups(960,960, kernel_size=3, stride=1, groups=960),
-                                Conv2d_mvm(int(960*self.inflate), int(320*self.inflate), kernel_size=1, stride=1,  bias = False),
+                                Conv2d_mvm(int(960*self.inflate), int(320*self.inflate), kernel_size=1, stride=1,  bias=False, tile_row=1, tile_col=1),
                                 nn.BatchNorm2d(320))
         
 
-        self.ConvBNReLU2 = ConvBNReLU(320, 1280, kernel_size=1, stride=1)
+        self.ConvBNReLU2 = ConvBNReLU(320, 1280, kernel_size=1, stride=1, tile_size=1)
 
 
         # self.avgpool = nn.functional.adaptive_avg_pool2d(x, 1).reshape(x.shape[0], -1)
         # self.dropout1 = nn.Dropout(0.2)
-        self.fc = Linear_mvm(int(1280*self.inflate),num_classes, bias=False)
+        self.fc = Linear_mvm(int(1280*self.inflate), num_classes, bias=False)
 
 
 def net(**kwargs):

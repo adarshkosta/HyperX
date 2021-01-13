@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+__all__ = ['net']
 
 class ConvBNReLU(nn.Sequential):
     def __init__(self, in_planes, out_planes, kernel_size=3, stride=1, groups=1, norm_layer=None):
@@ -14,14 +15,69 @@ class ConvBNReLU(nn.Sequential):
             nn.ReLU6(inplace=True)
         )
 
+class mobilenet(nn.Module):
+    def __init__(self):
+        super(mobilenet, self).__init__()
 
-class MobileNet_freeze3(nn.Module):
+    def forward(self, x):
+        out = self.ConvBNReLU1(x)
+        out = self.InvertedResidual1(out)
+        out = self.InvertedResidual2(out)
+        residual = out.clone()
+        out = self.InvertedResidual3(out) + residual
+        out = self.InvertedResidual4(out)
+        residual = out.clone()
+        out = self.InvertedResidual5(out) + residual
+        residual = out.clone()
+        out = self.InvertedResidual6(out) + residual
+        out = self.InvertedResidual7(out)
+        residual = out.clone()
+        out = self.InvertedResidual8(out) + residual
+        residual = out.clone()
+        out = self.InvertedResidual9(out) + residual
+        residual = out.clone()
+        out = self.InvertedResidual10(out) + residual
+        out = self.InvertedResidual11(out)
+        residual = out.clone()
+        out = self.InvertedResidual12(out) + residual
+        residual = out.clone()
+        out = self.InvertedResidual13(out) + residual
+        out = self.InvertedResidual14(out)
+        residual = out.clone()
+        out = self.InvertedResidual15(out) + residual
+        residual = out.clone()
+        out = self.InvertedResidual16(out) + residual
+        out = self.InvertedResidual17(out)
+        out = self.ConvBNReLU2(out)
+
+        # out = self.avgpool(out)
+        out = nn.functional.adaptive_avg_pool2d(out, 1).reshape(out.shape[0], -1)
+        # out = self.dropout1(out)
+        out = self.fc(out)
+
+        return out
+
+      
+class MobileNet(mobilenet):
     def __init__(self, num_classes):
-        super(MobileNet_freeze3, self).__init__()
+        super(MobileNet, self).__init__()
 
         # block = InvertedResidual
         norm_layer = nn.BatchNorm2d
 
+        self.inflate = 1
+        self.ConvBNReLU1 = ConvBNReLU(3,32, kernel_size=3, stride=2)
+        self.InvertedResidual1 = nn.Sequential(ConvBNReLU(32,32, kernel_size=3, stride=1, groups=32),
+                                nn.Conv2d(32, 16, kernel_size=1, stride=1, bias = False),
+                                nn.BatchNorm2d(16))
+        self.InvertedResidual2 = nn.Sequential(ConvBNReLU(16,96, kernel_size=1, stride=1),
+                                ConvBNReLU(96,96, kernel_size=3, stride=2, groups=96),
+                                nn.Conv2d(96, 24, kernel_size=1, stride=1, bias=False),
+                                nn.BatchNorm2d(24))
+        self.InvertedResidual3 = nn.Sequential(ConvBNReLU(24,144, kernel_size=1, stride=1),
+                                ConvBNReLU(144,144, kernel_size=3, stride=1, groups=144,),
+                                nn.Conv2d(144, 24, kernel_size=1, stride=1, bias = False),
+                                nn.BatchNorm2d(24))
         self.InvertedResidual4 = nn.Sequential(ConvBNReLU(24,144, kernel_size=1, stride=1),
                                 ConvBNReLU(144,144, kernel_size=3, stride=2, groups=144),
                                 nn.Conv2d(144, 32, kernel_size=1, stride=1, bias = False),
@@ -84,37 +140,11 @@ class MobileNet_freeze3(nn.Module):
 
 
         # self.avgpool = nn.functional.adaptive_avg_pool2d(x, 1).reshape(x.shape[0], -1)
-        self.dropout1 = nn.Dropout(0.2)
-        self.fc = nn.Linear(1280,num_classes)
+        # self.dropout1 = nn.Dropout(0.2)
+        self.fc = nn.Linear(1280, num_classes, bias=False)
 
-    def forward(self, x):
-        out = self.InvertedResidual4(x)
-        residual = out.clone()
-        out = self.InvertedResidual5(out) + residual
-        residual = out.clone()
-        out = self.InvertedResidual6(out) + residual
-        out = self.InvertedResidual7(out)
-        residual = out.clone()
-        out = self.InvertedResidual8(out) + residual
-        residual = out.clone()
-        out = self.InvertedResidual9(out) + residual
-        residual = out.clone()
-        out = self.InvertedResidual10(out) + residual
-        out = self.InvertedResidual11(out)
-        residual = out.clone()
-        out = self.InvertedResidual12(out) + residual
-        residual = out.clone()
-        out = self.InvertedResidual13(out) + residual
-        out = self.InvertedResidual14(out)
-        residual = out.clone()
-        out = self.InvertedResidual15(out) + residual
-        residual = out.clone()
-        out = self.InvertedResidual16(out) + residual
-        out = self.InvertedResidual17(out)
-        out = self.ConvBNReLU2(out)
-
-        # out = self.avgpool(out)
-        out = nn.functional.adaptive_avg_pool2d(out, 1).reshape(out.shape[0], -1)
-        out = self.dropout1(out)
-        out = self.fc(out)
-        return out
+    
+def net(**kwargs):
+    num_classes, depth, dataset = map(
+        kwargs.get, ['num_classes', 'depth', 'dataset'])
+    return MobileNet(num_classes=num_classes)

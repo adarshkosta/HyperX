@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+__all__ = ['net']
 
 class ConvBNReLU(nn.Sequential):
     def __init__(self, in_planes, out_planes, kernel_size=3, stride=1, groups=1, norm_layer=None):
@@ -15,13 +16,43 @@ class ConvBNReLU(nn.Sequential):
         )
 
 
-class MobileNet_freeze9(nn.Module):
+
+
+class MobileNet(nn.Module):
     def __init__(self, num_classes):
-        super(MobileNet_freeze9, self).__init__()
+        super(MobileNet, self).__init__()
 
         # block = InvertedResidual
         norm_layer = nn.BatchNorm2d
 
+        self.InvertedResidual3 = nn.Sequential(ConvBNReLU(24,144, kernel_size=1, stride=1),
+                                ConvBNReLU(144,144, kernel_size=3, stride=1, groups=144,),
+                                nn.Conv2d(144, 24, kernel_size=1, stride=1, bias = False),
+                                nn.BatchNorm2d(24))
+        self.InvertedResidual4 = nn.Sequential(ConvBNReLU(24,144, kernel_size=1, stride=1),
+                                ConvBNReLU(144,144, kernel_size=3, stride=2, groups=144),
+                                nn.Conv2d(144, 32, kernel_size=1, stride=1, bias = False),
+                                nn.BatchNorm2d(32))
+        self.InvertedResidual5 = nn.Sequential(ConvBNReLU(32,192, kernel_size=1, stride=1),
+                                ConvBNReLU(192,192, kernel_size=3, stride=1,groups=192),
+                                nn.Conv2d(192, 32, kernel_size=1, stride=1,  bias = False),
+                                nn.BatchNorm2d(32))
+        self.InvertedResidual6 = nn.Sequential(ConvBNReLU(32,192, kernel_size=1, stride=1),
+                                ConvBNReLU(192,192, kernel_size=3, stride=1, groups=192),
+                                nn.Conv2d(192, 32, kernel_size=1, stride=1,  bias = False),
+                                nn.BatchNorm2d(32))
+        self.InvertedResidual7 = nn.Sequential(ConvBNReLU(32,192, kernel_size=1, stride=1),
+                                ConvBNReLU(192,192, kernel_size=3, stride=2, groups=192),
+                                nn.Conv2d(192, 64, kernel_size=1, stride=1,  bias = False),
+                                nn.BatchNorm2d(64))
+        self.InvertedResidual8 = nn.Sequential(ConvBNReLU(64,384, kernel_size=1, stride=1),
+                                ConvBNReLU(384,384, kernel_size=3, stride=1, groups=384),
+                                nn.Conv2d(384, 64, kernel_size=1, stride=1, bias = False),
+                                nn.BatchNorm2d(64))
+        self.InvertedResidual9 = nn.Sequential(ConvBNReLU(64,384, kernel_size=1, stride=1),
+                                ConvBNReLU(384,384, kernel_size=3, stride=1, groups=384),
+                                nn.Conv2d(384, 64, kernel_size=1, stride=1,  bias = False),
+                                nn.BatchNorm2d(64))
         self.InvertedResidual10 = nn.Sequential(ConvBNReLU(64,384, kernel_size=1, stride=1),
                                 ConvBNReLU(384,384, kernel_size=3, stride=1, groups=384),
                                 nn.Conv2d(384, 64, kernel_size=1, stride=1,  bias = False),
@@ -57,14 +88,24 @@ class MobileNet_freeze9(nn.Module):
         
 
         self.ConvBNReLU2 = ConvBNReLU(320, 1280, kernel_size=1, stride=1)
-
-        # self.avgpool = nn.functional.adaptive_avg_pool2d(x, 1).reshape(x.shape[0], -1)
         self.dropout1 = nn.Dropout(0.2)
-        self.fc = nn.Linear(1280,num_classes)
+        self.fc = nn.Linear(1280,num_classes, bias=False)
 
     def forward(self, x):
         residual = x.clone()
-        out = self.InvertedResidual10(x) + residual
+        out = self.InvertedResidual3(x) + residual
+        out = self.InvertedResidual4(out)
+        residual = out.clone()
+        out = self.InvertedResidual5(out) + residual
+        residual = out.clone()
+        out = self.InvertedResidual6(out) + residual
+        out = self.InvertedResidual7(out)
+        residual = out.clone()
+        out = self.InvertedResidual8(out) + residual
+        residual = out.clone()
+        out = self.InvertedResidual9(out) + residual
+        residual = out.clone()
+        out = self.InvertedResidual10(out) + residual
         out = self.InvertedResidual11(out)
         residual = out.clone()
         out = self.InvertedResidual12(out) + residual
@@ -83,3 +124,8 @@ class MobileNet_freeze9(nn.Module):
         out = self.dropout1(out)
         out = self.fc(out)
         return out
+
+def net(**kwargs):
+    num_classes, depth, dataset = map(
+        kwargs.get, ['num_classes', 'depth', 'dataset'])
+    return MobileNet(num_classes=num_classes)

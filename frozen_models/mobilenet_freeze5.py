@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+__all__ = ['net']
 
 class ConvBNReLU(nn.Sequential):
     def __init__(self, in_planes, out_planes, kernel_size=3, stride=1, groups=1, norm_layer=None):
@@ -15,17 +16,13 @@ class ConvBNReLU(nn.Sequential):
         )
 
 
-class MobileNet_freeze4(nn.Module):
+class MobileNet(nn.Module):
     def __init__(self, num_classes):
-        super(MobileNet_freeze4, self).__init__()
+        super(MobileNet, self).__init__()
 
         # block = InvertedResidual
         norm_layer = nn.BatchNorm2d
 
-        self.InvertedResidual5 = nn.Sequential(ConvBNReLU(32,192, kernel_size=1, stride=1),
-                                ConvBNReLU(192,192, kernel_size=3, stride=1,groups=192),
-                                nn.Conv2d(192, 32, kernel_size=1, stride=1,  bias = False),
-                                nn.BatchNorm2d(32))
         self.InvertedResidual6 = nn.Sequential(ConvBNReLU(32,192, kernel_size=1, stride=1),
                                 ConvBNReLU(192,192, kernel_size=3, stride=1, groups=192),
                                 nn.Conv2d(192, 32, kernel_size=1, stride=1,  bias = False),
@@ -81,13 +78,11 @@ class MobileNet_freeze4(nn.Module):
 
         # self.avgpool = nn.functional.adaptive_avg_pool2d(x, 1).reshape(x.shape[0], -1)
         self.dropout1 = nn.Dropout(0.2)
-        self.fc = nn.Linear(1280,num_classes)
+        self.fc = nn.Linear(1280,num_classes, bias=False)
 
     def forward(self, x):
         residual = x.clone()
-        out = self.InvertedResidual5(x) + residual
-        residual = out.clone()
-        out = self.InvertedResidual6(out) + residual
+        out = self.InvertedResidual6(x) + residual
         out = self.InvertedResidual7(out)
         residual = out.clone()
         out = self.InvertedResidual8(out) + residual
@@ -112,4 +107,9 @@ class MobileNet_freeze4(nn.Module):
         out = nn.functional.adaptive_avg_pool2d(out, 1).reshape(out.shape[0], -1)
         out = self.dropout1(out)
         out = self.fc(out)
-        return out
+        return out 
+
+def net(**kwargs):
+    num_classes, depth, dataset = map(
+        kwargs.get, ['num_classes', 'depth', 'dataset'])
+    return MobileNet(num_classes=num_classes)
