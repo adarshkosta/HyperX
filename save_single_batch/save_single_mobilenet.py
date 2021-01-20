@@ -5,10 +5,10 @@ import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--b-train', default=64, type=int,
-                     metavar='N', help='mini-batch size (default: 1024)')
+                     metavar='N', help='mini-batch size (default: 64)')
 parser.add_argument('--b-test', default=64, type=int,
-                     metavar='N', help='mini-batch size (default: 1024)')
-parser.add_argument('--datadir', default='/home/nano01/a/esoufler/activations/', help='dataset name or folder')
+                     metavar='N', help='mini-batch size (default: 64)')
+parser.add_argument('--datadir', default='/home/nano01/a/esoufler/activations/sram', help='dataset name or folder')
 parser.add_argument('--dataset', metavar='DATASET', default='cifar10', help='dataset name or folder')
 parser.add_argument('--model', '-a', metavar='MODEL', default='mobilenet', help='name of the model')
 parser.add_argument('--mode', metavar='MODE', default='both', help='set to save')

@@ -231,7 +231,7 @@ parser.add_argument('--model', '-a', metavar='MODEL', default='mobilenet',
             choices=model_names,
             help='name of the model')
 
-parser.add_argument('--load-dir', default='/home/nano01/a/esoufler/activations/one_batch/',
+parser.add_argument('--load-dir', default='/home/nano01/a/esoufler/activations/sram/one_batch/',
             help='base path for loading activations')
 parser.add_argument('--savedir', default='../pretrained_models/frozen/',
                 help='base path for saving activations')
@@ -246,13 +246,13 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
             help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=128, type=int,
             metavar='N', help='mini-batch size (default: 128)')
-parser.add_argument('--lr', '--learning-rate', default=0.8, type=float,
+parser.add_argument('--lr', '--learning-rate', default=0.1, type=float, #0.8
             metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
             help='momentum')
 parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar='W', 
             help='weight decay (default: 1e-4)')
-parser.add_argument('--gamma', default=0.8, type=float,
+parser.add_argument('--gamma', default=0.5, type=float, #0.8
             help='learning rate decay')
 
 parser.add_argument('--milestones', default=[20,50,80], 

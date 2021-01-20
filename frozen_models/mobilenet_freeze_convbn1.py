@@ -17,7 +17,7 @@ class ConvBNReLU(nn.Sequential):
 
 
       
-class MobileNet_freeze(nn.Module):
+class MobileNet(nn.Module):
     def __init__(self, num_classes):
         super(MobileNet, self).__init__()
 

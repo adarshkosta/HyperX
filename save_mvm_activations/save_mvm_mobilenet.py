@@ -185,7 +185,7 @@ parser.add_argument('-b', '--batch-size', default=64, type=int, metavar='N',
             help='mini-batch size (default: 100)')
 parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
             help='dataset name or folder')
-parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/multiple_batches/',
+parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/sram/multiple_batches/',
             help='base path for saving activations')
 parser.add_argument('--model', '-a', metavar='MODEL', default='mobilenet',
             choices=model_names,
@@ -194,7 +194,7 @@ parser.add_argument('--pretrained', action='store', default='../pretrained_model
             help='the path to the pretrained model')
 parser.add_argument('--mvm', action='store_true', default=True,
             help='if running functional simulator backend')
-parser.add_argument('--nideal', action='store_true', default=True,
+parser.add_argument('--nideal', action='store_true', default=False,
             help='Add xbar non-idealities')
 parser.add_argument('--mode', default='test', 
             help='save activations for \'train\' or \'test\' sets')
