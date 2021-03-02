@@ -1,16 +1,16 @@
 WARNING: crossbar sizes with different row annd column dimension not supported.
 
       ==> Arguments:
-          batch_size: 1000
+          batch_size: 100
           dataset: cifar100
           savedir: /home/nano01/a/esoufler/activations/x64/rram/multiple_batches/
           model: resnet20
           pretrained: ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar
-          mvm: True
-          nideal: True
+          mvm: None
+          nideal: None
           mode: test
           input_size: None
-          workers: 16
+          workers: 8
           gpus: 0,1,2,3
           experiment: 64x64
           batch_start: 0
@@ -29,8 +29,8 @@ WARNING: crossbar sizes with different row annd column dimension not supported.
           adc_bit=14
           acm_bits=32
           acm_bit_frac=24
-          mvm=True
-          non-ideality=True
+          mvm=False
+          non-ideality=False
           
 xbmodel=NN_model(
   (fc1): Linear(in_features=4160, out_features=500, bias=True)
@@ -39,7 +39,7 @@ xbmodel=NN_model(
   (fc3): Linear(in_features=500, out_features=64, bias=True)
 )
           
-xbmodel_weight_path=../xb_models/XB_64_stream1slice207dropout50epochs.pth.tar
+xbmodel_weight_path=../xb_models/XB_64_strem1slice207dropout50epochs.pth.tar
           inmax_test=1.2
           inmin_test=0.857
 
@@ -55,43 +55,44 @@ Files already downloaded and verified
 Saving activations to: /home/nano01/a/esoufler/activations/x64/rram/multiple_batches/cifar100/resnet20/test
 Dry run for computing activation sizes...
 Dry run finished...
-relu1: torch.Size([250, 16, 32, 32])
-relu2: torch.Size([250, 16, 32, 32])
-relu3: torch.Size([250, 16, 32, 32])
-relu4: torch.Size([250, 16, 32, 32])
-relu5: torch.Size([250, 16, 32, 32])
-relu6: torch.Size([250, 16, 32, 32])
-relu7: torch.Size([250, 16, 32, 32])
-relu8: torch.Size([250, 32, 16, 16])
-relu9: torch.Size([250, 32, 16, 16])
-relu10: torch.Size([250, 32, 16, 16])
-relu11: torch.Size([250, 32, 16, 16])
-relu12: torch.Size([250, 32, 16, 16])
-relu13: torch.Size([250, 32, 16, 16])
-relu14: torch.Size([250, 64, 8, 8])
-relu15: torch.Size([250, 64, 8, 8])
-relu16: torch.Size([250, 64, 8, 8])
-relu17: torch.Size([250, 64, 8, 8])
-relu18: torch.Size([250, 64, 8, 8])
-relu19: torch.Size([250, 64, 8, 8])
-fc: torch.Size([250, 100])
-relu1: torch.Size([1000, 16, 32, 32])
-relu2: torch.Size([1000, 16, 32, 32])
-relu3: torch.Size([1000, 16, 32, 32])
-relu4: torch.Size([1000, 16, 32, 32])
-relu5: torch.Size([1000, 16, 32, 32])
-relu6: torch.Size([1000, 16, 32, 32])
-relu7: torch.Size([1000, 16, 32, 32])
-relu8: torch.Size([1000, 32, 16, 16])
-relu9: torch.Size([1000, 32, 16, 16])
-relu10: torch.Size([1000, 32, 16, 16])
-relu11: torch.Size([1000, 32, 16, 16])
-relu12: torch.Size([1000, 32, 16, 16])
-relu13: torch.Size([1000, 32, 16, 16])
-relu14: torch.Size([1000, 64, 8, 8])
-relu15: torch.Size([1000, 64, 8, 8])
-relu16: torch.Size([1000, 64, 8, 8])
-relu17: torch.Size([1000, 64, 8, 8])
-relu18: torch.Size([1000, 64, 8, 8])
-relu19: torch.Size([1000, 64, 8, 8])
-fc: torch.Size([1000, 100])
+relu1: torch.Size([25, 16, 32, 32])
+relu2: torch.Size([25, 16, 32, 32])
+relu3: torch.Size([25, 16, 32, 32])
+relu4: torch.Size([25, 16, 32, 32])
+relu5: torch.Size([25, 16, 32, 32])
+relu6: torch.Size([25, 16, 32, 32])
+relu7: torch.Size([25, 16, 32, 32])
+relu8: torch.Size([25, 32, 16, 16])
+relu9: torch.Size([25, 32, 16, 16])
+relu10: torch.Size([25, 32, 16, 16])
+relu11: torch.Size([25, 32, 16, 16])
+relu12: torch.Size([25, 32, 16, 16])
+relu13: torch.Size([25, 32, 16, 16])
+relu14: torch.Size([25, 64, 8, 8])
+relu15: torch.Size([25, 64, 8, 8])
+relu16: torch.Size([25, 64, 8, 8])
+relu17: torch.Size([25, 64, 8, 8])
+relu18: torch.Size([25, 64, 8, 8])
+relu19: torch.Size([25, 64, 8, 8])
+fc: torch.Size([25, 100])
+relu1: torch.Size([100, 16, 32, 32])
+relu2: torch.Size([100, 16, 32, 32])
+relu3: torch.Size([100, 16, 32, 32])
+relu4: torch.Size([100, 16, 32, 32])
+relu5: torch.Size([100, 16, 32, 32])
+relu6: torch.Size([100, 16, 32, 32])
+relu7: torch.Size([100, 16, 32, 32])
+relu8: torch.Size([100, 32, 16, 16])
+relu9: torch.Size([100, 32, 16, 16])
+relu10: torch.Size([100, 32, 16, 16])
+relu11: torch.Size([100, 32, 16, 16])
+relu12: torch.Size([100, 32, 16, 16])
+relu13: torch.Size([100, 32, 16, 16])
+relu14: torch.Size([100, 64, 8, 8])
+relu15: torch.Size([100, 64, 8, 8])
+relu16: torch.Size([100, 64, 8, 8])
+relu17: torch.Size([100, 64, 8, 8])
+relu18: torch.Size([100, 64, 8, 8])
+relu19: torch.Size([100, 64, 8, 8])
+fc: torch.Size([100, 100])
+Starting to save activations..

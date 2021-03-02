@@ -204,7 +204,7 @@ if __name__=='__main__':
 
     parser.add_argument('--input_size', type=int, default=None,
                 help='image input size')
-    parser.add_argument('-j', '--workers', default=16, type=int, metavar='J',
+    parser.add_argument('-j', '--workers', default=8, type=int, metavar='J',
                 help='number of data loading workers (default: 8)')
     parser.add_argument('--gpus', default='0,1,2,3', help='gpus (default: 0,1,2,3)')
     parser.add_argument('-exp', '--experiment', default='64x64', metavar='N',
@@ -408,9 +408,6 @@ if __name__=='__main__':
             
             duration = time.time() - base_time
             print("Batch IDx: {} \t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))
-
-    print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'
-          .format(top1=top1, top5=top5))
     
     print("Done saving activations!")
     exit(0)

@@ -201,7 +201,7 @@ if __name__=='__main__':
 
     parser.add_argument('--input_size', type=int, default=None,
                 help='image input size')
-    parser.add_argument('-j', '--workers', default=16, type=int, metavar='J',
+    parser.add_argument('-j', '--workers', default=8, type=int, metavar='J',
                 help='number of data loading workers (default: 8)')
     parser.add_argument('--gpus', default='0,1,2,3', help='gpus (default: 0,1,2,3)')
     parser.add_argument('-exp', '--experiment', default='64x64', metavar='N',
