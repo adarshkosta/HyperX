@@ -38,6 +38,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision.utils import save_image
 from torchsummary import summary
+import torchvision.datasets as datasets
 
 #torch.set_default_tensor_type(torch.HalfTensor)
 
@@ -128,14 +129,14 @@ def get_activation(name):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-b', '--batch-size', default=256, type=int,
+    parser.add_argument('-b', '--batch-size', default=64, type=int,
                          metavar='N', help='mini-batch size (default: 256)')
-    parser.add_argument('--dataset', metavar='DATASET', default='cifar100',
+    parser.add_argument('--dataset', metavar='DATASET', default='imnet',
                 help='dataset name or folder')
     parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18',
                 choices=model_names,
                 help='name of the model')
-    parser.add_argument('--pretrained', action='store', default=None,
+    parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet18fp_imnet.pth.tar',
         help='the path to the pretrained model')
     parser.add_argument('--mvm', action='store_true', default=None,
                 help='if running functional simulator backend')
@@ -147,8 +148,8 @@ if __name__=='__main__':
     parser.add_argument('-j', '--workers', default=8, type=int, metavar='J',
                 help='number of data loading workers (default: 8)')
     parser.add_argument('--gpus', default='0', help='gpus (default: 4)')
-    parser.add_argument('-exp', '--experiment', default='128x128', metavar='N',
-                help='experiment name')
+    parser.add_argument('--half', action='store_true', default=False,
+                help='Use half-tensors')
     
     args = parser.parse_args()
     
@@ -156,6 +157,11 @@ if __name__=='__main__':
       cfg.non_ideality = True
     else:
       cfg.non_ideality = False
+
+    if args.mvm:
+      cfg.mvm= True
+    else:
+      cfg.mvm = False
 
     cfg.dump_config()
 
@@ -191,6 +197,7 @@ if __name__=='__main__':
         print('==> Load pretrained model form', args.pretrained, '...')
         pretrained_model = torch.load(args.pretrained)
         best_acc = pretrained_model['best_acc']
+        print('Pretrained model accuracy: {}'.format(best_acc))
         model.load_state_dict(pretrained_model['state_dict'])
         for m in model.modules():
             if isinstance(m, nn.Conv2d):
@@ -224,72 +231,85 @@ if __name__=='__main__':
             m.weight.data = weights_lin[k]
             k=k+1
     
-    if args.dataset == 'cifar10':
-        model.fc = nn.Linear(int(512), 10, bias=False)
-        model.bn19 = nn.BatchNorm1d(10)
-        
-        model_mvm.fc = Linear_mvm(int(512), 10, bias=False)
-        model_mvm.bn19 = nn.BatchNorm1d(10)
-        
-    elif args.dataset == 'cifar100':
-        model.fc = nn.Linear(int(512), 100, bias=False)
-        model.bn19 = nn.BatchNorm1d(100)
-        
-        model_mvm.fc = Linear_mvm(int(512), 100, bias=False)
-        model_mvm.bn19 = nn.BatchNorm1d(100)
-    else:
-        raise Exception(args.dataset + 'is currently not supported')
-      
-    for m in model.modules():
-        if isinstance(m, nn.Linear):
-            stdv = 1. / math.sqrt(m.weight.data.size(1))
-            m.weight.data.uniform_(-stdv, stdv)
-            if m.bias is not None:
-                m.bias.data.uniform_(-stdv, stdv)
-        elif isinstance(m, nn.BatchNorm1d):
-            m.weight.data.fill_(1)
-            m.bias.data.zero_()
-    
     
     # Move required model to GPU (if applicable)
     if args.mvm:
+        cfg.mvm = True
         model = model_mvm
     
     model.to(device)#.half() # uncomment for FP16
+
+    if args.half:
+        model.half()
+
     model = torch.nn.DataParallel(model)
 
-    image_transforms = {
-        'train':
-            transforms.Compose([
-                    transforms.Resize(size=256),
-                    transforms.CenterCrop(size=224),
-                    transforms.ToTensor(),
-                    transforms.Normalize([0.485, 0.456, 0.406],
-                                         [0.229, 0.224, 0.225])
-                    ]),
-        'eval':
-            transforms.Compose([
-                    transforms.Resize(size=256),
-                    transforms.CenterCrop(size=224),
-                    transforms.ToTensor(),
-                    transforms.Normalize([0.485, 0.456, 0.406],
-                                         [0.229, 0.224, 0.225])
-                    ]),
-        }
+    traindir = os.path.join('/local/a/imagenet/imagenet2012/', 'train')
+    valdir = os.path.join('/local/a/imagenet/imagenet2012/', 'val')
 
-    train_data = get_dataset(args.dataset, 'train', image_transforms['train'])
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                     std=[0.229, 0.224, 0.225])
+
+    train_dataset = datasets.ImageFolder(
+        traindir,
+        transforms.Compose([
+            transforms.RandomResizedCrop(224),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            normalize,
+        ]))
+
+    train_sampler = None
+
     trainloader = torch.utils.data.DataLoader(
-        train_data,
-        batch_size=args.batch_size, shuffle=False,
-        num_workers=args.workers, pin_memory=True)
-    
-    test_data = get_dataset(args.dataset, 'val', image_transforms['eval'])
+        train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
+        num_workers=args.workers, pin_memory=True, sampler=train_sampler)
+
     testloader = torch.utils.data.DataLoader(
-        test_data,
+        datasets.ImageFolder(valdir, transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            normalize,
+        ])),
         batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True)
+
+    # image_transforms = {
+    #     'train':
+    #         transforms.Compose([
+    #                 transforms.Resize(size=256),
+    #                 transforms.CenterCrop(size=224),
+    #                 transforms.ToTensor(),
+    #                 transforms.Normalize([0.485, 0.456, 0.406],
+    #                                      [0.229, 0.224, 0.225])
+    #                 ]),
+    #     'eval':
+    #         transforms.Compose([
+    #                 transforms.Resize(size=256),
+    #                 transforms.CenterCrop(size=224),
+    #                 transforms.ToTensor(),
+    #                 transforms.Normalize([0.485, 0.456, 0.406],
+    #                                      [0.229, 0.224, 0.225])
+    #                 ]),
+    #     }
+
+    # train_data = get_dataset(args.dataset, 'train', image_transforms['train'])
+    # trainloader = torch.utils.data.DataLoader(
+    #     train_data,
+    #     batch_size=args.batch_size, shuffle=False,
+    #     num_workers=args.workers, pin_memory=True)
+    
+    # test_data = get_dataset(args.dataset, 'val', image_transforms['eval'])
+    # testloader = torch.utils.data.DataLoader(
+    #     test_data,
+    #     batch_size=args.batch_size, shuffle=False,
+    #     num_workers=args.workers, pin_memory=True)
 
     criterion = nn.CrossEntropyLoss()
+
+    if args.half:
+        criterion.half()
 
     test(device)
     exit(0)

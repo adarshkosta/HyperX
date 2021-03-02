@@ -236,22 +236,22 @@ parser.add_argument('--pretrained', action='store', default='../pretrained_model
 
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
             help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', default=100, type=int, metavar='N',
+parser.add_argument('--epochs', default=50, type=int, metavar='N',
             help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
             help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=128, type=int,
             metavar='N', help='mini-batch size (default: 256)')
-parser.add_argument('--lr', '--learning-rate', default=1.0, type=float,
+parser.add_argument('--lr', '--learning-rate', default=0.2, type=float,
             metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
             help='momentum')
 parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar='W', 
             help='weight decay (default: 1e-4)')
-parser.add_argument('--gamma', default=0.8, type=float,
+parser.add_argument('--gamma', default=0.1, type=float,
             help='learning rate decay')
 
-parser.add_argument('--milestones', default=[30,60,80], 
+parser.add_argument('--milestones', default=[10,20,30,40], 
             help='Milestones for LR decay')
 
 parser.add_argument('--loss', type=str, default='crossentropy', 
@@ -323,7 +323,23 @@ if args.resume:
         
 else: #No model to resume from
     if args.pretrained: #Initialize params with pretrained model
-        model = model.net(num_classes=1000)
+        if args.dataset == 'cifar10':
+            model = model.net(num_classes=10)
+        elif args.dataset == 'cifar100':
+            model = model.net(num_classes=100)
+
+        for m in model.modules():
+            if isinstance(m, nn.Conv2d):
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
+            elif isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d)):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
+            elif isinstance(m, nn.Linear):
+                stdv = 1. / math.sqrt(m.weight.data.size(1))
+                m.weight.data.uniform_(-stdv, stdv)
+                if m.bias is not None:
+                   m.bias.data.uniform_(-stdv, stdv)
         
         print('==> Initializing model with pre-trained parameters (except classifier)...')
         original_model = (__import__(args.model))
@@ -342,26 +358,26 @@ else: #No model to resume from
                         m1.load_state_dict(m2.state_dict())
         
         #Re-build classifier layer
-        if args.dataset == 'cifar10':
-            model.fc = nn.Linear(512, 10, bias = False)
-            model.bn19 = nn.BatchNorm1d(10)
-        elif args.dataset == 'cifar100':
-            model.fc = nn.Linear(512, 100, bias = False)
-            model.bn19 = nn.BatchNorm1d(100)
-        else:
-            raise Exception(args.dataset + 'is currently not supported')
+        # if args.dataset == 'cifar10':
+        #     model.fc = nn.Linear(512, 10, bias = False)
+        #     model.bn19 = nn.BatchNorm1d(10)
+        # elif args.dataset == 'cifar100':
+        #     model.fc = nn.Linear(512, 100, bias = False)
+        #     model.bn19 = nn.BatchNorm1d(100)
+        # else:
+        #     raise Exception(args.dataset + 'is currently not supported')
             
         #Initialize classifier params with normal distribution
-        for name, m in model.named_modules():
-            if isinstance(m, nn.Linear):
-                stdv = 1. / math.sqrt(m.weight.data.size(1))
-                m.weight.data.uniform_(-stdv, stdv)
-                if m.bias is not None:
-                    m.bias.data.uniform_(-stdv, stdv)
-            elif isinstance(m, nn.BatchNorm1d):
-                if 'bn19' in name:
-                    m.weight.data.fill_(1)
-                    m.bias.data.zero_()
+        # for name, m in model.named_modules():
+        #     if isinstance(m, nn.Linear):
+        #         stdv = 1. / math.sqrt(m.weight.data.size(1))
+        #         m.weight.data.uniform_(-stdv, stdv)
+        #         if m.bias is not None:
+        #             m.bias.data.uniform_(-stdv, stdv)
+        #     elif isinstance(m, nn.BatchNorm1d):
+        #         if 'bn19' in name:
+        #             m.weight.data.fill_(1)
+        #             m.bias.data.zero_()
                         
     else: #Initialize all params with normal distribution
         if args.dataset == 'cifar10':

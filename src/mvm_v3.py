@@ -174,8 +174,11 @@ def mvm_tensor_nonid(zeros, shift_add_bit_stream, shift_add_bit_slice, output_re
     inmax_V = Vmax
     inmin_V = 0
     
-    inmax_test =    1.4
-    inmin_test =    0.826
+    # inmax_test =    1.4
+    # inmin_test =    0.826
+
+    inmax_test =    cfg.inmax_test #1.2
+    inmin_test =    cfg.inmin_test #0.857
     
 #    #100k
 #    inmax_test =    1.2

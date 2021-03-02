@@ -46,12 +46,7 @@ from utils.preprocess import get_transform
 from utils.utils import *
 import src.config as cfg
 
-if cfg.if_bit_slicing and not cfg.dataset:
-    from src.pytorch_mvm_class_v3 import *
-elif cfg.dataset:
-    from geneix.pytorch_mvm_class_dataset import *   # import mvm class from geneix folder
-else:
-    from src.pytorch_mvm_class_no_bitslice import *
+from src.pytorch_mvm_class_v3 import *
 
 #Seeding
 new_manual_seed = 0
@@ -138,6 +133,8 @@ if __name__=='__main__':
                 help='if running functional simulator backend')
     parser.add_argument('--nideal', action='store_true', default=None,
                 help='Add xbar non-idealities')
+    # parser.add_argument('--xbsize', type=int, default=64,
+    #             help='xbar size')
     
     parser.add_argument('--input_size', type=int, default=None,
                 help='image input size')
@@ -150,6 +147,33 @@ if __name__=='__main__':
     
     print_args(args)
     
+    # if args.xbsize == 32:
+    #     # print('32')    
+    #     cfg.xbmodel_weight_path = '../xb_models/XB_32_stream1slice207dropout50epochs.pth.tar'
+    #     cfg.xbar_row_size = int(32)
+    #     cfg.xbar_col_size = int(32)
+    #     cfg.inmax_test = 1.1
+    #     cfg.inmin_test = 0.874
+    #     cfg.xbmodel = cfg.NN_model(cfg.xbar_row_size)
+
+    # elif args.xbsize == 64:
+    #     # print('64')     
+    #     cfg.xbmodel_weight_path = '../xb_models/XB_64_stream1slice207dropout50epochs.pth.tar'
+    #     cfg.xbar_row_size = int(64)
+    #     cfg.xbar_col_size = int(64)
+    #     cfg.inmax_test = 1.2
+    #     cfg.inmin_test = 0.857
+    #     cfg.xbmodel = cfg.NN_model(cfg.xbar_row_size)
+
+    # elif args.xbsize == 128:
+    #     # print('128')     
+    #     cfg.xbmodel_weight_path = '../xb_models/XB_128_stream1slice207dropout50epochs.pth.tar'
+    #     cfg.xbar_row_size = int(128)
+    #     cfg.xbar_col_size = int(128)
+    #     cfg.inmax_test = 1.4
+    #     cfg.inmin_test = 0.826
+    #     cfg.xbmodel = cfg.NN_model(cfg.xbar_row_size)
+
     if args.nideal:
       cfg.non_ideality = True
     else:
