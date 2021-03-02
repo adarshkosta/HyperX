@@ -404,19 +404,6 @@ if __name__=='__main__':
             output = model_mvm(data_var)
             act['out'] = output
 
-            loss= criterion(output, target_var)
-            prec1, prec5 = accuracy(output.data, target_var.data, topk=(1, 5))
-            losses.update(loss.data, data.size(0))
-            top1.update(prec1[0], data.size(0))
-            top5.update(prec5[0], data.size(0))
-
-            print('[{0}/{1}({2:.0f}%)]\t'
-                    'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                    'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
-                    'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
-                    batch_idx, len(dataloader), 100. *float(batch_idx)/len(dataloader),
-                    loss=losses, top1=top1, top5=top5))
-
             save_activations(model=model_mvm, batch_idx=batch_idx, act=act, labels=target)
             
             duration = time.time() - base_time
