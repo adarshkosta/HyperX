@@ -8,7 +8,7 @@ WARNING: crossbar sizes with different row annd column dimension not supported.
           pretrained: ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar
           mvm: True
           nideal: True
-          mode: test
+          mode: train
           input_size: None
           workers: 8
           gpus: 0,1,2,3
@@ -52,7 +52,7 @@ WARNING: crossbar sizes with different row annd column dimension not supported.
 ==> Load pretrained model form ../pretrained_models/ideal/resnet20fp_cifar100.pth.tar ...
 Pretrained model accuracy: 69.5999984741211
 Files already downloaded and verified
-Saving activations to: /home/nano01/a/esoufler/activations/x64/rram/multiple_batches/cifar100/resnet20/test
+Saving activations to: /home/nano01/a/esoufler/activations/x64/rram/multiple_batches/cifar100/resnet20/train
 Dry run for computing activation sizes...
 Dry run finished...
 relu1: torch.Size([250, 16, 32, 32])
@@ -96,14 +96,54 @@ relu18: torch.Size([1000, 64, 8, 8])
 relu19: torch.Size([1000, 64, 8, 8])
 fc: torch.Size([1000, 100])
 Starting to save activations..
-Batch IDx: 0 	 Time taken: 8m 5secs
-Batch IDx: 1 	 Time taken: 8m 23secs
-Batch IDx: 2 	 Time taken: 8m 23secs
-Batch IDx: 3 	 Time taken: 8m 24secs
-Batch IDx: 4 	 Time taken: 8m 19secs
-Batch IDx: 5 	 Time taken: 8m 24secs
-Batch IDx: 6 	 Time taken: 8m 18secs
-Batch IDx: 7 	 Time taken: 8m 21secs
-Batch IDx: 8 	 Time taken: 8m 23secs
-Batch IDx: 9 	 Time taken: 8m 20secs
+Batch IDx: 0 	 Time taken: 8m 12secs
+Batch IDx: 1 	 Time taken: 8m 24secs
+Batch IDx: 2 	 Time taken: 8m 24secs
+Batch IDx: 3 	 Time taken: 8m 19secs
+Batch IDx: 4 	 Time taken: 8m 20secs
+Batch IDx: 5 	 Time taken: 8m 22secs
+Batch IDx: 6 	 Time taken: 8m 21secs
+Batch IDx: 7 	 Time taken: 8m 16secs
+Batch IDx: 8 	 Time taken: 8m 24secs
+Batch IDx: 9 	 Time taken: 8m 21secs
+Batch IDx: 10 	 Time taken: 8m 26secs
+Batch IDx: 11 	 Time taken: 8m 26secs
+Batch IDx: 12 	 Time taken: 8m 14secs
+Batch IDx: 13 	 Time taken: 8m 24secs
+Batch IDx: 14 	 Time taken: 8m 21secs
+Batch IDx: 15 	 Time taken: 8m 17secs
+Batch IDx: 16 	 Time taken: 8m 24secs
+Batch IDx: 17 	 Time taken: 8m 21secs
+Batch IDx: 18 	 Time taken: 8m 18secs
+Batch IDx: 19 	 Time taken: 8m 24secs
+Batch IDx: 20 	 Time taken: 8m 22secs
+Batch IDx: 21 	 Time taken: 8m 19secs
+Batch IDx: 22 	 Time taken: 8m 21secs
+Batch IDx: 23 	 Time taken: 8m 23secs
+Batch IDx: 24 	 Time taken: 8m 23secs
+Batch IDx: 25 	 Time taken: 8m 26secs
+Batch IDx: 26 	 Time taken: 8m 22secs
+Batch IDx: 27 	 Time taken: 8m 26secs
+Batch IDx: 28 	 Time taken: 8m 21secs
+Batch IDx: 29 	 Time taken: 8m 23secs
+Batch IDx: 30 	 Time taken: 8m 18secs
+Batch IDx: 31 	 Time taken: 8m 22secs
+Batch IDx: 32 	 Time taken: 8m 26secs
+Batch IDx: 33 	 Time taken: 8m 23secs
+Batch IDx: 34 	 Time taken: 8m 27secs
+Batch IDx: 35 	 Time taken: 8m 22secs
+Batch IDx: 36 	 Time taken: 8m 21secs
+Batch IDx: 37 	 Time taken: 8m 25secs
+Batch IDx: 38 	 Time taken: 8m 28secs
+Batch IDx: 39 	 Time taken: 8m 19secs
+Batch IDx: 40 	 Time taken: 8m 25secs
+Batch IDx: 41 	 Time taken: 8m 26secs
+Batch IDx: 42 	 Time taken: 8m 23secs
+Batch IDx: 43 	 Time taken: 8m 27secs
+Batch IDx: 44 	 Time taken: 8m 27secs
+Batch IDx: 45 	 Time taken: 8m 29secs
+Batch IDx: 46 	 Time taken: 8m 27secs
+Batch IDx: 47 	 Time taken: 8m 26secs
+Batch IDx: 48 	 Time taken: 8m 32secs
+Batch IDx: 49 	 Time taken: 8m 22secs
 Done saving activations!

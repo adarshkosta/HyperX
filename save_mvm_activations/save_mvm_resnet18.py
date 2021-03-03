@@ -30,6 +30,7 @@ import random
 import argparse
 import pdb
 import math
+import pkbar
 
 import torch
 import torchvision
@@ -185,7 +186,7 @@ if __name__=='__main__':
                 help='mini-batch size (default: 40)')
     parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
                 help='dataset name or folder')
-    parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/x64/rram/multiple_batches/',
+    parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/x64/sram/multiple_batch/',
                 help='base path for saving activations')
     parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18',
                 choices=model_names,
@@ -441,22 +442,43 @@ if __name__=='__main__':
 
     print('Starting to save activations..')
 
+    kbar = pkbar.Kbar(target=len(dataloader), width=20)
+
+    batch_time = AverageMeter()
+    data_time = AverageMeter()
+    fp_time = AverageMeter()
+
+    end = time.time()
+
     #Iterate over dataloader and save activations
     for batch_idx,(data, target) in enumerate(dataloader):
         if batch_idx >= args.batch_start:
-            base_time = time.time()
             reg_hook(model_mvm)
             
             data_var = data.to(device)
             target_var = target.to(device)
+
+            # measure forward pass & data loading time
+            data_time.update(time.time() - end)
             
             output = model_mvm(data_var)
             act['out'] = output
 
+            # measure forward pass & data loading time
+            fp_time.update(time.time() - end)
+
             save_activations(model=model_mvm, batch_idx=batch_idx, labels=target)
             
-            duration = time.time() - base_time
-            print("Batch IDx: {}\t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))
+            # measure elapsed time
+            batch_time.update(time.time() - end)
+            end = time.time()
+
+            kbar.update(batch_idx, values= [
+                                                ('DT', data_time.avg),
+                                                ('FpT', fp_time.avg),
+                                                ('BT', batch_time.avg),
+                                                ])
+            # print("Batch IDx: {}\t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))
 
     print("Done saving activations!")
     exit(0)
