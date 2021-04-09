@@ -99,8 +99,6 @@ class resnet(nn.Module):
         out = self.bn18(out)
         out = self.relu18(out)
         out = self.conv19(out)
-        
-        out = self.dropout(out)
 
         out = self.bn19(out)
         out+=residual

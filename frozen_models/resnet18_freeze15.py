@@ -40,10 +40,8 @@ class resnet(nn.Module):
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
         x = self.bn18(x)
-        x = self.fc1(x)
-        x = self.bnfc1(x)
-        x = self.fc2(x)
-        x = self.bnfc2(x)
+        x = self.fc(x)
+        x = self.bn19(x)
         x = self.logsoftmax(x)
         return x
 
@@ -66,10 +64,8 @@ class ResNet18(resnet):
 
         self.avgpool=nn.AvgPool2d(7)
         self.bn18= nn.BatchNorm1d(int(512*self.inflate))
-        self.fc1= nn.Linear(512, 256, bias=False)
-        self.bnfc1= nn.BatchNorm1d(256)
-        self.fc2 = nn.Linear(256,num_classes, bias = False)
-        self.bnfc2= nn.BatchNorm1d(num_classes)
+        self.fc= nn.Linear(int(512*self.inflate),num_classes, bias = False)
+        self.bn19= nn.BatchNorm1d(num_classes)
         self.logsoftmax=nn.LogSoftmax(dim=1)
 
 

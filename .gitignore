@@ -7,7 +7,7 @@ __pycache__
 
 datasets/
 models/*.tar
-pretrained_models/*.tar
+pretrained_models/*
 results/
 datasets/
 xbmodels/*.tar

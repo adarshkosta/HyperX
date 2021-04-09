@@ -127,7 +127,7 @@ if __name__=='__main__':
     parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
                 choices=model_names,
                 help='name of the model')
-    parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20fp_cifar10.pth.tar',
+    parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20fp_cifar100.pth.tar',
         help='the path to the pretrained model')
     parser.add_argument('--mvm', action='store_true', default=None,
                 help='if running functional simulator backend')
