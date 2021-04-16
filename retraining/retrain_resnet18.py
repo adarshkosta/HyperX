@@ -101,6 +101,8 @@ def train(train_loader, model, criterion, optimizer, epoch, device):
         
         optimizer.zero_grad()
         loss.backward()
+
+        #torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         optimizer.step()
         
         output = output.float()
@@ -227,9 +229,9 @@ parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18',
             choices=model_names,
             help='name of the model')
 
-parser.add_argument('--load-dir', default='/home/nano01/a/esoufler/activations/one_batch/',
+parser.add_argument('--load-dir', default='/home/nano01/a/esoufler/activations/x128/rram/one_batch/',
             help='base path for loading activations')
-parser.add_argument('--savedir', default='../pretrained_models/frozen/',
+parser.add_argument('--savedir', default='../pretrained_models/frozen/rram/',
                 help='base path for saving activations')
 parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet18fp_imnet.pth.tar',
             help='the path to the ideal pretrained model')
@@ -242,16 +244,16 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
             help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=128, type=int,
             metavar='N', help='mini-batch size (default: 256)')
-parser.add_argument('--lr', '--learning-rate', default=1.0, type=float,
+parser.add_argument('--lr', '--learning-rate', default=0.8, type=float,
             metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
             help='momentum')
-parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar='W', 
+parser.add_argument('--weight-decay', '--wd', default=5e-4, type=float, metavar='W', 
             help='weight decay (default: 1e-4)')
-parser.add_argument('--gamma', default=0.8, type=float,
+parser.add_argument('--gamma', default=0.5, type=float,
             help='learning rate decay')
 
-parser.add_argument('--milestones', default=[30,60,80], 
+parser.add_argument('--milestones', default=[20,40,60,80], 
             help='Milestones for LR decay')
 
 parser.add_argument('--loss', type=str, default='crossentropy', 
@@ -275,7 +277,7 @@ parser.add_argument('--save-every', dest='save_every',
                     help='Saves checkpoints at every specified number of epochs',
                     type=int, default=10)
 parser.add_argument('--gpus', default='0', help='gpus (default: 0)')
-parser.add_argument('--frozen-layers', default=1, type=int, help='number of frozen layers in the model')
+parser.add_argument('--frozen-layers', default=5, type=int, help='number of frozen layers in the model')
 
 args = parser.parse_args()
 
@@ -323,7 +325,23 @@ if args.resume:
         
 else: #No model to resume from
     if args.pretrained: #Initialize params with pretrained model
-        model = model.net(num_classes=1000)
+        if args.dataset == 'cifar10':
+            model = model.net(num_classes=1000)
+        elif args.dataset == 'cifar100':
+            model = model.net(num_classes=1000)
+
+        for m in model.modules():
+            if isinstance(m, nn.Conv2d):
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                m.weight.data.normal_(0, math.sqrt(3. / n))
+            elif isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d)):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
+            elif isinstance(m, nn.Linear):
+                stdv = 3. / math.sqrt(m.weight.data.size(1))
+                m.weight.data.uniform_(-stdv, stdv)
+                if m.bias is not None:
+                   m.bias.data.uniform_(-stdv, stdv)
         
         print('==> Initializing model with pre-trained parameters (except classifier)...')
         original_model = (__import__(args.model))
@@ -341,7 +359,7 @@ else: #No model to resume from
                     if 'resconv' in name1 or 'conv' in name1 or 'fc' in name1 or 'bn' in name1:
                         m1.load_state_dict(m2.state_dict())
         
-        #Re-build classifier layer
+        # Re-build classifier layer
         if args.dataset == 'cifar10':
             model.fc = nn.Linear(512, 10, bias = False)
             model.bn19 = nn.BatchNorm1d(10)
@@ -351,11 +369,12 @@ else: #No model to resume from
         else:
             raise Exception(args.dataset + 'is currently not supported')
             
-        #Initialize classifier params with normal distribution
+        # Initialize classifier params with normal distribution
         for name, m in model.named_modules():
             if isinstance(m, nn.Linear):
                 stdv = 1. / math.sqrt(m.weight.data.size(1))
                 m.weight.data.uniform_(-stdv, stdv)
+                #m.weight.data.normal_(0, math.sqrt(3. / n))
                 if m.bias is not None:
                     m.bias.data.uniform_(-stdv, stdv)
             elif isinstance(m, nn.BatchNorm1d):
@@ -423,7 +442,8 @@ if args.half:
 if args.optim == 'sgd':
     optimizer = torch.optim.SGD(model.parameters(), lr=args.lr,
                             momentum=args.momentum,
-                            weight_decay=args.weight_decay)
+                            weight_decay=args.weight_decay,
+                            nesterov=True)
 elif args.optim == 'adam':
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, 
                             weight_decay=args.weight_decay)
@@ -434,6 +454,8 @@ lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer,
                                             milestones=args.milestones, 
                                             gamma=args.gamma, 
                                             last_epoch=args.start_epoch - 1)
+
+print(model)
 
 
 if args.evaluate:
@@ -485,7 +507,5 @@ else:
         print('Test time: {}\n'.format(time.time()-end))
         end = time.time()
 
-#if __name__=='__main__':
-#    main()
 
 

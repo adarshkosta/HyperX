@@ -9,6 +9,9 @@ debug = True
 mvm = False
 non_ideality = False
 
+inmax_test = 1.4 #1.2 #1.4
+inmin_test = 0.826 #0.857 #1.826
+
 ## Use global parameters (below) for all layers or layer specific parameters
 val = True
 ifglobal_weight_bits = val
@@ -37,8 +40,8 @@ input_bit_frac = 12
 ## Tiling configurations
 tile_row = 2
 tile_col = 2
-xbar_row_size = 128
-xbar_col_size = 128 #keep same as row, heterogenous not supported
+xbar_row_size = 128 #128
+xbar_col_size = 128 #128 #keep same as row, heterogenous not supported
 
 ## Bit-slicing configurations
 bit_stream = 1
@@ -58,6 +61,7 @@ cols = 1 # num of crossbars in col dimension
 Gon = 1/100
 Goff = 1/600
 Vmax =0.25
+
 
 # creating directory for dataset collection
 if dataset:
@@ -82,7 +86,7 @@ class NN_model(nn.Module):
         return out
 
 xbmodel = NN_model(xbar_row_size)
-xbmodel_weight_path = '../xb_models/xbar_128x128_stream1_slice2_100k_600k_250mV.pth.tar'
+xbmodel_weight_path = '../xb_models/XB_128_stream1slice207dropout50epochs.pth.tar' #'../xb_models/xbar_128x128_stream1_slice2_100k_600k_250mV.pth.tar'
 
 #xbmodel = None
 #xbmodel_weight_path = None
@@ -92,7 +96,8 @@ def dump_config():
     param_dict = {'weight_bits':weight_bits, 'weight_bit_frac':weight_bit_frac, 'input_bits':input_bits, 'input_bit_frac':input_bit_frac, 
                   'xbar_row_size':xbar_row_size, 'xbar_col_size':xbar_col_size, 'tile_row':tile_row, 'tile_col':tile_col,
                   'bit_stream':bit_stream, 'bit_slice':bit_slice, 'adc_bit':adc_bit, 'acm_bits':acm_bits, 'acm_bit_frac':acm_bit_frac,
-                   'mvm':mvm, 'non-ideality':non_ideality, '\nxbmodel':xbmodel, '\nxbmodel_weight_path':xbmodel_weight_path}
+                   'mvm':mvm, 'non-ideality':non_ideality, '\nxbmodel':xbmodel, '\nxbmodel_weight_path':xbmodel_weight_path, 
+                   'inmax_test':inmax_test, 'inmin_test':inmin_test}
 
     print('\n' + ' '*6 + "==> Functional simulator configurations:")
     for key, val in param_dict.items():

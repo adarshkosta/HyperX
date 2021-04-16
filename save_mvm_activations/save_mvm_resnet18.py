@@ -30,6 +30,7 @@ import random
 import argparse
 import pdb
 import math
+import pkbar
 
 import torch
 import torchvision
@@ -179,284 +180,306 @@ def save_activations(model, batch_idx, labels):
 
     
 #%%
+if __name__=='__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-b', '--batch-size', default=40, type=int, metavar='N', 
+                help='mini-batch size (default: 40)')
+    parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
+                help='dataset name or folder')
+    parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/x128/rram_new/multiple_batches/',
+                help='base path for saving activations')
+    parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18',
+                choices=model_names,
+                help='name of the model')
+    parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet18fp_imnet.pth.tar',
+                help='the path to the pretrained model')
+    parser.add_argument('--mvm', action='store_true', default=None,
+                help='if running functional simulator backend')
+    parser.add_argument('--nideal', action='store_true', default=None,
+                help='Add xbar non-idealities')
+    parser.add_argument('--mode', default='test', 
+                help='save activations for \'train\' or \'test\' sets')
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-b', '--batch-size', default=40, type=int, metavar='N', 
-            help='mini-batch size (default: 40)')
-parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
-            help='dataset name or folder')
-parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/sram/multiple_batches/',
-            help='base path for saving activations')
-parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18',
-            choices=model_names,
-            help='name of the model')
-parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet18fp_imnet.pth.tar',
-            help='the path to the pretrained model')
-parser.add_argument('--mvm', action='store_true', default=True,
-            help='if running functional simulator backend')
-parser.add_argument('--nideal', action='store_true', default=False,
-            help='Add xbar non-idealities')
-parser.add_argument('--mode', default='test', 
-            help='save activations for \'train\' or \'test\' sets')
+    parser.add_argument('--input_size', type=int, default=None,
+                help='image input size')
+    parser.add_argument('-j', '--workers', default=8, type=int, metavar='J',
+                help='number of data loading workers (default: 8)')
+    parser.add_argument('--gpus', default='0,1,2,3', help='gpus (default: 0,1,2,3)')
+    parser.add_argument('-exp', '--experiment', default='128x128', metavar='N',
+                help='experiment name')
+    parser.add_argument('--batch-start', default=0, type=int, metavar='N', 
+                help='Start batch')
+    args = parser.parse_args()
 
-parser.add_argument('--input_size', type=int, default=None,
-            help='image input size')
-parser.add_argument('-j', '--workers', default=8, type=int, metavar='J',
-            help='number of data loading workers (default: 8)')
-parser.add_argument('--gpus', default='0,1,2,3', help='gpus (default: 0,1,2,3)')
-parser.add_argument('-exp', '--experiment', default='128x128', metavar='N',
-            help='experiment name')
-parser.add_argument('--batch-start', default=0, type=int, metavar='N', 
-            help='Start batch')
-args = parser.parse_args()
+    print('\n' + ' '*6 + '==> Arguments:')
+    for k, v in vars(args).items():
+        print(' '*10 + k + ': ' + str(v))
 
-print('\n' + ' '*6 + '==> Arguments:')
-for k, v in vars(args).items():
-    print(' '*10 + k + ': ' + str(v))
-
-if args.nideal:
-    cfg.non_ideality = True
-else:
-    cfg.non_ideality = False
-    
-if args.mvm:
-    cfg.mvm= True
-else:
-    cfg.mvm = False
-
-#Using custom tiling
-cfg.ifglobal_tile_col = False
-cfg.ifglobal_tile_row = False
-cfg.tile_row = 'custom'
-cfg.tile_col = 'custom'
-
-
-cfg.dump_config()
-
-root_path = os.path.join(args.savedir, args.dataset, args.model)
-
-os.environ['CUDA_VISIBLE_DEVICES']= args.gpus
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print('DEVICE:', device)
-print(str(int((len(args.gpus)+1)/2)) + ' GPU devices being used. ID(s)', args.gpus)
-
-print('==> Building model and model_mvm for', args.model, '...')
-if (args.model in model_names and args.model+'_mvm' in model_names):
-    base_model = (__import__(args.model))
-    model = (__import__(args.model)) #import module using the string/variable_name
-    model_mvm = (__import__(args.model+'_mvm'))
-        
-else:
-    raise Exception(args.model+'is currently not supported')
-
-base_model = model.net(num_classes=1000)
-
-if args.dataset == 'cifar10':
-    model = model.net(num_classes=10)
-    model_mvm = model_mvm.net(num_classes=10)
-elif args.dataset == 'cifar100':
-    model = model.net(num_classes=100)
-    model_mvm = model_mvm.net(num_classes=100)
-else:
-    raise Exception(args.dataset + 'is currently not supported')
-
-print('==> Initializing model parameters ...')
-weights_conv = []
-weights_lin = []
-bn_data = []
-bn_bias = []
-running_mean = []
-running_var = []
-num_batches = []
-
-#Get params from pretrained model
-if not args.pretrained:
-    raise Exception('Provide pretrained model for evalution')
-else:
-    print('==> Load pretrained model form', args.pretrained, '...')
-    pretrained_model = torch.load(args.pretrained, map_location=torch.device('cpu'))
-    best_acc = pretrained_model['best_acc']
-    print('Pretrained model accuracy: {}'.format(best_acc))
-    base_model.load_state_dict(pretrained_model['state_dict'])
-    for m in base_model.modules():
-        if isinstance(m, nn.Conv2d):
-            weights_conv.append(m.weight.data.clone())
-        elif isinstance(m, nn.BatchNorm2d):
-            bn_data.append(m.weight.data.clone())
-            bn_bias.append(m.bias.data.clone())
-            running_mean.append(m.running_mean.data.clone())
-            running_var.append(m.running_var.data.clone())
-            num_batches.append(m.num_batches_tracked.clone())
-        elif isinstance(m, nn.Linear):
-            weights_lin.append(m.weight.data.clone())
-
-#Initialize Ideal model params
-i=j=k=0
-for m in model.modules():
-    if isinstance(m, nn.Conv2d):
-        m.weight.data = weights_conv[i]
-        i = i+1
-    elif isinstance(m, nn.BatchNorm2d):
-        m.weight.data = bn_data[j]
-        m.bias.data = bn_bias[j]
-        m.running_mean.data = running_mean[j]
-        m.running_var.data = running_var[j]
-        m.num_batches_tracked = num_batches[j]
-        j = j+1
-    elif isinstance(m, nn.BatchNorm1d):
-        m.weight.data.fill_(1)
-        m.bias.data.zero_()
-    elif isinstance(m, nn.Linear):
-        stdv = 1. / math.sqrt(m.weight.data.size(1))
-        m.weight.data.uniform_(-stdv, stdv)
-        if m.bias is not None:
-            m.bias.data.uniform_(-stdv, stdv)
-
-#Intitalize MVM model params
-i=j=k=0
-for m in model_mvm.modules():
-    if isinstance(m, Conv2d_mvm):
-        m.weight.data = weights_conv[i]
-        i = i+1
-    elif isinstance(m, nn.BatchNorm2d):
-        m.weight.data = bn_data[j]
-        m.bias.data = bn_bias[j]
-        m.running_mean.data = running_mean[j]
-        m.running_var.data = running_var[j]
-        m.num_batches_tracked = num_batches[j]
-        j = j+1
-    elif isinstance(m, nn.BatchNorm1d):
-        m.weight.data.fill_(1)
-        m.bias.data.zero_()
-    elif isinstance(m, nn.Linear):
-        stdv = 1. / math.sqrt(m.weight.data.size(1))
-        m.weight.data.uniform_(-stdv, stdv)
-        if m.bias is not None:
-            m.bias.data.uniform_(-stdv, stdv)
-
-if args.mvm:
-    cfg.mvm = True
-
-#Dataparallel models
-model.to(device)#.half() # uncomment for FP16
-model = nn.DataParallel(model)
-
-model_mvm.to(device)#.half() # uncomment for FP16
-model_mvm = nn.DataParallel(model_mvm)
-
-#Input transforms
-image_transforms = {
-    'train':
-        transforms.Compose([
-                transforms.Resize(size=256),
-                transforms.CenterCrop(size=224),
-                transforms.ToTensor(),
-                transforms.Normalize([0.485, 0.456, 0.406],
-                                        [0.229, 0.224, 0.225])
-                ]),
-    'eval':
-        transforms.Compose([
-                transforms.Resize(size=256),
-                transforms.CenterCrop(size=224),
-                transforms.ToTensor(),
-                transforms.Normalize([0.485, 0.456, 0.406],
-                                        [0.229, 0.224, 0.225])
-                ]),
-    }
-
-#Data and dataloaders
-train_data = get_dataset(args.dataset, 'train', image_transforms['train'], download=True)
-trainloader = torch.utils.data.DataLoader(
-    train_data,
-    batch_size=args.batch_size, shuffle=False,
-    num_workers=args.workers, pin_memory=True)
-
-test_data = get_dataset(args.dataset, 'val', image_transforms['eval'], download=True)
-testloader = torch.utils.data.DataLoader(
-    test_data,
-    batch_size=args.batch_size, shuffle=False,
-    num_workers=args.workers, pin_memory=True)
-
-criterion = nn.CrossEntropyLoss()
-
-act_path = os.path.join(root_path, args.mode)
-
-#Save train or test activations
-if args.mode == 'train':
-    dataloader = trainloader
-    del testloader
-elif args.mode == 'test':
-    dataloader = testloader
-    del trainloader
-else:
-    raise Exception('Invalid save mode')
-
-#Create required dirs for saving activations    
-for i in range(1, 18):
-    os.makedirs(act_path + '/relu' + str(i), exist_ok=True)
-os.makedirs(act_path + '/fc', exist_ok=True)
-os.makedirs(act_path + '/labels', exist_ok=True)
-os.makedirs(act_path + '/out', exist_ok=True)
-
-#Ideal model set to eval mode
-model.eval()
-
-#Set mvm model to eval
-model_mvm.eval()
-
-print("Saving activations to: {}".format(act_path))
-
-#Dry run to compute activation sizes
-data, target = next(iter(dataloader))
-handler = reg_hook1(model)
-
-data_var = data.to(device)
-target_var = target.to(device)
-print('Dry run for computing activation sizes...')
-output = model(data_var)
-print('Dry run finished...')
-
-#Delete ideal model and its hook handler
-unreg_hook(handler)
-del model
-
-#Single GPU activation shapes
-for name, module in model_mvm.module.named_modules():
-    if 'relu' in name or 'fc' in name:
-        if 'xbmodel' not in name:
-            print(name + ': ' + str(activation[name].shape))
-
-#Multi-GPU activation shapes
-for name, module in model_mvm.module.named_modules():
-    if 'relu' in name and 'xbmodel' not in name:
-        act[name] = torch.zeros([args.batch_size, activation[name].shape[1], activation[name].shape[2], activation[name].shape[3]])
-        print(name + ': ' + str(act[name].shape))
-    elif 'fc' in name and 'xbmodel' not in name:
-        act[name] = torch.zeros([args.batch_size, activation[name].shape[1]])
-        print(name + ': ' + str(act[name].shape))
+    if args.nideal:
+        cfg.non_ideality = True
     else:
-        continue
-
-
-
-print('Starting to save activations..')
-
-#Iterate over dataloader and save activations
-for batch_idx,(data, target) in enumerate(dataloader):
-    if batch_idx >= args.batch_start:
-        base_time = time.time()
-        reg_hook(model_mvm)
+        cfg.non_ideality = False
         
-        data_var = data.to(device)
-        target_var = target.to(device)
-        
-        output = model_mvm(data_var)
-        act['out'] = output
+    if args.mvm:
+        cfg.mvm= True
+    else:
+        cfg.mvm = False
 
-        save_activations(model=model_mvm, batch_idx=batch_idx, labels=target)
-        
-        duration = time.time() - base_time
-        print("Batch IDx: {}\t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))
+    #Using custom tiling
+    cfg.ifglobal_tile_col = False
+    cfg.ifglobal_tile_row = False
+    cfg.tile_row = 'custom'
+    cfg.tile_col = 'custom'
 
-print("Done saving activations!")
-exit(0)
+
+    cfg.dump_config()
+
+    root_path = os.path.join(args.savedir, args.dataset, args.model)
+
+    os.environ['CUDA_VISIBLE_DEVICES']= args.gpus
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print('DEVICE:', device)
+    print(str(int((len(args.gpus)+1)/2)) + ' GPU devices being used. ID(s)', args.gpus)
+
+    print('==> Building model and model_mvm for', args.model, '...')
+    if (args.model in model_names and args.model+'_mvm' in model_names):
+        base_model = (__import__(args.model))
+        model = (__import__(args.model)) #import module using the string/variable_name
+        model_mvm = (__import__(args.model+'_mvm'))
+            
+    else:
+        raise Exception(args.model+'is currently not supported')
+
+    base_model = model.net(num_classes=1000)
+
+    if args.dataset == 'cifar10':
+        model = model.net(num_classes=10)
+        model_mvm = model_mvm.net(num_classes=10)
+    elif args.dataset == 'cifar100':
+        model = model.net(num_classes=100)
+        model_mvm = model_mvm.net(num_classes=100)
+    else:
+        raise Exception(args.dataset + 'is currently not supported')
+
+    print('==> Initializing model parameters ...')
+    weights_conv = []
+    weights_lin = []
+    bn_data = []
+    bn_bias = []
+    running_mean = []
+    running_var = []
+    num_batches = []
+
+    #Get params from pretrained model
+    if not args.pretrained:
+        raise Exception('Provide pretrained model for evalution')
+    else:
+        print('==> Load pretrained model form', args.pretrained, '...')
+        pretrained_model = torch.load(args.pretrained, map_location=torch.device('cpu'))
+        best_acc = pretrained_model['best_acc']
+        print('Pretrained model accuracy: {}'.format(best_acc))
+        base_model.load_state_dict(pretrained_model['state_dict'])
+        for m in base_model.modules():
+            if isinstance(m, nn.Conv2d):
+                weights_conv.append(m.weight.data.clone())
+            elif isinstance(m, nn.BatchNorm2d):
+                bn_data.append(m.weight.data.clone())
+                bn_bias.append(m.bias.data.clone())
+                running_mean.append(m.running_mean.data.clone())
+                running_var.append(m.running_var.data.clone())
+                num_batches.append(m.num_batches_tracked.clone())
+            elif isinstance(m, nn.Linear):
+                weights_lin.append(m.weight.data.clone())
+
+    #Initialize Ideal model params
+    i=j=k=0
+    for m in model.modules():
+        if isinstance(m, nn.Conv2d):
+            m.weight.data = weights_conv[i]
+            i = i+1
+        elif isinstance(m, nn.BatchNorm2d):
+            m.weight.data = bn_data[j]
+            m.bias.data = bn_bias[j]
+            m.running_mean.data = running_mean[j]
+            m.running_var.data = running_var[j]
+            m.num_batches_tracked = num_batches[j]
+            j = j+1
+        elif isinstance(m, nn.BatchNorm1d):
+            m.weight.data.fill_(1)
+            m.bias.data.zero_()
+        elif isinstance(m, nn.Linear):
+            stdv = 1. / math.sqrt(m.weight.data.size(1))
+            m.weight.data.uniform_(-stdv, stdv)
+            if m.bias is not None:
+                m.bias.data.uniform_(-stdv, stdv)
+
+    #Intitalize MVM model params
+    i=j=k=0
+    for m in model_mvm.modules():
+        if isinstance(m, Conv2d_mvm):
+            m.weight.data = weights_conv[i]
+            i = i+1
+        elif isinstance(m, nn.BatchNorm2d):
+            m.weight.data = bn_data[j]
+            m.bias.data = bn_bias[j]
+            m.running_mean.data = running_mean[j]
+            m.running_var.data = running_var[j]
+            m.num_batches_tracked = num_batches[j]
+            j = j+1
+        elif isinstance(m, nn.BatchNorm1d):
+            m.weight.data.fill_(1)
+            m.bias.data.zero_()
+        elif isinstance(m, nn.Linear):
+            stdv = 1. / math.sqrt(m.weight.data.size(1))
+            m.weight.data.uniform_(-stdv, stdv)
+            if m.bias is not None:
+                m.bias.data.uniform_(-stdv, stdv)
+
+    if args.mvm:
+        cfg.mvm = True
+
+    #Dataparallel models
+    model = model.to(device)#.half() # uncomment for FP16
+    model = nn.DataParallel(model)
+
+    model_mvm = model_mvm.to(device)#.half() # uncomment for FP16
+    model_mvm = nn.DataParallel(model_mvm)
+
+    #Input transforms
+    image_transforms = {
+        'train':
+            transforms.Compose([
+                    transforms.Resize(size=256),
+                    transforms.CenterCrop(size=224),
+                    transforms.ToTensor(),
+                    transforms.Normalize([0.485, 0.456, 0.406],
+                                            [0.229, 0.224, 0.225])
+                    ]),
+        'eval':
+            transforms.Compose([
+                    transforms.Resize(size=256),
+                    transforms.CenterCrop(size=224),
+                    transforms.ToTensor(),
+                    transforms.Normalize([0.485, 0.456, 0.406],
+                                            [0.229, 0.224, 0.225])
+                    ]),
+        }
+
+    #Data and dataloaders
+    train_data = get_dataset(args.dataset, 'train', image_transforms['train'], download=True)
+    trainloader = torch.utils.data.DataLoader(
+        train_data,
+        batch_size=args.batch_size, shuffle=False,
+        num_workers=args.workers, pin_memory=True)
+
+    test_data = get_dataset(args.dataset, 'val', image_transforms['eval'], download=True)
+    testloader = torch.utils.data.DataLoader(
+        test_data,
+        batch_size=args.batch_size, shuffle=False,
+        num_workers=args.workers, pin_memory=True)
+
+    criterion = nn.CrossEntropyLoss()
+
+    act_path = os.path.join(root_path, args.mode)
+
+    #Save train or test activations
+    if args.mode == 'train':
+        dataloader = trainloader
+        del testloader
+    elif args.mode == 'test':
+        dataloader = testloader
+        del trainloader
+    else:
+        raise Exception('Invalid save mode')
+
+    #Create required dirs for saving activations    
+    for i in range(1, 18):
+        os.makedirs(act_path + '/relu' + str(i), exist_ok=True)
+    os.makedirs(act_path + '/fc', exist_ok=True)
+    os.makedirs(act_path + '/labels', exist_ok=True)
+    os.makedirs(act_path + '/out', exist_ok=True)
+
+    #Ideal model set to eval mode
+    model.eval()
+
+    #Set mvm model to eval
+    model_mvm.eval()
+
+    print("Saving activations to: {}".format(act_path))
+
+    #Dry run to compute activation sizes
+    data, target = next(iter(dataloader))
+    handler = reg_hook1(model)
+
+    data_var = data.to(device)
+    target_var = target.to(device)
+    print('Dry run for computing activation sizes...')
+    output = model(data_var)
+    print('Dry run finished...')
+
+    #Delete ideal model and its hook handler
+    unreg_hook(handler)
+    del model
+
+    #Single GPU activation shapes
+    for name, module in model_mvm.module.named_modules():
+        if 'relu' in name or 'fc' in name:
+            if 'xbmodel' not in name:
+                print(name + ': ' + str(activation[name].shape))
+
+    #Multi-GPU activation shapes
+    for name, module in model_mvm.module.named_modules():
+        if 'relu' in name and 'xbmodel' not in name:
+            act[name] = torch.zeros([args.batch_size, activation[name].shape[1], activation[name].shape[2], activation[name].shape[3]])
+            print(name + ': ' + str(act[name].shape))
+        elif 'fc' in name and 'xbmodel' not in name:
+            act[name] = torch.zeros([args.batch_size, activation[name].shape[1]])
+            print(name + ': ' + str(act[name].shape))
+        else:
+            continue
+
+
+
+    print('Starting to save activations..')
+
+    kbar = pkbar.Kbar(target=len(dataloader), width=20)
+
+    batch_time = AverageMeter()
+    data_time = AverageMeter()
+    fp_time = AverageMeter()
+
+    end = time.time()
+    print('Start time: ', end) 
+
+    #Iterate over dataloader and save activations
+    for batch_idx,(data, target) in enumerate(dataloader):
+        if batch_idx >= args.batch_start:
+            reg_hook(model_mvm)
+            
+            data_var = data.to(device)
+            target_var = target.to(device)
+
+            # measure forward pass & data loading time
+            data_time.update(time.time() - end)
+            
+            output = model_mvm(data_var)
+            act['out'] = output
+
+            # measure forward pass & data loading time
+            fp_time.update(time.time() - end)
+
+            save_activations(model=model_mvm, batch_idx=batch_idx, labels=target)
+            
+            # measure elapsed time
+            batch_time.update(time.time() - end)
+            end = time.time()
+
+            kbar.update(batch_idx, values= [
+                                                ('DT', data_time.avg),
+                                                ('FpT', fp_time.avg),
+                                                ('BT', batch_time.avg),
+                                                ])
+            # print("Batch IDx: {}\t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))
+
+    print("Done saving activations!")
+    exit(0)

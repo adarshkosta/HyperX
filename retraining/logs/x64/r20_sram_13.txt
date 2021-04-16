@@ -1,0 +1,39 @@
+
+      ==> Arguments:
+          dataset: cifar100
+          model: resnet18
+          load_dir: /home/nano01/a/esoufler/activations/x64/rram/one_batch/
+          savedir: ../pretrained_models/frozen/x64/
+          pretrained: ../pretrained_models/ideal/resnet18fp_imnet.pth.tar
+          workers: 8
+          epochs: 50
+          start_epoch: 0
+          batch_size: 128
+          lr: 0.1
+          momentum: 0.9
+          weight_decay: 0.0001
+          gamma: 0.1
+          milestones: [10, 20, 30, 40]
+          loss: crossentropy
+          optim: sgd
+          dropout: 0.5
+          print_freq: 5
+          resume: 
+          evaluate: False
+          half: True
+          save_every: 10
+          gpus: 0
+          frozen_layers: 13
+DEVICE: cuda
+GPU Id(s) being used: 0
+==> Building model for resnet18 ...
+==> Initializing model with pre-trained parameters (except classifier)...
+==> Load pretrained model form ../pretrained_models/ideal/resnet18fp_imnet.pth.tar ...
+Original model accuracy on ImageNet: 69.93189239501953
+ * Prec@1 0.980 Prec@5 5.440 Loss 4.6016
+Avg Loading time: 0.1500 seconds
+Avg Batch time: 0.1689 seconds
+
+Pre-trained Prec@1 with 13 layers frozen: 0.9799999594688416 	 Loss: 4.6015625
+
+Starting training on SRAM layers...

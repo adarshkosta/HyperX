@@ -185,19 +185,19 @@ def save_activations(model, batch_idx, act, labels):
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-b', '--batch-size', default=1000, type=int, metavar='N', 
-                help='mini-batch size (default: 256)')
+                help='mini-batch size (default: 1000)')
     parser.add_argument('--dataset', metavar='DATASET', default='cifar100',
                 help='dataset name or folder')
-    parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/multiple_batches/',
+    parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/x64/rram/multiple_batches/',
                 help='base path for saving activations')
     parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
                 choices=model_names,
                 help='name of the model')
     parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20fp_cifar100.pth.tar',
                 help='the path to the pretrained model')
-    parser.add_argument('--mvm', action='store_true', default=True,
+    parser.add_argument('--mvm', action='store_true', default=None,
                 help='if running functional simulator backend')
-    parser.add_argument('--nideal', action='store_true', default=True,
+    parser.add_argument('--nideal', action='store_true', default=None,
                 help='Add xbar non-idealities')
     parser.add_argument('--mode', default='test', 
                 help='save activations for \'train\' or \'test\' sets')
@@ -207,7 +207,7 @@ if __name__=='__main__':
     parser.add_argument('-j', '--workers', default=8, type=int, metavar='J',
                 help='number of data loading workers (default: 8)')
     parser.add_argument('--gpus', default='0,1,2,3', help='gpus (default: 0,1,2,3)')
-    parser.add_argument('-exp', '--experiment', default='128x128', metavar='N',
+    parser.add_argument('-exp', '--experiment', default='64x64', metavar='N',
                 help='experiment name')
     parser.add_argument('--batch-start', default=0, type=int, metavar='N', 
                 help='Start batch')
@@ -350,7 +350,11 @@ if __name__=='__main__':
     os.makedirs(act_path + '/labels', exist_ok=True)
     os.makedirs(act_path + '/out', exist_ok=True)
     
+    #Ideal model set to eval mode
     model.eval()
+
+    #Set mvm model to eval
+    model_mvm.eval()
     
     print("Saving activations to: {}".format(act_path))
     data, target = next(iter(dataloader))
@@ -365,25 +369,28 @@ if __name__=='__main__':
     unreg_hook(handler)
     del model
     
+    #Single GPU activation shapes
     for name, module in model_mvm.module.named_modules():
         if 'relu' in name or 'fc' in name:
             if 'xbmodel' not in name:
                 print(name + ': ' + str(activation[name].shape))
 
-    act = {}
+    #Multi-GPU activation shapes
     for name, module in model_mvm.module.named_modules():
         if 'relu' in name and 'xbmodel' not in name:
             act[name] = torch.zeros([args.batch_size, activation[name].shape[1], activation[name].shape[2], activation[name].shape[3]])
             print(name + ': ' + str(act[name].shape))
-        if 'fc' in name and 'xbmodel' not in name:
+        elif 'fc' in name and 'xbmodel' not in name:
             act[name] = torch.zeros([args.batch_size, activation[name].shape[1]])
             print(name + ': ' + str(act[name].shape))
+        else:
+            continue
 
-    losses = AverageMeter()
-    top1 = AverageMeter()
-    top5 = AverageMeter()
+    
 
-    model_mvm.eval()
+    print('Starting to save activations..')
+
+    #Iterate over dataloader and save activations
 
     for batch_idx,(data, target) in enumerate(dataloader):
 
@@ -397,26 +404,10 @@ if __name__=='__main__':
             output = model_mvm(data_var)
             act['out'] = output
 
-            loss= criterion(output, target_var)
-            prec1, prec5 = accuracy(output.data, target_var.data, topk=(1, 5))
-            losses.update(loss.data, data.size(0))
-            top1.update(prec1[0], data.size(0))
-            top5.update(prec5[0], data.size(0))
-
-            print('[{0}/{1}({2:.0f}%)]\t'
-                    'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                    'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
-                    'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
-                    batch_idx, len(dataloader), 100. *float(batch_idx)/len(dataloader),
-                    loss=losses, top1=top1, top5=top5))
-
             save_activations(model=model_mvm, batch_idx=batch_idx, act=act, labels=target)
             
             duration = time.time() - base_time
             print("Batch IDx: {} \t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))
-
-    print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'
-          .format(top1=top1, top5=top5))
     
     print("Done saving activations!")
     exit(0)
