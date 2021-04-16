@@ -14,6 +14,8 @@ parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18', help='
 parser.add_argument('--mode', metavar='MODE', default='both', help='set to save')
 args = parser.parse_args()
 
+train_length = 50000
+test_length = 360
 #%% 
 if args.mode != 'test':
 #    TRAIN LABELS
@@ -24,7 +26,7 @@ if args.mode != 'test':
         os.makedirs(base_dst_path)
     
     batch_size = args.b_train
-    num = int(50000/batch_size)
+    num = int(train_length/batch_size)
     
     print('Saving Train labels...')
     for batch in range(num):
@@ -50,7 +52,7 @@ if args.mode != 'test':
             os.makedirs(base_dst_path)
         
         batch_size = args.b_train
-        num = int(50000/batch_size)
+        num = int(train_length/batch_size)
         
         print('relu'+str(i))
         for batch in range(num):
@@ -72,7 +74,7 @@ if args.mode != 'test':
         os.makedirs(base_dst_path)
         
     batch_size = args.b_train
-    num = int(50000/batch_size)
+    num = int(train_length/batch_size)
     
     print('fc')
     for batch in range(num):
@@ -97,7 +99,7 @@ if args.mode !='train':
         os.makedirs(base_dst_path)
         
     batch_size = args.b_test
-    num = int(10000/batch_size)
+    num = int(test_length/batch_size)
     
     print('Saving Test labels...')
     for batch in range(num):
@@ -122,7 +124,7 @@ if args.mode !='train':
             os.makedirs(base_dst_path)
         
         batch_size = args.b_test
-        num = int(10000/batch_size)
+        num = int(test_length/batch_size)
         
         print('relu'+str(i))
         for batch in range(num):
@@ -145,7 +147,7 @@ if args.mode !='train':
         os.makedirs(base_dst_path)
         
     batch_size = args.b_test
-    num = int(10000/batch_size)
+    num = int(test_length/batch_size)
     
     print('fc')
     for batch in range(num):

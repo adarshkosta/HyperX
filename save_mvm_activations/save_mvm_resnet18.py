@@ -186,7 +186,7 @@ if __name__=='__main__':
                 help='mini-batch size (default: 40)')
     parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
                 help='dataset name or folder')
-    parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/x64/rram/multiple_batches/',
+    parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/x128/rram_new/multiple_batches/',
                 help='base path for saving activations')
     parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18',
                 choices=model_names,
@@ -205,7 +205,7 @@ if __name__=='__main__':
     parser.add_argument('-j', '--workers', default=8, type=int, metavar='J',
                 help='number of data loading workers (default: 8)')
     parser.add_argument('--gpus', default='0,1,2,3', help='gpus (default: 0,1,2,3)')
-    parser.add_argument('-exp', '--experiment', default='64x64', metavar='N',
+    parser.add_argument('-exp', '--experiment', default='128x128', metavar='N',
                 help='experiment name')
     parser.add_argument('--batch-start', default=0, type=int, metavar='N', 
                 help='Start batch')
@@ -339,10 +339,10 @@ if __name__=='__main__':
         cfg.mvm = True
 
     #Dataparallel models
-    model.to(device)#.half() # uncomment for FP16
+    model = model.to(device)#.half() # uncomment for FP16
     model = nn.DataParallel(model)
 
-    model_mvm.to(device)#.half() # uncomment for FP16
+    model_mvm = model_mvm.to(device)#.half() # uncomment for FP16
     model_mvm = nn.DataParallel(model_mvm)
 
     #Input transforms

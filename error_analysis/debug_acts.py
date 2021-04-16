@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 base_dir = '/home/nano01/a/esoufler/activations/x128/'
-dataset = 'cifar100'
+dataset = 'cifar10'
 layers = ['relu1', 'relu3', 'relu5', 'relu7', 'relu9', 'relu11', 'relu13', 'relu15', 'relu17']
 # idx = '1'
 
@@ -27,13 +27,13 @@ if not os.path.exists(save_path):
 mode = 'test'
 
 if mode == 'test':
-    nsamples = 10000
+    nsamples = 360
 elif mode == 'train':
     nsamples = 50
 
 def load_activations(layer, idx):
     path1 = os.path.join(base_dir, 'sram', 'one_batch', dataset, 'resnet18', mode, layer, 'act_' + layer + '_' + str(idx) + '.pth.tar')
-    path2 = os.path.join(base_dir, 'rram', 'one_batch', dataset, 'resnet18', mode, layer, 'act_' + layer + '_' + str(idx) + '.pth.tar')
+    path2 = os.path.join(base_dir, 'rram_new', 'one_batch', dataset, 'resnet18', mode, layer, 'act_' + layer + '_' + str(idx) + '.pth.tar')
     
     acts1 = torch.load(path1)
     acts2 = torch.load(path2)
@@ -83,8 +83,8 @@ def plot(acts, num=10):
 
     plt.savefig(os.path.join(save_path, dataset + '-' + layer + '.jpg'))
     
-def visualize_acts(layer):
-    acts1, acts2 = load_activations(layer)
+def visualize_acts(layer, idx):
+    acts1, acts2 = load_activations(layer, idx)
 
     # print(acts1.shape, acts2.shape)
 
@@ -99,7 +99,7 @@ def visualize_acts(layer):
     
 
 # for layer in layers:
-#     visualize_acts(layer)
+#     visualize_acts(layer, idx=0)
 
 
 mean_diff = []
@@ -120,7 +120,7 @@ l= np.array(l)
 metrics = np.stack((l, mse, mean_diff), axis=-1)
 print(metrics)
 
-np.savetxt(os.path.join(save_path, 'metrics_' + dataset + '.csv'), metrics, delimiter=',')
+np.savetxt(os.path.join(save_path, 'metrics_rram_' + dataset + '.csv'), metrics, delimiter=',')
 
 
 plt.plot(l, mse)
