@@ -1,6 +1,5 @@
 .*.sw*
 *.tar
-*.sh
 *.pyc
 
 __pycache__
