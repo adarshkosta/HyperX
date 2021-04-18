@@ -8,14 +8,15 @@ parser.add_argument('--b-train', default=40, type=int,
                      metavar='N', help='mini-batch size (default: 40)')
 parser.add_argument('--b-test', default=40, type=int,
                      metavar='N', help='mini-batch size (default: 40)')
-parser.add_argument('--datadir', default='/home/nano01/a/esoufler/activations/x64/rram/', help='dataset name or folder')
-parser.add_argument('--dataset', metavar='DATASET', default='cifar100', help='dataset name or folder')
+parser.add_argument('--datadir', default='/home/nano01/a/esoufler/activations/x128/rram_new/', help='dataset name or folder')
+parser.add_argument('--dataset', metavar='DATASET', default='cifar10', help='dataset name or folder')
 parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18', help='name of the model')
 parser.add_argument('--mode', metavar='MODE', default='both', help='set to save')
 args = parser.parse_args()
 
-train_length = 50000
-test_length = 360
+
+train_length = 4000
+test_length = 10000
 #%% 
 if args.mode != 'test':
 #    TRAIN LABELS

@@ -155,19 +155,19 @@ parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18',
             choices=model_names,
             help='name of the model')
 
-parser.add_argument('--load-dir', default='/home/nano01/a/esoufler/activations/x128/sram/one_batch/',
+parser.add_argument('--load-dir', default='/home/nano01/a/esoufler/activations/x128/',
             help='base path for loading activations')
-parser.add_argument('--mode', default='sram',
+parser.add_argument('--mode', default='rram',
                 help='sram or rram')
 parser.add_argument('--savedir', default='../results/discp_analysis/',
                 help='base path for saving activations')
-parser.add_argument('--pretrained', action='store', default='../pretrained_models/frozen/x128/sram/cifar10/resnet18/freeze17_hp_best.pth.tar',
+parser.add_argument('--pretrained', action='store', default='../pretrained_models/frozen/x128/', #rram/cifar10/resnet18/freeze17_hp_best.pth.tar',
             help='the path to the ideal pretrained model')
 
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
-            help='number of data loading workers (default: 4)')
+            help='number of data loading workers (default: 8)')
 parser.add_argument('-b', '--batch-size', default=128, type=int,
-            metavar='N', help='mini-batch size (default: 256)')
+            metavar='N', help='mini-batch size (default: 128)')
 
 
 parser.add_argument('--print-freq', '-p', default=5, type=int,
@@ -208,6 +208,7 @@ else:
 if not args.pretrained: #Initialize params with pretrained model
     raise Exception('Provide pretrained model for evalution')
 else:
+    args.pretrained = os.path.join(args.pretrained, 'rram', args.dataset, args.model, 'freeze' + str(args.frozen_layers) + '_hp_best.pth.tar')
     print('==> Load pretrained model form', args.pretrained, '...')
     pretrained_model = torch.load(args.pretrained)
     best_acc = pretrained_model['best_acc']
@@ -226,14 +227,14 @@ if args.half:
 #%%
 if args.frozen_layers != 0:
     if args.frozen_layers == 18:
-        datapath_train = os.path.join(args.load_dir, args.dataset, args.model, 'train', 'fc')
-        datapath_test = os.path.join(args.load_dir, args.dataset, args.model, 'test', 'fc')
+        datapath_train = os.path.join(args.load_dir, args.mode, 'one_batch', args.dataset, args.model, 'train', 'fc')
+        datapath_test = os.path.join(args.load_dir, args.mode, 'one_batch', args.dataset, args.model, 'test', 'fc')
     else:
-        datapath_train = os.path.join(args.load_dir, args.dataset, args.model, 'train', 'relu' + str(args.frozen_layers))
-        datapath_test = os.path.join(args.load_dir, args.dataset, args.model, 'test', 'relu' + str(args.frozen_layers))
+        datapath_train = os.path.join(args.load_dir, args.mode, 'one_batch', args.dataset, args.model, 'train', 'relu' + str(args.frozen_layers))
+        datapath_test = os.path.join(args.load_dir, args.mode, 'one_batch', args.dataset, args.model, 'test', 'relu' + str(args.frozen_layers))
 
-    tgtpath_train = os.path.join(args.load_dir, args.dataset, args.model, 'train', 'labels')
-    tgtpath_test = os.path.join(args.load_dir, args.dataset, args.model, 'test', 'labels')
+    tgtpath_train = os.path.join(args.load_dir, args.mode, 'one_batch', args.dataset, args.model, 'train', 'labels')
+    tgtpath_test = os.path.join(args.load_dir, args.mode, 'one_batch', args.dataset, args.model, 'test', 'labels')
 
 
     train_data = SplitActivations_Dataset(args, datapath_train, tgtpath_train, train_len = True)
@@ -329,13 +330,12 @@ acc, loss, confusion_matrix = test(test_loader, model, criterion, device)
 print('Prec@1 with ' + str(args.frozen_layers) + ' layers frozen = ', acc.item())
 
 
-# print(confusion_matrix)
 
-classes = np.linspace(1,nb_classes, num=nb_classes)
+
+# classes = np.linspace(1,nb_classes, num=nb_classes)
 
 # classes = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 
-# print(classes)
-plot_confusion_matrix(np.array(confusion_matrix.cpu().detach().numpy(), dtype=np.int), classes)
+# plot_confusion_matrix(np.array(confusion_matrix.cpu().detach().numpy(), dtype=np.int), classes)
 
 
