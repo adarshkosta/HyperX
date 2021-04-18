@@ -27,12 +27,12 @@ if not os.path.exists(save_path):
 mode = 'test'
 
 if mode == 'test':
-    nsamples = 360
+    nsamples = 40
 elif mode == 'train':
-    nsamples = 50
+    nsamples = 40
 
 def load_activations(layer, idx):
-    path1 = os.path.join(base_dir, 'sram', 'one_batch', dataset, 'resnet18', mode, layer, 'act_' + layer + '_' + str(idx) + '.pth.tar')
+    path1 = os.path.join(base_dir, 'rram', 'one_batch', dataset, 'resnet18', mode, layer, 'act_' + layer + '_' + str(idx) + '.pth.tar')
     path2 = os.path.join(base_dir, 'rram_new', 'one_batch', dataset, 'resnet18', mode, layer, 'act_' + layer + '_' + str(idx) + '.pth.tar')
     
     acts1 = torch.load(path1)
@@ -81,7 +81,7 @@ def plot(acts, num=10):
     axarr[2,0].set_ylabel('DIFF')
     fig.suptitle(dataset + '-' + layer)
 
-    plt.savefig(os.path.join(save_path, dataset + '-' + layer + '.jpg'))
+    plt.savefig(os.path.join(save_path, dataset + '-' + mode + '-' + layer + '.jpg'))
     
 def visualize_acts(layer, idx):
     acts1, acts2 = load_activations(layer, idx)
@@ -101,6 +101,7 @@ def visualize_acts(layer, idx):
 # for layer in layers:
 #     visualize_acts(layer, idx=0)
 
+print('Savepath: ', save_path)
 
 mean_diff = []
 mse = []
@@ -120,7 +121,7 @@ l= np.array(l)
 metrics = np.stack((l, mse, mean_diff), axis=-1)
 print(metrics)
 
-np.savetxt(os.path.join(save_path, 'metrics_rram_' + dataset + '.csv'), metrics, delimiter=',')
+np.savetxt(os.path.join(save_path, 'metrics_' + mode + '_' + dataset + '.csv'), metrics, delimiter=',')
 
 
 plt.plot(l, mse)

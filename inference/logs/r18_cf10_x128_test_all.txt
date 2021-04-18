@@ -1,0 +1,48 @@
+
+      ==> Arguments:
+          dataset: cifar10
+          model: resnet18
+          load_dir: /home/nano01/a/esoufler/activations/x128/
+          mode: rram_new
+          savedir: ../results/discp_analysis/
+          pretrained: ../pretrained_models/frozen/x128/
+          workers: 8
+          batch_size: 128
+          print_freq: 5
+          half: True
+          gpus: 0
+          frozen_layers: 5
+DEVICE: cuda
+GPU Id(s) being used: 0
+==> Building model for resnet18 ...
+==> Load pretrained model form ../pretrained_models/frozen/x128/rram/cifar10/resnet18/freeze5_hp_best.pth.tar ...
+Pretrained model accuracy: 82.47999572753906
+ * Prec@1 93.770 Prec@5 99.780 Loss 0.2061
+Avg Loading time: 1.4012 seconds
+Avg Batch time: 1.4940 seconds
+
+Prec@1 with 5 layers frozen =  93.7699966430664
+
+      ==> Arguments:
+          dataset: cifar10
+          model: resnet18
+          load_dir: /home/nano01/a/esoufler/activations/x128/
+          mode: rram_new
+          savedir: ../results/discp_analysis/
+          pretrained: ../pretrained_models/frozen/x128/
+          workers: 8
+          batch_size: 128
+          print_freq: 5
+          half: True
+          gpus: 0
+          frozen_layers: 7
+DEVICE: cuda
+GPU Id(s) being used: 0
+==> Building model for resnet18 ...
+==> Load pretrained model form ../pretrained_models/frozen/x128/rram/cifar10/resnet18/freeze7_hp_best.pth.tar ...
+Pretrained model accuracy: 73.83000183105469
+ * Prec@1 94.230 Prec@5 99.760 Loss 0.2012
+Avg Loading time: 0.6812 seconds
+Avg Batch time: 0.7434 seconds
+
+Prec@1 with 7 layers frozen =  94.22999572753906

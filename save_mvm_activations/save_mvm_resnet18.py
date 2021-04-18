@@ -186,7 +186,7 @@ if __name__=='__main__':
                 help='mini-batch size (default: 40)')
     parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
                 help='dataset name or folder')
-    parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/x128/rram_new/multiple_batches/',
+    parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/x128/rram/multiple_batches/',
                 help='base path for saving activations')
     parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18',
                 choices=model_names,

@@ -16,6 +16,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import sys
 
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+import pkbar
+
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, root_dir) # 1 adds path to end of PYTHONPATH
 
@@ -23,20 +27,18 @@ from utils.data import get_dataset
 
 base_dir = '/home/nano01/a/esoufler/activations/x128/'
 dataset = 'cifar10'
-layers = ['relu1', 'relu3', 'relu5', 'relu7', 'relu9', 'relu11', 'relu13', 'relu15', 'relu17']
-hw = 'rram'
+layers = ['relu3', 'relu5', 'relu7', 'relu9', 'relu11', 'relu13', 'relu15', 'relu17']
+hw = 'rram_new'
+mode = 'test'
 
-
-save_path = './plots/' + dataset
+save_path = os.path.join('plots', dataset, hw, mode)
 if not os.path.exists(save_path):
     os.makedirs(save_path)
 
-mode = 'test'
-
 if mode == 'test':
-    nsamples = 10
+    nsamples = 10000
 elif mode == 'train':
-    nsamples = 50
+    nsamples = 50000
 
 image_transforms = {
         'train':
@@ -57,42 +59,105 @@ image_transforms = {
                     ]),
         }
 
-def load_activations(layer, idx):
-    if layer == None:
+def load_activations(layer, mode):
+    if layer == 'None':
         #Data and dataloaders
         data = get_dataset(dataset, mode, image_transforms[mode], download=True)
         loader = torch.utils.data.DataLoader(
         data,
-        batch_size=32, shuffle=False,
+        batch_size=256, shuffle=False,
         num_workers=8, pin_memory=True)
+        kbar = pkbar.Kbar(target=nsamples, width=20)
 
-        for bidx, (data, target) in enumerate(loader):
-            acts
+        for b_idx, (data, target) in enumerate(loader):
+            act = data.numpy()
+            tgt = target.numpy()
 
-        return data
+            try:
+                acts = np.concatenate((acts, act))
+                tgts = np.concatenate((tgts, tgt))
+            except:
+                acts = act
+                tgts = tgt
+
+            kbar.update(b_idx)
+
+        return acts, tgts
     else:
-        path = os.path.join(base_dir, hw, 'one_batch', dataset, 'resnet18', mode, layer, 'act_' + layer + '_' + str(idx) + '.pth.tar')  
-        acts = torch.load(path) 
-        return acts
+        kbar = pkbar.Kbar(target=nsamples, width=20)
+        for idx in range(nsamples):
+            act_path = os.path.join(base_dir, hw, 'one_batch', dataset, 'resnet18', mode, layer, 'act_' + layer + '_' + str(idx) + '.pth.tar') 
+            label_path = os.path.join(base_dir, hw, 'one_batch', dataset, 'resnet18', mode, 'labels', 'labels_' + str(idx) + '.pth.tar') 
 
+            act = torch.load(act_path, map_location='cpu').cpu().detach().numpy() 
+            tgt = torch.load(label_path, map_location='cpu').cpu().detach().numpy()
 
-def plot(acts, num=10):
-    fig, axarr = plt.subplots(acts.size(0)+1, num, figsize=(20,2*(acts.size(0)+1)))
-    cmap='gray'
+            try:
+                acts = np.concatenate((acts, act))
+                tgts = np.concatenate((tgts, tgt))
+            except:
+                acts = act
+                tgts = tgt
 
-    for i in range(acts.size(0)):
-        for j in range(num):
-           im = axarr[i,j].imshow(acts[i,j], cmap=cmap)
+            kbar.update(idx)
 
-    for j in range(num):
-        im = axarr[2,j].imshow(acts[0,j]-acts[1,j], cmap=cmap)    
+        tgts = tgts.astype('int64')
+            
+        return acts, tgts
 
-    axarr[0,0].set_ylabel('SRAM')
-    axarr[1,0].set_ylabel('RRAM')
-    axarr[2,0].set_ylabel('DIFF')
-    fig.suptitle(dataset + '-' + layer)
+def dim_reduction(acts, method='pca', n_components=2):
+    pca = PCA(n_components=n_components, random_state=33)
+    pca.fit(acts)
+    # acts_train= pca.transform(acts_train)
+    acts_test = pca.transform(acts)
+    return acts, pca
 
-    plt.savefig(os.path.join(save_path, dataset + '-' + layer + '.jpg'))
+def plot_reduction(X, Y, tgts, classes, layer):
+    plt.figure(figsize=(20,15))
+    color_map = plt.cm.get_cmap('Accent')
     
-data = load_activations(None, 0)
-print(data.shape)
+    #plot without labels (faster)
+    plt.scatter(X, Y,c=tgts, cmap=color_map)
+
+    #plot labels
+    labels = np.array(classes)[tgts]
+    class_num = set()
+    for x1,x2,c,l in zip(X, Y, color_map(tgts), labels):
+        if len(class_num)==10:
+            break
+        plt.scatter(x1,x2,c=[c],label=l)
+        class_num.add(l)
+        
+    #remvoe duplicate labels    
+    hand, labl = plt.gca().get_legend_handles_labels()
+    handout=[]
+    lablout=[]
+    for h,l in zip(hand,labl):
+        if l not in lablout:
+            lablout.append(l)
+            handout.append(h)
+    plt.title('PCA-' + layer)
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.legend(handout, lablout, fontsize=18)
+    plt.savefig(os.path.join(save_path, 'pca-' + layer + '.png'))
+
+
+classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')    
+print('Savedir: ', save_path)
+
+for layer in layers:
+    print('PCA at ' + layer + ':')
+    # acts_train, tgts_train = load_activations(layer, mode='train')
+    acts, tgts = load_activations(layer, mode='test')
+    print(acts.shape)
+
+    #flatten
+    # acts_train = acts_train.reshape(-1, acts_train.shape[1]*acts_train.shape[2]*acts_train.shape[3])
+    acts = acts.reshape(-1, acts.shape[1]*acts.shape[2]*acts.shape[3])
+
+    acts, pca = dim_reduction(acts, method='pca', n_components=2)
+    print(acts.shape)
+
+    plot_reduction(acts[:,0], acts[:,1], tgts, classes, layer)
+
