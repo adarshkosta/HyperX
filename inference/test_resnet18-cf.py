@@ -17,11 +17,13 @@ inference_dir = os.path.join(root_dir, "inference")
 src_dir = os.path.join(root_dir, "src")
 models_dir = os.path.join(root_dir, "models")
 frozen_models_dir = os.path.join(root_dir, "frozen_models")
+frozen_mvm_models_dir = os.path.join(root_dir, "frozen_mvm_models")
 datasets_dir = os.path.join(root_dir, "datasets")
 
 sys.path.insert(0, root_dir) # 1 adds path to end of PYTHONPATH
 sys.path.insert(0, models_dir)
 sys.path.insert(0, frozen_models_dir)
+sys.path.insert(0, frozen_mvm_models_dir)
 sys.path.insert(0, inference_dir) 
 sys.path.insert(0, src_dir)
 sys.path.insert(0, datasets_dir)
@@ -41,7 +43,15 @@ from torchsummary import summary
 
 # User-defined packages
 import frozen_models
+import frozen_mvm_models
 from utils.utils import accuracy, AverageMeter, save_checkpoint 
+# User-defined packages
+import models
+from utils.data import get_dataset
+from utils.preprocess import get_transform
+import src.config as cfg
+
+from src.pytorch_mvm_class_v3 import *
 
 #Seeding
 new_manual_seed = 0
@@ -88,10 +98,10 @@ def test(test_loader, model, criterion, device):
             input_var = batch['data']
             target_var = batch['target'].long()
     
+            input_var, target_var = input_var.to(device), target_var.to(device)
+
             if args.half:
                 input_var = input_var.half()
-    
-            input_var, target_var = input_var.to(device), target_var.to(device)
             
             # compute output
             output = model(input_var)
@@ -155,24 +165,28 @@ parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18',
             choices=model_names,
             help='name of the model')
 
-parser.add_argument('--load-dir', default='/home/nano01/a/esoufler/activations/x128/',
+parser.add_argument('--load-dir', default='/home/nano01/a/esoufler/activations/x64-8b/',
             help='base path for loading activations')
 parser.add_argument('--mode', default='rram',
                 help='sram or rram')
 parser.add_argument('--savedir', default='../results/discp_analysis/',
                 help='base path for saving activations')
-parser.add_argument('--pretrained', action='store', default='../pretrained_models/frozen/x128/', #rram/cifar10/resnet18/freeze17_hp_best.pth.tar',
+parser.add_argument('--pretrained', action='store', default='../pretrained_models/frozen/x64-8b/', #rram/cifar10/resnet18/freeze17_hp_best.pth.tar',
             help='the path to the ideal pretrained model')
+parser.add_argument('--mvm', action='store_true', default=None,
+                help='if running functional simulator backend')
+parser.add_argument('--nideal', action='store_true', default=None,
+            help='Add xbar non-idealities')
 
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
             help='number of data loading workers (default: 8)')
-parser.add_argument('-b', '--batch-size', default=128, type=int,
+parser.add_argument('-b', '--batch-size', default=64, type=int,
             metavar='N', help='mini-batch size (default: 128)')
 
 
 parser.add_argument('--print-freq', '-p', default=5, type=int,
                 metavar='N', help='print frequency (default: 5)')
-parser.add_argument('--half', dest='half', action='store_true', default=True,
+parser.add_argument('--half', dest='half', action='store_true', default=None,
                     help='use half-precision(16-bit) ')
 
 parser.add_argument('--gpus', default='0', help='gpus (default: 0)')
@@ -181,6 +195,18 @@ parser.add_argument('--frozen-layers', default=1, type=int, help='number of froz
 args = parser.parse_args()
 
 print_args(args)
+
+if args.nideal:
+    cfg.non_ideality = True
+else:
+    cfg.non_ideality = False
+      
+if args.mvm:
+    cfg.mvm= True
+else:
+    cfg.mvm = False
+
+cfg.dump_config()
 
 # Check the savedir exists or not
 save_dir = os.path.join(args.savedir, args.dataset, args.model)
@@ -196,15 +222,25 @@ print('GPU Id(s) being used:', args.gpus)
 
 #Create model
 print('==> Building model for', args.model, '...')
-if args.frozen_layers != 0:
+if args.frozen_layers != 0 or args.frozen_layers != 18:
     if (args.model+'_freeze'+str(args.frozen_layers) in model_names):
         model = (__import__(args.model+'_freeze'+str(args.frozen_layers))) #import module using the string/variable_name
+        model_mvm = (__import__(args.model+'_freeze'+str(args.frozen_layers)+'_mvm')) #import module using the string/variable_name
+
     else:
         raise Exception(args.model+' is currently not supported')
 else:
     model = (__import__(args.model))
 
-# optionally resume from a checkpoint
+print('==> Initializing model parameters ...')
+weights_conv = []
+weights_lin = []
+bn_data = []
+bn_bias = []
+running_mean = []
+running_var = []
+num_batches = []
+
 if not args.pretrained: #Initialize params with pretrained model
     raise Exception('Provide pretrained model for evalution')
 else:
@@ -219,6 +255,46 @@ else:
         model = model.net(num_classes=100)
     
     model.load_state_dict(pretrained_model['state_dict'])
+
+    for m in model.modules():
+            if isinstance(m, nn.Conv2d):
+                weights_conv.append(m.weight.data.clone())
+            elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.BatchNorm1d):
+                bn_data.append(m.weight.data.clone())
+                bn_bias.append(m.bias.data.clone())
+                running_mean.append(m.running_mean.data.clone())
+                running_var.append(m.running_var.data.clone())
+                num_batches.append(m.num_batches_tracked.clone())
+            elif isinstance(m, nn.Linear):
+                weights_lin.append(m.weight.data.clone())
+
+if args.frozen_layers != 0:
+    if args.dataset == 'cifar10':
+        model_mvm = model_mvm.net(num_classes=10)
+    elif args.dataset == 'cifar100':
+        model_mvm = model_mvm.net(num_classes=100)
+    i=j=k=0
+    for m in model_mvm.modules():
+        if isinstance(m, (Conv2d_mvm, nn.Conv2d)):
+            m.weight.data = weights_conv[i]
+            i = i+1
+        #print(m.weight.data)
+        #raw_input()
+        elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.BatchNorm1d):
+            m.weight.data = bn_data[j]
+            m.bias.data = bn_bias[j]
+            m.running_mean.data = running_mean[j]
+            m.running_var.data = running_var[j]
+            m.num_batches_tracked = num_batches[j]
+            j = j+1
+        elif isinstance(m, Linear_mvm):
+            m.weight.data = weights_lin[k]
+            k=k+1
+
+# Move required model to GPU (if applicable)
+if args.mvm and args.frozen_layers != 0:
+    cfg.mvm = True
+    model = model_mvm
 
 model.to(device)
 

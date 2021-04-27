@@ -2,8 +2,8 @@
 
 DATASET="cifar100"
 PRETRAINED="../pretrained_models/ideal/resnet18fp_imnet.pth.tar"
-LOADDIR="/home/nano01/a/esoufler/activations/x128/sram/one_batch/"
-SAVEDIR="../pretrained_models/frozen/x128/sram/"
+LOADDIR="/home/nano01/a/esoufler/activations/x64-8b/"
+SAVEDIR="../pretrained_models/frozen/x64-8b/"
 GPUS="$1"
 START=$2
 STOP=$3

@@ -229,8 +229,6 @@ if __name__=='__main__':
         for m in model.modules():
             if isinstance(m, nn.Conv2d):
                 weights_conv.append(m.weight.data.clone())
-                #print(m.weight.data)
-                #raw_input()
             elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.BatchNorm1d):
                 bn_data.append(m.weight.data.clone())
                 bn_bias.append(m.bias.data.clone())

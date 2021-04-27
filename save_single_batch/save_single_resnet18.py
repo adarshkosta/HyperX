@@ -2,20 +2,21 @@ import argparse
 import torch
 import numpy as np
 import os
+from tqdm import trange
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--b-train', default=40, type=int,
+parser.add_argument('--b-train', default=100, type=int,
                      metavar='N', help='mini-batch size (default: 40)')
-parser.add_argument('--b-test', default=40, type=int,
+parser.add_argument('--b-test', default=100, type=int,
                      metavar='N', help='mini-batch size (default: 40)')
-parser.add_argument('--datadir', default='/home/nano01/a/esoufler/activations/x128/rram_new/', help='dataset name or folder')
-parser.add_argument('--dataset', metavar='DATASET', default='cifar10', help='dataset name or folder')
+parser.add_argument('--datadir', default='/home/nano01/a/esoufler/activations/x64-8b/sram/', help='dataset name or folder')
+parser.add_argument('--dataset', metavar='DATASET', default='cifar100', help='dataset name or folder')
 parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18', help='name of the model')
 parser.add_argument('--mode', metavar='MODE', default='both', help='set to save')
 args = parser.parse_args()
 
 
-train_length = 4000
+train_length = 50000
 test_length = 10000
 #%% 
 if args.mode != 'test':
@@ -30,7 +31,7 @@ if args.mode != 'test':
     num = int(train_length/batch_size)
     
     print('Saving Train labels...')
-    for batch in range(num):
+    for batch in trange(0, num):
     #    print(batch)
         filename = os.path.join(base_src_path, 'labels_' + str(batch) + '.pth.tar')
         src_value = torch.load(filename)
@@ -56,7 +57,7 @@ if args.mode != 'test':
         num = int(train_length/batch_size)
         
         print('relu'+str(i))
-        for batch in range(num):
+        for batch in trange(0, num):
             filename = os.path.join(base_src_path, 'act_relu'+ str(i) +'_' + str(batch) + '.pth.tar')
             src_value = torch.load(filename)
     
@@ -78,7 +79,7 @@ if args.mode != 'test':
     num = int(train_length/batch_size)
     
     print('fc')
-    for batch in range(num):
+    for batch in trange(0, num):
         filename = os.path.join(base_src_path, 'act_fc' + '_' + str(batch) + '.pth.tar')
         src_value = torch.load(filename)
     
@@ -103,7 +104,7 @@ if args.mode !='train':
     num = int(test_length/batch_size)
     
     print('Saving Test labels...')
-    for batch in range(num):
+    for batch in trange(0, num):
     #    print(batch)
         filename = os.path.join(base_src_path, 'labels_' + str(batch) + '.pth.tar')
         src_value = torch.load(filename)
@@ -128,7 +129,7 @@ if args.mode !='train':
         num = int(test_length/batch_size)
         
         print('relu'+str(i))
-        for batch in range(num):
+        for batch in trange(0, num):
     #        print(batch)
             filename = os.path.join(base_src_path, 'act_relu'+ str(i) +'_' + str(batch) + '.pth.tar')
             src_value = torch.load(filename)
@@ -151,7 +152,7 @@ if args.mode !='train':
     num = int(test_length/batch_size)
     
     print('fc')
-    for batch in range(num):
+    for batch in trange(0, num):
     #        print(batch)
         filename = os.path.join(base_src_path, 'act_fc' +'_' + str(batch) + '.pth.tar') 
         src_value = torch.load(filename)

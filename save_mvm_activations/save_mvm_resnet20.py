@@ -188,12 +188,12 @@ if __name__=='__main__':
                 help='mini-batch size (default: 1000)')
     parser.add_argument('--dataset', metavar='DATASET', default='cifar100',
                 help='dataset name or folder')
-    parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/x64/rram/multiple_batches/',
+    parser.add_argument('--savedir', default='/home/nano01/a/esoufler/activations/x64-8b/rram/multiple_batches/',
                 help='base path for saving activations')
     parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
                 choices=model_names,
                 help='name of the model')
-    parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20fp_cifar100.pth.tar',
+    parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20fp_cifar10.pth.tar',
                 help='the path to the pretrained model')
     parser.add_argument('--mvm', action='store_true', default=None,
                 help='if running functional simulator backend')

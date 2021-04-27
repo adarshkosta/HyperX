@@ -229,40 +229,42 @@ parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18',
             choices=model_names,
             help='name of the model')
 
-parser.add_argument('--load-dir', default='/home/nano01/a/esoufler/activations/x128/rram/one_batch/',
-            help='base path for loading activations')
-parser.add_argument('--savedir', default='../pretrained_models/frozen/rram/',
+parser.add_argument('--load-dir', default='/home/nano01/a/esoufler/activations/x128/',
+            help='base path for loading activations')           
+parser.add_argument('--savedir', default='../pretrained_models/frozen/x128/',
                 help='base path for saving activations')
 parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet18fp_imnet.pth.tar',
             help='the path to the ideal pretrained model')
 
+parser.add_argument('--mode-train', default='rram',
+                help='folder to load train activations from')
+parser.add_argument('--mode-test', default='rram',
+                help='folder to load test activations from')
+
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
             help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', default=100, type=int, metavar='N',
+parser.add_argument('--epochs', default=50, type=int, metavar='N',
             help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
             help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=128, type=int,
-            metavar='N', help='mini-batch size (default: 256)')
-parser.add_argument('--lr', '--learning-rate', default=0.8, type=float,
+            metavar='N', help='mini-batch size (default: 128)')
+parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
             metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
             help='momentum')
-parser.add_argument('--weight-decay', '--wd', default=5e-4, type=float, metavar='W', 
+parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar='W', 
             help='weight decay (default: 1e-4)')
-parser.add_argument('--gamma', default=0.5, type=float,
+parser.add_argument('--gamma', default=0.2, type=float,
             help='learning rate decay')
 
-parser.add_argument('--milestones', default=[20,40,60,80], 
+parser.add_argument('--milestones', default=[10,20,30,40], 
             help='Milestones for LR decay')
 
 parser.add_argument('--loss', type=str, default='crossentropy', 
             help='Loss function to use')
 parser.add_argument('--optim', type=str, default='sgd',
             help='Optimizer to use')
-parser.add_argument('--dropout', type=float, default=0.5,
-            help='Dropout probability')
-
 
 parser.add_argument('--print-freq', '-p', default=5, type=int,
                 metavar='N', help='print frequency (default: 5)')
@@ -284,10 +286,12 @@ args = parser.parse_args()
 print_args(args)
 
 # Check the savedir exists or not
-save_dir = os.path.join(args.savedir, args.dataset, args.model)
+save_dir = os.path.join(args.savedir, args.mode_test, args.dataset, args.model)
 
 if not os.path.exists(save_dir):
     os.makedirs(save_dir)
+
+print('Savedir: ', save_dir)
 
 #GPU init
 os.environ['CUDA_VISIBLE_DEVICES']= args.gpus
@@ -406,15 +410,17 @@ else: #No model to resume from
 model.to(device)
 #%%
 if args.frozen_layers == 18:
-    datapath_train = os.path.join(args.load_dir, args.dataset, args.model, 'train', 'fc')
-    datapath_test = os.path.join(args.load_dir, args.dataset, args.model, 'test', 'fc')
+    datapath_train = os.path.join(args.load_dir, args.mode_train, 'one_batch', args.dataset, args.model, 'train', 'fc')
+    datapath_test = os.path.join(args.load_dir, args.mode_test, 'one_batch', args.dataset, args.model, 'test', 'fc')
 else:
-    datapath_train = os.path.join(args.load_dir, args.dataset, args.model, 'train', 'relu' + str(args.frozen_layers))
-    datapath_test = os.path.join(args.load_dir, args.dataset, args.model, 'test', 'relu' + str(args.frozen_layers))
+    datapath_train = os.path.join(args.load_dir, args.mode_train, 'one_batch', args.dataset, args.model, 'train', 'relu' + str(args.frozen_layers))
+    datapath_test = os.path.join(args.load_dir, args.mode_test, 'one_batch', args.dataset, args.model, 'test', 'relu' + str(args.frozen_layers))
 
-tgtpath_train = os.path.join(args.load_dir, args.dataset, args.model, 'train', 'labels')
-tgtpath_test = os.path.join(args.load_dir, args.dataset, args.model, 'test', 'labels')
+tgtpath_train = os.path.join(args.load_dir, args.mode_train, 'one_batch', args.dataset, args.model, 'train', 'labels')
+tgtpath_test = os.path.join(args.load_dir, args.mode_test, 'one_batch', args.dataset, args.model, 'test', 'labels')
 
+print('Train path: ', datapath_train)
+print('Test path: ', datapath_test)
 
 train_data = SplitActivations_Dataset(args, datapath_train, tgtpath_train, train_len = True)
 train_loader = torch.utils.data.DataLoader(
