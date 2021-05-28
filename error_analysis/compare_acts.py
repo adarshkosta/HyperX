@@ -14,7 +14,7 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 import pandas as pd
 
-base_dir = '/home/nano01/a/esoufler/activations/x128/'
+base_dir = '/home/nano01/a/esoufler/activations/x64-8b/'
 dataset = 'cifar100'
 layers = ['relu1', 'relu3', 'relu5', 'relu7', 'relu9', 'relu11', 'relu13', 'relu15', 'relu17']
 # idx = '1'
@@ -64,6 +64,23 @@ def compare_acts(layer, metric='mean'):
     elif metric == 'mse':
         return err_mse.mean().item()
 
+def find_range_acts(layer):
+    max_arr = torch.zeros(1)
+    min_arr = torch.zeros(1)
+    mean_arr = torch.zeros(1)
+
+    for idx in range(nsamples):
+        acts1, acts2 = load_activations(layer, idx)
+        max1 = torch.max(acts1)
+        min1 = torch.min(acts1)
+        mean1 = torch.mean(acts1)
+
+        max_arr = torch.cat((max_arr, max1.unsqueeze(0)), dim=0)
+        min_arr = torch.cat((min_arr, min1.unsqueeze(0)), dim=0)
+        mean_arr = torch.cat((mean_arr, mean1.unsqueeze(0)), dim=0)
+    
+    return min_arr.max().item(), max_arr.max().item(), mean_arr.mean().item()
+
 
 def plot(acts, num=10):
     fig, axarr = plt.subplots(acts.size(0)+1, num, figsize=(20,2*(acts.size(0)+1)))
@@ -102,28 +119,50 @@ def visualize_acts(layer):
 #     visualize_acts(layer)
 
 
-mean_diff = []
-mse = []
+act_max = []
+act_min = []
+act_mean = []
 l = []
-
 i=0
 for layer in layers:
     i = i+1
-    mse.append(compare_acts(layer, metric='mse'))
-    mean_diff.append(compare_acts(layer, metric='mean'))
+    min1, max1, mean1 = find_range_acts(layer)
+    act_min.append(min1)
+    act_max.append(max1)
+    act_mean.append(mean1)
     l.append(int(layer[4:]))
 
-mse = np.array(mse)
-mean_diff = np.array(mean_diff)
-l= np.array(l)
+act_max = np.array(act_max)
+act_min = np.array(act_min)
+act_mean = np.array(act_mean)
+l = np.array(l)
 
-metrics = np.stack((l, mse, mean_diff), axis=-1)
+metrics = np.stack((l, act_min, act_max, act_mean), axis=-1)
 print(metrics)
 
-np.savetxt(os.path.join(save_path, 'metrics_' + dataset + '.csv'), metrics, delimiter=',')
+
+# mean_diff = []
+# mse = []
+# l = []
+
+# i=0
+# for layer in layers:
+#     i = i+1
+#     mse.append(compare_acts(layer, metric='mse'))
+#     mean_diff.append(compare_acts(layer, metric='mean'))
+#     l.append(int(layer[4:]))
+
+# mse = np.array(mse)
+# mean_diff = np.array(mean_diff)
+# l= np.array(l)
+
+# metrics = np.stack((l, mse, mean_diff), axis=-1)
+# print(metrics)
+
+# np.savetxt(os.path.join(save_path, 'metrics_' + dataset + '.csv'), metrics, delimiter=',')
 
 
-plt.plot(l, mse)
-plt.plot(l, mean_diff)
-plt.title(dataset)
-plt.show()
+# plt.plot(l, mse)
+# plt.plot(l, mean_diff)
+# plt.title(dataset)
+# plt.show()

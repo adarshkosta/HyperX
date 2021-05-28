@@ -72,6 +72,15 @@ for path, dirs, files in os.walk(frozen_models_dir):
     break # only traverse top level directory
 model_names.sort()
 
+#Create available models list
+mvm_model_names = []
+for path, dirs, files in os.walk(frozen_models_dir):
+    for file_n in files:
+        if (not file_n.startswith("__")):
+            mvm_model_names.append(file_n.split('.')[0])
+    break # only traverse top level directory
+mvm_model_names.sort()
+
 
 # Evaluate on a model
 def test(test_loader, model, criterion, device):
@@ -118,6 +127,14 @@ def test(test_loader, model, criterion, device):
             # measure elapsed time
             batch_time.update(time.time() - end)
             end = time.time()
+
+            if batch_idx % 10 == 0:
+                print('[{0}/{1}({2:.0f}%)]\t'
+                    'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                    'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+                    'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
+                    batch_idx, len(test_loader), 100. *float(batch_idx)/len(test_loader),
+                    loss=losses, top1=top1, top5=top5))
 
 
     print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f} Loss {loss.avg:.4f}'
@@ -178,18 +195,17 @@ parser.add_argument('--mvm', action='store_true', default=None,
 parser.add_argument('--nideal', action='store_true', default=None,
             help='Add xbar non-idealities')
 
-parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
+parser.add_argument('-j', '--workers', default=20, type=int, metavar='N',
             help='number of data loading workers (default: 8)')
-parser.add_argument('-b', '--batch-size', default=64, type=int,
+parser.add_argument('-b', '--batch-size', default=300, type=int,
             metavar='N', help='mini-batch size (default: 128)')
-
 
 parser.add_argument('--print-freq', '-p', default=5, type=int,
                 metavar='N', help='print frequency (default: 5)')
 parser.add_argument('--half', dest='half', action='store_true', default=None,
                     help='use half-precision(16-bit) ')
 
-parser.add_argument('--gpus', default='0', help='gpus (default: 0)')
+parser.add_argument('--gpus', default='0,1,2,3', help='gpus (default: 0)')
 parser.add_argument('--frozen-layers', default=1, type=int, help='number of frozen layers in the model')
 
 args = parser.parse_args()
@@ -225,6 +241,8 @@ print('==> Building model for', args.model, '...')
 if args.frozen_layers != 0 or args.frozen_layers != 18:
     if (args.model+'_freeze'+str(args.frozen_layers) in model_names):
         model = (__import__(args.model+'_freeze'+str(args.frozen_layers))) #import module using the string/variable_name
+        
+    if (args.model+'_freeze'+str(args.frozen_layers) in mvm_model_names):
         model_mvm = (__import__(args.model+'_freeze'+str(args.frozen_layers)+'_mvm')) #import module using the string/variable_name
 
     else:
@@ -242,10 +260,10 @@ running_var = []
 num_batches = []
 
 if not args.pretrained: #Initialize params with pretrained model
-    raise Exception('Provide pretrained model for evalution')
+    raise Exception('Provide pretrained model for evaluation')
 else:
-    args.pretrained = os.path.join(args.pretrained, 'rram', args.dataset, args.model, 'freeze' + str(args.frozen_layers) + '_hp_best.pth.tar')
-    print('==> Load pretrained model form', args.pretrained, '...')
+    args.pretrained = os.path.join(args.pretrained, args.mode, args.dataset, args.model, 'freeze' + str(args.frozen_layers) + '_hp_best.pth.tar')
+    print('==> Load pretrained model from', args.pretrained, '...')
     pretrained_model = torch.load(args.pretrained)
     best_acc = pretrained_model['best_acc']
     print('Pretrained model accuracy: {}'.format(best_acc))
@@ -268,28 +286,26 @@ else:
             elif isinstance(m, nn.Linear):
                 weights_lin.append(m.weight.data.clone())
 
-if args.frozen_layers != 0:
-    if args.dataset == 'cifar10':
-        model_mvm = model_mvm.net(num_classes=10)
-    elif args.dataset == 'cifar100':
-        model_mvm = model_mvm.net(num_classes=100)
-    i=j=k=0
-    for m in model_mvm.modules():
-        if isinstance(m, (Conv2d_mvm, nn.Conv2d)):
-            m.weight.data = weights_conv[i]
-            i = i+1
-        #print(m.weight.data)
-        #raw_input()
-        elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.BatchNorm1d):
-            m.weight.data = bn_data[j]
-            m.bias.data = bn_bias[j]
-            m.running_mean.data = running_mean[j]
-            m.running_var.data = running_var[j]
-            m.num_batches_tracked = num_batches[j]
-            j = j+1
-        elif isinstance(m, Linear_mvm):
-            m.weight.data = weights_lin[k]
-            k=k+1
+    if args.frozen_layers != 0:
+        if args.dataset == 'cifar10':
+            model_mvm = model_mvm.net(num_classes=10)
+        elif args.dataset == 'cifar100':
+            model_mvm = model_mvm.net(num_classes=100)
+        i=j=k=0
+        for m in model_mvm.modules():
+            if isinstance(m, (Conv2d_mvm, nn.Conv2d)):
+                m.weight.data = weights_conv[i]
+                i = i+1
+            elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.BatchNorm1d):
+                m.weight.data = bn_data[j]
+                m.bias.data = bn_bias[j]
+                m.running_mean.data = running_mean[j]
+                m.running_var.data = running_var[j]
+                m.num_batches_tracked = num_batches[j]
+                j = j+1
+            elif isinstance(m, Linear_mvm):
+                m.weight.data = weights_lin[k]
+                k=k+1
 
 # Move required model to GPU (if applicable)
 if args.mvm and args.frozen_layers != 0:
@@ -300,6 +316,8 @@ model.to(device)
 
 if args.half:
     model = model.half()
+
+model = torch.nn.DataParallel(model)
 #%%
 if args.frozen_layers != 0:
     if args.frozen_layers == 18:

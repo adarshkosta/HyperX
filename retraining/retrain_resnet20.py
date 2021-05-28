@@ -202,18 +202,22 @@ def print_args(args):
 
 #Parse arguments
 parser = argparse.ArgumentParser(description= ' Re-training')
-parser.add_argument('--dataset', metavar='DATASET', default='cifar100',
+parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
             help='dataset name')
 parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
             choices=model_names,
             help='name of the model')
 
-parser.add_argument('--load-dir', default='/home/nano01/a/esoufler/activations/one_batch/',
+parser.add_argument('--load-dir', default='/home/nano01/a/esoufler/activations/x128/',
             help='base path for loading activations')
-parser.add_argument('--savedir', default='../pretrained_models/frozen/',
+parser.add_argument('--savedir', default='../pretrained_models/frozen/x128/',
                 help='base path for saving activations')
-parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20fp_cifar100.pth.tar',
+parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20fp_cifar10.pth.tar',
             help='the path to the ideal pretrained model')
+
+parser.add_argument('--mode', default='rram',
+                help='folder to load train activations from')
+
 
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
             help='number of data loading workers (default: 4)')
@@ -221,9 +225,9 @@ parser.add_argument('--epochs', default=30, type=int, metavar='N',
             help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
             help='manual epoch number (useful on restarts)')
-parser.add_argument('-b', '--batch-size', default=128, type=int,
+parser.add_argument('-b', '--batch-size', default=256, type=int,
             metavar='N', help='mini-batch size (default: 128)')
-parser.add_argument('--lr', '--learning-rate', default=0.001, type=float,
+parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
             metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
             help='momentum')
@@ -232,7 +236,7 @@ parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar=
 parser.add_argument('--gamma', default=0.1, type=float,
             help='learning rate decay')
 
-parser.add_argument('--milestones', default=[6,12,20], 
+parser.add_argument('--milestones', default=[8,16,24], 
             help='Milestones for LR decay')
 
 parser.add_argument('--loss', type=str, default='crossentropy', 
@@ -264,6 +268,9 @@ print_args(args)
 
 # Check the savedir exists or not
 save_dir = os.path.join(args.savedir, args.dataset, args.model)
+
+args.mode_test = args.mode
+args.mode_train = args.mode
 
 if not os.path.exists(save_dir):
     os.makedirs(save_dir)
@@ -343,14 +350,14 @@ else: #No model to resume from
 model.to(device)
 #%%
 if args.frozen_layers == 20:
-    datapath_train = os.path.join(args.load_dir, args.dataset, args.model, 'train', 'fc')
-    datapath_test = os.path.join(args.load_dir, args.dataset, args.model, 'test', 'fc')
+    datapath_train = os.path.join(args.load_dir, args.mode_train, 'one_batch', args.dataset, args.model, 'train', 'fc')
+    datapath_test = os.path.join(args.load_dir, args.mode_test, 'one_batch', args.dataset, args.model, 'test', 'fc')
 else:
-    datapath_train = os.path.join(args.load_dir, args.dataset, args.model, 'train', 'relu' + str(args.frozen_layers))
-    datapath_test = os.path.join(args.load_dir, args.dataset, args.model, 'test', 'relu' + str(args.frozen_layers))
+    datapath_train = os.path.join(args.load_dir, args.mode_train, 'one_batch', args.dataset, args.model, 'train', 'relu' + str(args.frozen_layers))
+    datapath_test = os.path.join(args.load_dir, args.mode_test, 'one_batch', args.dataset, args.model, 'test', 'relu' + str(args.frozen_layers))
 
-tgtpath_train = os.path.join(args.load_dir, args.dataset, args.model, 'train', 'labels')
-tgtpath_test = os.path.join(args.load_dir, args.dataset, args.model, 'test', 'labels')
+tgtpath_train = os.path.join(args.load_dir, args.mode_train, 'one_batch', args.dataset, args.model, 'train', 'labels')
+tgtpath_test = os.path.join(args.load_dir, args.mode_test, 'one_batch', args.dataset, args.model, 'test', 'labels')
 
 
 train_data = SplitActivations_Dataset(args, datapath_train, tgtpath_train, train_len = True)
@@ -392,6 +399,8 @@ lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer,
                                             last_epoch=args.start_epoch - 1)
 
 
+print(model)
+
 if args.evaluate:
     acc, loss = test(test_loader, model, criterion, device)
     print('Prec@1 with ' + str(args.frozen_layers) + ' layers frozen = ', acc)
@@ -402,10 +411,11 @@ else:
     
     
     best_acc = 0
+    end = time.time()
     for epoch in range(args.start_epoch, args.epochs):
         # train for one epoch
         train(train_loader, model, criterion, optimizer, epoch, device)
-    
+        print('Train time: {}'.format(time.time()-end))
         # evaluate on validation set
         acc, loss = test(test_loader, model, criterion, device)
         
@@ -431,7 +441,7 @@ else:
         print('Best acc: {:.3f}'.format(best_acc))
         print('-'*80)
 
-#if __name__=='__main__':
-#    main()
+        print('Test time: {}\n'.format(time.time()-end))
+        end = time.time()
 
 

@@ -23,11 +23,11 @@
           evaluate: False
           half: True
           save_every: 10
-          gpus: 0
+          gpus: 1
           frozen_layers: 3
 Savedir:  ../pretrained_models/frozen/x64-8b/rram/cifar10/resnet18
 DEVICE: cuda
-GPU Id(s) being used: 0
+GPU Id(s) being used: 1
 ==> Building model for resnet18 ...
 ==> Initializing model with pre-trained parameters (except classifier)...
 ==> Load pretrained model form ../pretrained_models/ideal/resnet18fp_imnet.pth.tar ...
@@ -35,973 +35,973 @@ Original model accuracy on ImageNet: 69.93189239501953
 Train path:  /home/nano01/a/esoufler/activations/x64-8b/rram/one_batch/cifar10/resnet18/train/relu3
 Test path:  /home/nano01/a/esoufler/activations/x64-8b/rram/one_batch/cifar10/resnet18/test/relu3
 ResNet18(
-  (conv4): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+  (conv4): QConv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
   (bn4): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
   (relu4): ReLU(inplace=True)
-  (conv5): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+  (conv5): QConv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
   (bn5): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
   (relu5): ReLU(inplace=True)
-  (conv6): Conv2d(64, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+  (conv6): QConv2d(64, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
   (bn6): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
   (resconv1): Sequential(
-    (0): Conv2d(64, 128, kernel_size=(1, 1), stride=(2, 2), bias=False)
+    (0): QConv2d(64, 128, kernel_size=(1, 1), stride=(2, 2), bias=False)
     (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
     (2): ReLU(inplace=True)
   )
   (relu6): ReLU(inplace=True)
-  (conv7): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+  (conv7): QConv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
   (bn7): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
   (relu7): ReLU(inplace=True)
-  (conv8): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+  (conv8): QConv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
   (bn8): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
   (relu8): ReLU(inplace=True)
-  (conv9): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+  (conv9): QConv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
   (bn9): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
   (relu9): ReLU(inplace=True)
-  (conv10): Conv2d(128, 256, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+  (conv10): QConv2d(128, 256, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
   (bn10): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
   (resconv2): Sequential(
-    (0): Conv2d(128, 256, kernel_size=(1, 1), stride=(2, 2), bias=False)
+    (0): QConv2d(128, 256, kernel_size=(1, 1), stride=(2, 2), bias=False)
     (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
     (2): ReLU(inplace=True)
   )
   (relu10): ReLU(inplace=True)
-  (conv11): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+  (conv11): QConv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
   (bn11): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
   (relu11): ReLU(inplace=True)
-  (conv12): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+  (conv12): QConv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
   (bn12): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
   (relu12): ReLU(inplace=True)
-  (conv13): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+  (conv13): QConv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
   (bn13): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
   (relu13): ReLU(inplace=True)
-  (conv14): Conv2d(256, 512, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+  (conv14): QConv2d(256, 512, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
   (bn14): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
   (resconv3): Sequential(
-    (0): Conv2d(256, 512, kernel_size=(1, 1), stride=(2, 2), bias=False)
+    (0): QConv2d(256, 512, kernel_size=(1, 1), stride=(2, 2), bias=False)
     (1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
     (2): ReLU(inplace=True)
   )
   (relu14): ReLU(inplace=True)
-  (conv15): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+  (conv15): QConv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
   (bn15): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
   (relu15): ReLU(inplace=True)
-  (conv16): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+  (conv16): QConv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
   (bn16): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
   (relu16): ReLU(inplace=True)
-  (conv17): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+  (conv17): QConv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
   (bn17): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
   (relu17): ReLU(inplace=True)
   (avgpool): AvgPool2d(kernel_size=7, stride=7, padding=0)
   (bn18): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-  (fc): Linear(in_features=512, out_features=10, bias=False)
+  (fc): QLinear(in_features=512, out_features=10, bias=False)
   (bn19): BatchNorm1d(10, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
   (logsoftmax): LogSoftmax(dim=1)
 )
- * Prec@1 8.860 Prec@5 51.470 Loss 2.3008
-Avg Loading time: 2.3199 seconds
-Avg Batch time: 2.3769 seconds
+ * Prec@1 9.150 Prec@5 50.670 Loss 2.3047
+Avg Loading time: 8.6127 seconds
+Avg Batch time: 8.6781 seconds
 
-Pre-trained Prec@1 with 3 layers frozen: 8.859999656677246 	 Loss: 2.30078125
+Pre-trained Prec@1 with 3 layers frozen: 9.149999618530273 	 Loss: 2.3046875
 
 Starting training on SRAM layers...
-Epoch: [0][77/391]	LR: 0.01	DT: 0.000 (2.491)	BT: 0.077 (2.615)	Loss 0.4888 (0.8532)	Prec@1 87.500 (77.544)	
-Epoch: [0][155/391]	LR: 0.01	DT: 0.000 (2.583)	BT: 0.150 (2.704)	Loss 0.4072 (0.6490)	Prec@1 88.281 (83.143)	
-Epoch: [0][233/391]	LR: 0.01	DT: 0.621 (2.507)	BT: 0.777 (2.628)	Loss 0.4185 (0.5472)	Prec@1 88.281 (85.634)	
-Epoch: [0][311/391]	LR: 0.01	DT: 0.000 (2.455)	BT: 0.111 (2.578)	Loss 0.3127 (0.4861)	Prec@1 89.062 (87.064)	
-Epoch: [0][389/391]	LR: 0.01	DT: 0.000 (2.445)	BT: 0.080 (2.568)	Loss 0.2744 (0.4466)	Prec@1 92.969 (88.021)	
-Total train loss: 0.4464
-Avg Loading time: 2.4389 seconds
-Avg Batch time: 2.5618 seconds
+Epoch: [0][77/391]	LR: 0.01	DT: 0.000 (11.458)	BT: 0.162 (11.635)	Loss 0.6812 (1.0420)	Prec@1 82.031 (71.234)	
+Epoch: [0][155/391]	LR: 0.01	DT: 0.000 (11.094)	BT: 0.172 (11.273)	Loss 0.6104 (0.8234)	Prec@1 79.688 (77.544)	
+Epoch: [0][233/391]	LR: 0.01	DT: 10.362 (10.615)	BT: 10.557 (10.794)	Loss 0.4949 (0.7120)	Prec@1 80.469 (80.452)	
+Epoch: [0][311/391]	LR: 0.01	DT: 0.000 (9.948)	BT: 0.165 (10.127)	Loss 0.4331 (0.6421)	Prec@1 89.844 (82.141)	
+Epoch: [0][389/391]	LR: 0.01	DT: 0.000 (9.386)	BT: 0.165 (9.565)	Loss 0.4419 (0.5999)	Prec@1 85.938 (83.091)	
+Total train loss: 0.5996
+Avg Loading time: 9.3622 seconds
+Avg Batch time: 9.5413 seconds
 
-Train time: 1001.7891454696655
- * Prec@1 92.190 Prec@5 99.850 Loss 0.2595
-Avg Loading time: 0.3966 seconds
-Avg Batch time: 0.4360 seconds
+Train time: 3730.8493931293488
+ * Prec@1 88.800 Prec@5 99.610 Loss 0.3777
+Avg Loading time: 6.0832 seconds
+Avg Batch time: 6.1524 seconds
 
-Best acc: 92.190
+Best acc: 88.800
 --------------------------------------------------------------------------------
-Test time: 35.55387353897095
+Test time: 487.1431288719177
 
-Epoch: [1][77/391]	LR: 0.01	DT: 0.000 (0.070)	BT: 0.114 (0.166)	Loss 0.1296 (0.1646)	Prec@1 96.875 (96.154)	
-Epoch: [1][155/391]	LR: 0.01	DT: 0.000 (0.038)	BT: 0.105 (0.148)	Loss 0.1678 (0.1601)	Prec@1 96.875 (96.094)	
-Epoch: [1][233/391]	LR: 0.01	DT: 0.000 (0.025)	BT: 0.078 (0.140)	Loss 0.1650 (0.1591)	Prec@1 94.531 (95.987)	
-Epoch: [1][311/391]	LR: 0.01	DT: 0.000 (0.020)	BT: 0.125 (0.137)	Loss 0.2056 (0.1581)	Prec@1 93.750 (95.989)	
-Epoch: [1][389/391]	LR: 0.01	DT: 0.000 (0.017)	BT: 0.156 (0.135)	Loss 0.1777 (0.1586)	Prec@1 95.312 (95.873)	
-Total train loss: 0.1586
-Avg Loading time: 0.0165 seconds
-Avg Batch time: 0.1353 seconds
+Epoch: [1][77/391]	LR: 0.01	DT: 0.000 (4.658)	BT: 0.174 (4.833)	Loss 0.2671 (0.3621)	Prec@1 92.969 (89.233)	
+Epoch: [1][155/391]	LR: 0.01	DT: 0.000 (5.729)	BT: 0.168 (5.906)	Loss 0.3342 (0.3602)	Prec@1 93.750 (89.062)	
+Epoch: [1][233/391]	LR: 0.01	DT: 5.341 (6.351)	BT: 5.524 (6.529)	Loss 0.3281 (0.3666)	Prec@1 89.062 (88.495)	
+Epoch: [1][311/391]	LR: 0.01	DT: 0.000 (6.457)	BT: 0.168 (6.635)	Loss 0.4260 (0.3652)	Prec@1 82.812 (88.449)	
+Epoch: [1][389/391]	LR: 0.01	DT: 0.000 (6.623)	BT: 0.173 (6.801)	Loss 0.3608 (0.3639)	Prec@1 86.719 (88.385)	
+Total train loss: 0.3638
+Avg Loading time: 6.6062 seconds
+Avg Batch time: 6.7840 seconds
 
-Train time: 53.00989484786987
- * Prec@1 93.260 Prec@5 99.840 Loss 0.2134
-Avg Loading time: 0.0945 seconds
-Avg Batch time: 0.1337 seconds
+Train time: 2652.6441571712494
+ * Prec@1 88.080 Prec@5 99.660 Loss 0.3706
+Avg Loading time: 6.3599 seconds
+Avg Batch time: 6.4216 seconds
 
-Best acc: 93.260
+Best acc: 88.800
 --------------------------------------------------------------------------------
-Test time: 11.70738697052002
+Test time: 509.83813190460205
 
-Epoch: [2][77/391]	LR: 0.01	DT: 0.000 (0.024)	BT: 0.156 (0.166)	Loss 0.0953 (0.0869)	Prec@1 97.656 (98.267)	
-Epoch: [2][155/391]	LR: 0.01	DT: 0.000 (0.012)	BT: 0.116 (0.152)	Loss 0.0484 (0.0789)	Prec@1 99.219 (98.498)	
-Epoch: [2][233/391]	LR: 0.01	DT: 0.000 (0.008)	BT: 0.148 (0.147)	Loss 0.0997 (0.0774)	Prec@1 97.656 (98.528)	
-Epoch: [2][311/391]	LR: 0.01	DT: 0.000 (0.009)	BT: 0.152 (0.148)	Loss 0.0316 (0.0768)	Prec@1 100.000 (98.555)	
-Epoch: [2][389/391]	LR: 0.01	DT: 0.000 (0.007)	BT: 0.152 (0.146)	Loss 0.0476 (0.0770)	Prec@1 100.000 (98.520)	
-Total train loss: 0.0770
-Avg Loading time: 0.0069 seconds
-Avg Batch time: 0.1460 seconds
+Epoch: [2][77/391]	LR: 0.01	DT: 0.000 (6.490)	BT: 0.169 (6.669)	Loss 0.4070 (0.3380)	Prec@1 89.844 (89.573)	
+Epoch: [2][155/391]	LR: 0.01	DT: 0.000 (6.034)	BT: 0.169 (6.214)	Loss 0.4150 (0.3430)	Prec@1 85.938 (89.263)	
+Epoch: [2][233/391]	LR: 0.01	DT: 9.016 (6.056)	BT: 9.205 (6.235)	Loss 0.3445 (0.3438)	Prec@1 88.281 (89.012)	
+Epoch: [2][311/391]	LR: 0.01	DT: 0.000 (6.301)	BT: 0.175 (6.480)	Loss 0.3042 (0.3461)	Prec@1 87.500 (88.872)	
+Epoch: [2][389/391]	LR: 0.01	DT: 0.000 (6.534)	BT: 0.169 (6.714)	Loss 0.2759 (0.3470)	Prec@1 92.969 (88.810)	
+Total train loss: 0.3470
+Avg Loading time: 6.5171 seconds
+Avg Batch time: 6.6967 seconds
 
-Train time: 57.2099609375
- * Prec@1 94.030 Prec@5 99.840 Loss 0.1926
-Avg Loading time: 0.0847 seconds
-Avg Batch time: 0.1318 seconds
+Train time: 2618.5382380485535
+ * Prec@1 86.740 Prec@5 99.390 Loss 0.3933
+Avg Loading time: 6.1452 seconds
+Avg Batch time: 6.2005 seconds
 
-Best acc: 94.030
+Best acc: 88.800
 --------------------------------------------------------------------------------
-Test time: 11.568009376525879
+Test time: 490.507666349411
 
-Epoch: [3][77/391]	LR: 0.01	DT: 1.015 (0.112)	BT: 1.136 (0.241)	Loss 0.0394 (0.0431)	Prec@1 100.000 (99.649)	
-Epoch: [3][155/391]	LR: 0.01	DT: 0.001 (0.080)	BT: 0.121 (0.203)	Loss 0.0743 (0.0437)	Prec@1 98.438 (99.599)	
-Epoch: [3][233/391]	LR: 0.01	DT: 0.000 (0.056)	BT: 0.120 (0.173)	Loss 0.0554 (0.0435)	Prec@1 100.000 (99.583)	
-Epoch: [3][311/391]	LR: 0.01	DT: 0.036 (0.045)	BT: 0.121 (0.158)	Loss 0.0486 (0.0429)	Prec@1 100.000 (99.577)	
-Epoch: [3][389/391]	LR: 0.01	DT: 0.000 (0.036)	BT: 0.081 (0.152)	Loss 0.0239 (0.0423)	Prec@1 100.000 (99.593)	
-Total train loss: 0.0423
-Avg Loading time: 0.0363 seconds
-Avg Batch time: 0.1520 seconds
+Epoch: [3][77/391]	LR: 0.01	DT: 0.000 (6.459)	BT: 0.170 (6.641)	Loss 0.3936 (0.3705)	Prec@1 83.594 (87.450)	
+Epoch: [3][155/391]	LR: 0.01	DT: 5.773 (6.808)	BT: 5.951 (6.991)	Loss 0.4607 (0.3623)	Prec@1 85.938 (87.886)	
+Epoch: [3][233/391]	LR: 0.01	DT: 10.777 (7.059)	BT: 10.966 (7.242)	Loss 0.3665 (0.3671)	Prec@1 89.844 (87.777)	
+Epoch: [3][311/391]	LR: 0.01	DT: 0.000 (6.566)	BT: 0.171 (6.749)	Loss 0.3765 (0.3676)	Prec@1 86.719 (87.710)	
+Epoch: [3][389/391]	LR: 0.01	DT: 0.000 (6.723)	BT: 0.168 (6.906)	Loss 0.3765 (0.3656)	Prec@1 87.500 (87.887)	
+Total train loss: 0.3657
+Avg Loading time: 6.7057 seconds
+Avg Batch time: 6.8885 seconds
 
-Train time: 59.573009967803955
- * Prec@1 94.350 Prec@5 99.780 Loss 0.1874
-Avg Loading time: 0.0927 seconds
-Avg Batch time: 0.1303 seconds
+Train time: 2693.446496486664
+ * Prec@1 86.730 Prec@5 99.430 Loss 0.3975
+Avg Loading time: 7.3805 seconds
+Avg Batch time: 7.4367 seconds
 
-Best acc: 94.350
+Best acc: 88.800
 --------------------------------------------------------------------------------
-Test time: 11.460554599761963
+Test time: 588.0560812950134
 
-Epoch: [4][77/391]	LR: 0.01	DT: 0.000 (0.021)	BT: 0.120 (0.142)	Loss 0.0226 (0.0287)	Prec@1 100.000 (99.880)	
-Epoch: [4][155/391]	LR: 0.01	DT: 0.000 (0.011)	BT: 0.162 (0.138)	Loss 0.0176 (0.0292)	Prec@1 100.000 (99.850)	
-Epoch: [4][233/391]	LR: 0.01	DT: 0.000 (0.007)	BT: 0.099 (0.136)	Loss 0.0293 (0.0301)	Prec@1 100.000 (99.840)	
-Epoch: [4][311/391]	LR: 0.01	DT: 0.000 (0.005)	BT: 0.154 (0.139)	Loss 0.0311 (0.0294)	Prec@1 100.000 (99.855)	
-Epoch: [4][389/391]	LR: 0.01	DT: 0.000 (0.004)	BT: 0.092 (0.138)	Loss 0.0222 (0.0292)	Prec@1 100.000 (99.870)	
-Total train loss: 0.0292
-Avg Loading time: 0.0044 seconds
-Avg Batch time: 0.1381 seconds
+Epoch: [4][77/391]	LR: 0.01	DT: 0.000 (7.051)	BT: 0.176 (7.235)	Loss 0.4167 (0.3343)	Prec@1 88.281 (89.193)	
+Epoch: [4][155/391]	LR: 0.01	DT: 0.000 (7.294)	BT: 0.170 (7.476)	Loss 0.3333 (0.3422)	Prec@1 90.625 (88.692)	
+Epoch: [4][233/391]	LR: 0.01	DT: 0.000 (7.435)	BT: 0.188 (7.617)	Loss 0.3357 (0.3458)	Prec@1 85.938 (88.492)	
+Epoch: [4][311/391]	LR: 0.01	DT: 0.000 (7.347)	BT: 0.176 (7.527)	Loss 0.3970 (0.3404)	Prec@1 85.156 (88.742)	
+Epoch: [4][389/391]	LR: 0.01	DT: 0.000 (7.233)	BT: 0.166 (7.413)	Loss 0.3547 (0.3397)	Prec@1 88.281 (88.680)	
+Total train loss: 0.3396
+Avg Loading time: 7.2145 seconds
+Avg Batch time: 7.3947 seconds
 
-Train time: 54.10204362869263
- * Prec@1 94.640 Prec@5 99.880 Loss 0.1742
-Avg Loading time: 0.0916 seconds
-Avg Batch time: 0.1328 seconds
+Train time: 2891.606230020523
+ * Prec@1 67.530 Prec@5 95.960 Loss 0.9946
+Avg Loading time: 5.6554 seconds
+Avg Batch time: 5.7163 seconds
 
-Best acc: 94.640
+Best acc: 88.800
 --------------------------------------------------------------------------------
-Test time: 11.717069625854492
+Test time: 453.03605484962463
 
-Epoch: [5][77/391]	LR: 0.01	DT: 0.000 (0.019)	BT: 0.115 (0.154)	Loss 0.0251 (0.0238)	Prec@1 100.000 (99.980)	
-Epoch: [5][155/391]	LR: 0.01	DT: 0.000 (0.009)	BT: 0.150 (0.153)	Loss 0.0257 (0.0230)	Prec@1 100.000 (99.980)	
-Epoch: [5][233/391]	LR: 0.01	DT: 0.000 (0.006)	BT: 0.184 (0.154)	Loss 0.0256 (0.0222)	Prec@1 100.000 (99.987)	
-Epoch: [5][311/391]	LR: 0.01	DT: 0.000 (0.043)	BT: 0.099 (0.183)	Loss 0.0296 (0.0222)	Prec@1 100.000 (99.975)	
-Epoch: [5][389/391]	LR: 0.01	DT: 0.000 (0.035)	BT: 0.078 (0.171)	Loss 0.0185 (0.0228)	Prec@1 100.000 (99.950)	
-Total train loss: 0.0228
-Avg Loading time: 0.0353 seconds
-Avg Batch time: 0.1707 seconds
+Epoch: [5][77/391]	LR: 0.01	DT: 0.000 (6.944)	BT: 0.173 (7.125)	Loss 0.3474 (0.3258)	Prec@1 90.625 (89.333)	
+Epoch: [5][155/391]	LR: 0.01	DT: 0.000 (7.258)	BT: 0.171 (7.439)	Loss 0.3428 (0.3341)	Prec@1 85.938 (88.837)	
+Epoch: [5][233/391]	LR: 0.01	DT: 18.537 (7.497)	BT: 18.731 (7.678)	Loss 0.4639 (0.3394)	Prec@1 83.594 (88.615)	
+Epoch: [5][311/391]	LR: 0.01	DT: 0.000 (7.403)	BT: 0.168 (7.584)	Loss 0.2805 (0.3407)	Prec@1 91.406 (88.502)	
+Epoch: [5][389/391]	LR: 0.01	DT: 0.000 (7.468)	BT: 0.170 (7.649)	Loss 0.2871 (0.3481)	Prec@1 89.844 (88.277)	
+Total train loss: 0.3483
+Avg Loading time: 7.4486 seconds
+Avg Batch time: 7.6293 seconds
 
-Train time: 66.864919424057
- * Prec@1 94.680 Prec@5 99.790 Loss 0.1740
-Avg Loading time: 0.0903 seconds
-Avg Batch time: 0.1283 seconds
+Train time: 2983.212900876999
+ * Prec@1 86.690 Prec@5 99.570 Loss 0.3999
+Avg Loading time: 6.7961 seconds
+Avg Batch time: 6.8640 seconds
 
-Best acc: 94.680
+Best acc: 88.800
 --------------------------------------------------------------------------------
-Test time: 11.271865129470825
+Test time: 542.827490568161
 
-Epoch: [6][77/391]	LR: 0.01	DT: 0.000 (0.028)	BT: 0.176 (0.142)	Loss 0.0140 (0.0205)	Prec@1 100.000 (100.000)	
-Epoch: [6][155/391]	LR: 0.01	DT: 0.000 (0.014)	BT: 0.130 (0.131)	Loss 0.0143 (0.0197)	Prec@1 100.000 (99.995)	
-Epoch: [6][233/391]	LR: 0.01	DT: 0.000 (0.012)	BT: 0.183 (0.131)	Loss 0.0215 (0.0199)	Prec@1 100.000 (99.993)	
-Epoch: [6][311/391]	LR: 0.01	DT: 0.000 (0.010)	BT: 0.185 (0.131)	Loss 0.0268 (0.0200)	Prec@1 100.000 (99.990)	
-Epoch: [6][389/391]	LR: 0.01	DT: 0.000 (0.008)	BT: 0.110 (0.130)	Loss 0.0225 (0.0200)	Prec@1 100.000 (99.990)	
-Total train loss: 0.0201
-Avg Loading time: 0.0077 seconds
-Avg Batch time: 0.1301 seconds
+Epoch: [6][77/391]	LR: 0.01	DT: 0.000 (4.734)	BT: 0.170 (4.913)	Loss 0.4011 (0.3439)	Prec@1 88.281 (88.502)	
+Epoch: [6][155/391]	LR: 0.01	DT: 0.000 (5.530)	BT: 0.169 (5.710)	Loss 0.3696 (0.3507)	Prec@1 85.156 (88.316)	
+Epoch: [6][233/391]	LR: 0.01	DT: 6.670 (6.443)	BT: 6.880 (6.624)	Loss 0.3120 (0.3470)	Prec@1 88.281 (88.355)	
+Epoch: [6][311/391]	LR: 0.01	DT: 0.000 (6.664)	BT: 0.170 (6.845)	Loss 0.4268 (0.3480)	Prec@1 83.594 (88.229)	
+Epoch: [6][389/391]	LR: 0.01	DT: 0.000 (6.889)	BT: 0.173 (7.071)	Loss 0.3044 (0.3451)	Prec@1 90.625 (88.387)	
+Total train loss: 0.3453
+Avg Loading time: 6.8716 seconds
+Avg Batch time: 7.0531 seconds
 
-Train time: 50.98226046562195
- * Prec@1 94.740 Prec@5 99.820 Loss 0.1697
-Avg Loading time: 0.0905 seconds
-Avg Batch time: 0.1305 seconds
+Train time: 2757.868297815323
+ * Prec@1 86.600 Prec@5 99.550 Loss 0.3840
+Avg Loading time: 6.6841 seconds
+Avg Batch time: 6.7444 seconds
 
-Best acc: 94.740
+Best acc: 88.800
 --------------------------------------------------------------------------------
-Test time: 11.459311962127686
+Test time: 535.1912529468536
 
-Epoch: [7][77/391]	LR: 0.01	DT: 0.000 (0.025)	BT: 0.086 (0.168)	Loss 0.0258 (0.0202)	Prec@1 100.000 (99.960)	
-Epoch: [7][155/391]	LR: 0.01	DT: 0.000 (0.012)	BT: 0.152 (0.153)	Loss 0.0163 (0.0191)	Prec@1 100.000 (99.980)	
-Epoch: [7][233/391]	LR: 0.01	DT: 0.000 (0.008)	BT: 0.156 (0.151)	Loss 0.0311 (0.0189)	Prec@1 100.000 (99.980)	
-Epoch: [7][311/391]	LR: 0.01	DT: 0.000 (0.006)	BT: 0.175 (0.145)	Loss 0.0214 (0.0189)	Prec@1 100.000 (99.982)	
-Epoch: [7][389/391]	LR: 0.01	DT: 0.000 (0.005)	BT: 0.148 (0.146)	Loss 0.0140 (0.0188)	Prec@1 100.000 (99.984)	
-Total train loss: 0.0188
-Avg Loading time: 0.0051 seconds
-Avg Batch time: 0.1456 seconds
+Epoch: [7][77/391]	LR: 0.01	DT: 0.000 (6.805)	BT: 0.169 (6.987)	Loss 0.3821 (0.3141)	Prec@1 89.062 (89.323)	
+Epoch: [7][155/391]	LR: 0.01	DT: 1.689 (6.701)	BT: 1.868 (6.883)	Loss 0.2612 (0.3084)	Prec@1 91.406 (89.553)	
+Epoch: [7][233/391]	LR: 0.01	DT: 1.695 (6.519)	BT: 1.887 (6.701)	Loss 0.3438 (0.3104)	Prec@1 90.625 (89.593)	
+Epoch: [7][311/391]	LR: 0.01	DT: 0.000 (6.544)	BT: 0.171 (6.724)	Loss 0.3342 (0.3169)	Prec@1 89.062 (89.335)	
+Epoch: [7][389/391]	LR: 0.01	DT: 0.000 (6.744)	BT: 0.174 (6.924)	Loss 0.3115 (0.3181)	Prec@1 86.719 (89.297)	
+Total train loss: 0.3181
+Avg Loading time: 6.7263 seconds
+Avg Batch time: 6.9069 seconds
 
-Train time: 57.03084087371826
- * Prec@1 94.950 Prec@5 99.850 Loss 0.1667
-Avg Loading time: 0.0834 seconds
-Avg Batch time: 0.1385 seconds
+Train time: 2700.653731584549
+ * Prec@1 27.510 Prec@5 72.730 Loss 2.2988
+Avg Loading time: 5.9849 seconds
+Avg Batch time: 6.0444 seconds
 
-Best acc: 94.950
+Best acc: 88.800
 --------------------------------------------------------------------------------
-Test time: 12.076050519943237
+Test time: 478.17639660835266
 
-Epoch: [8][77/391]	LR: 0.01	DT: 0.000 (0.185)	BT: 0.108 (0.300)	Loss 0.0213 (0.0175)	Prec@1 100.000 (99.970)	
-Epoch: [8][155/391]	LR: 0.01	DT: 0.000 (0.095)	BT: 0.118 (0.205)	Loss 0.0219 (0.0173)	Prec@1 100.000 (99.980)	
-Epoch: [8][233/391]	LR: 0.01	DT: 0.000 (0.066)	BT: 0.090 (0.175)	Loss 0.0142 (0.0174)	Prec@1 100.000 (99.983)	
-Epoch: [8][311/391]	LR: 0.01	DT: 0.000 (0.050)	BT: 0.085 (0.162)	Loss 0.0131 (0.0174)	Prec@1 100.000 (99.982)	
-Epoch: [8][389/391]	LR: 0.01	DT: 0.000 (0.041)	BT: 0.084 (0.154)	Loss 0.0179 (0.0173)	Prec@1 100.000 (99.984)	
-Total train loss: 0.0173
-Avg Loading time: 0.0404 seconds
-Avg Batch time: 0.1536 seconds
+Epoch: [8][77/391]	LR: 0.01	DT: 0.405 (6.378)	BT: 0.587 (6.562)	Loss 0.2651 (0.3158)	Prec@1 91.406 (89.403)	
+Epoch: [8][155/391]	LR: 0.01	DT: 6.602 (6.659)	BT: 6.778 (6.844)	Loss 0.3162 (0.3216)	Prec@1 87.500 (89.073)	
+Epoch: [8][233/391]	LR: 0.01	DT: 0.000 (6.883)	BT: 0.191 (7.067)	Loss 0.3208 (0.3225)	Prec@1 89.844 (88.952)	
+Epoch: [8][311/391]	LR: 0.01	DT: 0.000 (6.523)	BT: 0.173 (6.706)	Loss 0.3237 (0.3295)	Prec@1 89.844 (88.714)	
+Epoch: [8][389/391]	LR: 0.01	DT: 0.000 (6.415)	BT: 0.170 (6.598)	Loss 0.3030 (0.3347)	Prec@1 89.844 (88.450)	
+Total train loss: 0.3346
+Avg Loading time: 6.3985 seconds
+Avg Batch time: 6.5819 seconds
 
-Train time: 60.17284870147705
- * Prec@1 94.800 Prec@5 99.850 Loss 0.1693
-Avg Loading time: 0.0948 seconds
-Avg Batch time: 0.1382 seconds
+Train time: 2573.5461711883545
+ * Prec@1 81.040 Prec@5 99.030 Loss 0.5439
+Avg Loading time: 5.2548 seconds
+Avg Batch time: 5.3129 seconds
 
-Best acc: 94.950
+Best acc: 88.800
 --------------------------------------------------------------------------------
-Test time: 11.683151006698608
+Test time: 420.25143241882324
 
-Epoch: [9][77/391]	LR: 0.01	DT: 0.000 (0.031)	BT: 0.112 (0.156)	Loss 0.0125 (0.0163)	Prec@1 100.000 (100.000)	
-Epoch: [9][155/391]	LR: 0.01	DT: 0.000 (0.016)	BT: 0.176 (0.144)	Loss 0.0152 (0.0156)	Prec@1 100.000 (100.000)	
-Epoch: [9][233/391]	LR: 0.01	DT: 0.000 (0.011)	BT: 0.150 (0.142)	Loss 0.0309 (0.0159)	Prec@1 100.000 (100.000)	
-Epoch: [9][311/391]	LR: 0.01	DT: 0.000 (0.008)	BT: 0.154 (0.144)	Loss 0.0124 (0.0159)	Prec@1 100.000 (99.997)	
-Epoch: [9][389/391]	LR: 0.01	DT: 0.000 (0.006)	BT: 0.148 (0.142)	Loss 0.0157 (0.0160)	Prec@1 100.000 (99.996)	
-Total train loss: 0.0160
-Avg Loading time: 0.0064 seconds
-Avg Batch time: 0.1423 seconds
+Epoch: [9][77/391]	LR: 0.01	DT: 0.000 (6.525)	BT: 0.171 (6.704)	Loss 0.2661 (0.3055)	Prec@1 89.844 (89.804)	
+Epoch: [9][155/391]	LR: 0.01	DT: 1.260 (6.733)	BT: 1.431 (6.914)	Loss 0.3127 (0.3011)	Prec@1 88.281 (89.739)	
+Epoch: [9][233/391]	LR: 0.01	DT: 5.378 (6.931)	BT: 5.564 (7.113)	Loss 0.3040 (0.3073)	Prec@1 88.281 (89.423)	
+Epoch: [9][311/391]	LR: 0.01	DT: 0.000 (6.878)	BT: 0.174 (7.060)	Loss 0.3416 (0.3133)	Prec@1 86.719 (89.358)	
+Epoch: [9][389/391]	LR: 0.01	DT: 0.000 (6.937)	BT: 0.170 (7.119)	Loss 0.3572 (0.3157)	Prec@1 89.062 (89.345)	
+Total train loss: 0.3159
+Avg Loading time: 6.9189 seconds
+Avg Batch time: 7.1008 seconds
 
-Train time: 55.73103857040405
- * Prec@1 94.740 Prec@5 99.820 Loss 0.1711
-Avg Loading time: 0.0868 seconds
-Avg Batch time: 0.1339 seconds
+Train time: 2776.4338076114655
+ * Prec@1 38.650 Prec@5 88.870 Loss 1.8447
+Avg Loading time: 5.3586 seconds
+Avg Batch time: 5.4141 seconds
 
-Best acc: 94.950
+Best acc: 88.800
 --------------------------------------------------------------------------------
-Test time: 11.228221654891968
+Test time: 428.55427527427673
 
-Epoch: [10][77/391]	LR: 0.002	DT: 0.000 (0.026)	BT: 0.171 (0.167)	Loss 0.0130 (0.0156)	Prec@1 100.000 (99.990)	
-Epoch: [10][155/391]	LR: 0.002	DT: 0.000 (0.013)	BT: 0.158 (0.162)	Loss 0.0134 (0.0155)	Prec@1 100.000 (99.990)	
-Epoch: [10][233/391]	LR: 0.002	DT: 0.000 (0.009)	BT: 0.078 (0.153)	Loss 0.0192 (0.0158)	Prec@1 100.000 (99.993)	
-Epoch: [10][311/391]	LR: 0.002	DT: 0.027 (0.049)	BT: 0.109 (0.186)	Loss 0.0153 (0.0157)	Prec@1 100.000 (99.995)	
-Epoch: [10][389/391]	LR: 0.002	DT: 0.000 (0.042)	BT: 0.092 (0.172)	Loss 0.0127 (0.0156)	Prec@1 100.000 (99.996)	
-Total train loss: 0.0157
-Avg Loading time: 0.0416 seconds
-Avg Batch time: 0.1720 seconds
+Epoch: [10][77/391]	LR: 0.002	DT: 0.000 (6.476)	BT: 0.169 (6.660)	Loss 0.2668 (0.2982)	Prec@1 90.625 (90.304)	
+Epoch: [10][155/391]	LR: 0.002	DT: 6.060 (6.644)	BT: 6.248 (6.827)	Loss 0.3022 (0.2957)	Prec@1 90.625 (90.269)	
+Epoch: [10][233/391]	LR: 0.002	DT: 0.000 (6.900)	BT: 0.191 (7.084)	Loss 0.3049 (0.2970)	Prec@1 88.281 (90.244)	
+Epoch: [10][311/391]	LR: 0.002	DT: 0.000 (6.869)	BT: 0.175 (7.053)	Loss 0.2190 (0.2947)	Prec@1 92.969 (90.360)	
+Epoch: [10][389/391]	LR: 0.002	DT: 0.000 (6.950)	BT: 0.173 (7.134)	Loss 0.3552 (0.2953)	Prec@1 89.844 (90.359)	
+Total train loss: 0.2952
+Avg Loading time: 6.9327 seconds
+Avg Batch time: 7.1161 seconds
 
-Train time: 67.36397361755371
- * Prec@1 94.850 Prec@5 99.790 Loss 0.1718
-Avg Loading time: 0.1709 seconds
-Avg Batch time: 0.2080 seconds
+Train time: 2782.4582657814026
+ * Prec@1 88.980 Prec@5 99.670 Loss 0.3242
+Avg Loading time: 6.3944 seconds
+Avg Batch time: 6.4533 seconds
 
-Best acc: 94.950
+Best acc: 88.980
 --------------------------------------------------------------------------------
-Test time: 17.095985412597656
+Test time: 512.411060333252
 
-Epoch: [11][77/391]	LR: 0.002	DT: 0.000 (0.038)	BT: 0.086 (0.166)	Loss 0.0124 (0.0154)	Prec@1 100.000 (99.980)	
-Epoch: [11][155/391]	LR: 0.002	DT: 0.030 (0.019)	BT: 0.187 (0.144)	Loss 0.0126 (0.0157)	Prec@1 100.000 (99.985)	
-Epoch: [11][233/391]	LR: 0.002	DT: 0.000 (0.013)	BT: 0.175 (0.140)	Loss 0.0128 (0.0157)	Prec@1 100.000 (99.990)	
-Epoch: [11][311/391]	LR: 0.002	DT: 0.000 (0.015)	BT: 0.146 (0.142)	Loss 0.0142 (0.0157)	Prec@1 100.000 (99.992)	
-Epoch: [11][389/391]	LR: 0.002	DT: 0.000 (0.012)	BT: 0.073 (0.140)	Loss 0.0104 (0.0158)	Prec@1 100.000 (99.988)	
-Total train loss: 0.0158
-Avg Loading time: 0.0122 seconds
-Avg Batch time: 0.1394 seconds
+Epoch: [11][77/391]	LR: 0.002	DT: 0.000 (5.523)	BT: 0.177 (5.704)	Loss 0.3181 (0.2836)	Prec@1 91.406 (90.725)	
+Epoch: [11][155/391]	LR: 0.002	DT: 0.000 (5.718)	BT: 0.167 (5.899)	Loss 0.2935 (0.2789)	Prec@1 90.625 (90.951)	
+Epoch: [11][233/391]	LR: 0.002	DT: 0.000 (6.086)	BT: 0.184 (6.267)	Loss 0.2178 (0.2812)	Prec@1 94.531 (90.715)	
+Epoch: [11][311/391]	LR: 0.002	DT: 0.000 (6.337)	BT: 0.170 (6.518)	Loss 0.3264 (0.2844)	Prec@1 89.062 (90.630)	
+Epoch: [11][389/391]	LR: 0.002	DT: 1.885 (6.598)	BT: 2.068 (6.779)	Loss 0.2017 (0.2828)	Prec@1 92.188 (90.669)	
+Total train loss: 0.2828
+Avg Loading time: 6.5814 seconds
+Avg Batch time: 6.7623 seconds
 
-Train time: 54.62846326828003
- * Prec@1 94.900 Prec@5 99.840 Loss 0.1696
-Avg Loading time: 0.1012 seconds
-Avg Batch time: 0.1391 seconds
+Train time: 2644.149196624756
+ * Prec@1 88.870 Prec@5 99.730 Loss 0.3191
+Avg Loading time: 6.7824 seconds
+Avg Batch time: 6.8396 seconds
 
-Best acc: 94.950
+Best acc: 88.980
 --------------------------------------------------------------------------------
-Test time: 11.645166158676147
+Test time: 540.8901646137238
 
-Epoch: [12][77/391]	LR: 0.002	DT: 0.000 (0.026)	BT: 0.146 (0.167)	Loss 0.0129 (0.0154)	Prec@1 100.000 (99.990)	
-Epoch: [12][155/391]	LR: 0.002	DT: 0.000 (0.013)	BT: 0.148 (0.150)	Loss 0.0216 (0.0156)	Prec@1 100.000 (99.990)	
-Epoch: [12][233/391]	LR: 0.002	DT: 0.000 (0.009)	BT: 0.186 (0.145)	Loss 0.0109 (0.0156)	Prec@1 100.000 (99.990)	
-Epoch: [12][311/391]	LR: 0.002	DT: 0.000 (0.007)	BT: 0.181 (0.147)	Loss 0.0106 (0.0157)	Prec@1 100.000 (99.992)	
-Epoch: [12][389/391]	LR: 0.002	DT: 0.000 (0.005)	BT: 0.075 (0.146)	Loss 0.0165 (0.0154)	Prec@1 100.000 (99.994)	
-Total train loss: 0.0154
-Avg Loading time: 0.0053 seconds
-Avg Batch time: 0.1456 seconds
+Epoch: [12][77/391]	LR: 0.002	DT: 0.000 (6.656)	BT: 0.171 (6.838)	Loss 0.2878 (0.2758)	Prec@1 89.844 (91.236)	
+Epoch: [12][155/391]	LR: 0.002	DT: 0.000 (6.813)	BT: 0.171 (6.995)	Loss 0.2798 (0.2769)	Prec@1 88.281 (90.845)	
+Epoch: [12][233/391]	LR: 0.002	DT: 11.684 (6.459)	BT: 11.870 (6.640)	Loss 0.2664 (0.2770)	Prec@1 91.406 (90.855)	
+Epoch: [12][311/391]	LR: 0.002	DT: 0.000 (6.402)	BT: 0.172 (6.584)	Loss 0.2120 (0.2802)	Prec@1 93.750 (90.753)	
+Epoch: [12][389/391]	LR: 0.002	DT: 0.000 (6.469)	BT: 0.171 (6.651)	Loss 0.3296 (0.2787)	Prec@1 88.281 (90.719)	
+Total train loss: 0.2789
+Avg Loading time: 6.4523 seconds
+Avg Batch time: 6.6345 seconds
 
-Train time: 57.019012451171875
- * Prec@1 94.840 Prec@5 99.830 Loss 0.1704
-Avg Loading time: 0.2596 seconds
-Avg Batch time: 0.3001 seconds
+Train time: 2594.118635416031
+ * Prec@1 88.990 Prec@5 99.740 Loss 0.3188
+Avg Loading time: 6.1841 seconds
+Avg Batch time: 6.2406 seconds
 
-Best acc: 94.950
+Best acc: 88.990
 --------------------------------------------------------------------------------
-Test time: 24.368234634399414
+Test time: 494.043212890625
 
-Epoch: [13][77/391]	LR: 0.002	DT: 0.000 (0.039)	BT: 0.079 (0.142)	Loss 0.0142 (0.0153)	Prec@1 100.000 (100.000)	
-Epoch: [13][155/391]	LR: 0.002	DT: 0.000 (0.026)	BT: 0.114 (0.134)	Loss 0.0140 (0.0152)	Prec@1 100.000 (100.000)	
-Epoch: [13][233/391]	LR: 0.002	DT: 0.000 (0.019)	BT: 0.134 (0.131)	Loss 0.0104 (0.0150)	Prec@1 100.000 (100.000)	
-Epoch: [13][311/391]	LR: 0.002	DT: 0.000 (0.014)	BT: 0.150 (0.130)	Loss 0.0118 (0.0150)	Prec@1 100.000 (100.000)	
-Epoch: [13][389/391]	LR: 0.002	DT: 0.000 (0.012)	BT: 0.085 (0.129)	Loss 0.0136 (0.0151)	Prec@1 100.000 (99.998)	
-Total train loss: 0.0151
-Avg Loading time: 0.0121 seconds
-Avg Batch time: 0.1288 seconds
+Epoch: [13][77/391]	LR: 0.002	DT: 2.758 (6.453)	BT: 2.942 (6.637)	Loss 0.2795 (0.2807)	Prec@1 90.625 (90.795)	
+Epoch: [13][155/391]	LR: 0.002	DT: 0.060 (6.601)	BT: 0.234 (6.785)	Loss 0.2451 (0.2774)	Prec@1 90.625 (90.765)	
+Epoch: [13][233/391]	LR: 0.002	DT: 0.000 (6.812)	BT: 0.186 (6.996)	Loss 0.1830 (0.2783)	Prec@1 95.312 (90.695)	
+Epoch: [13][311/391]	LR: 0.002	DT: 0.000 (6.624)	BT: 0.170 (6.807)	Loss 0.2400 (0.2753)	Prec@1 91.406 (90.840)	
+Epoch: [13][389/391]	LR: 0.002	DT: 0.000 (6.484)	BT: 0.177 (6.668)	Loss 0.2905 (0.2749)	Prec@1 90.625 (90.849)	
+Total train loss: 0.2752
+Avg Loading time: 6.4675 seconds
+Avg Batch time: 6.6507 seconds
 
-Train time: 50.470879554748535
- * Prec@1 94.680 Prec@5 99.830 Loss 0.1714
-Avg Loading time: 0.1027 seconds
-Avg Batch time: 0.1485 seconds
+Train time: 2600.6550698280334
+ * Prec@1 88.790 Prec@5 99.720 Loss 0.3176
+Avg Loading time: 6.4978 seconds
+Avg Batch time: 6.5572 seconds
 
-Best acc: 94.950
+Best acc: 88.990
 --------------------------------------------------------------------------------
-Test time: 12.414733171463013
+Test time: 518.8245599269867
 
-Epoch: [14][77/391]	LR: 0.002	DT: 0.000 (0.029)	BT: 0.112 (0.170)	Loss 0.0112 (0.0143)	Prec@1 100.000 (99.990)	
-Epoch: [14][155/391]	LR: 0.002	DT: 0.000 (0.015)	BT: 0.103 (0.156)	Loss 0.0165 (0.0144)	Prec@1 100.000 (99.995)	
-Epoch: [14][233/391]	LR: 0.002	DT: 0.000 (0.010)	BT: 0.176 (0.149)	Loss 0.0114 (0.0148)	Prec@1 100.000 (99.997)	
-Epoch: [14][311/391]	LR: 0.002	DT: 0.000 (0.008)	BT: 0.150 (0.147)	Loss 0.0115 (0.0148)	Prec@1 100.000 (99.997)	
-Epoch: [14][389/391]	LR: 0.002	DT: 0.000 (0.006)	BT: 0.117 (0.143)	Loss 0.0134 (0.0148)	Prec@1 100.000 (99.998)	
-Total train loss: 0.0148
-Avg Loading time: 0.0063 seconds
-Avg Batch time: 0.1431 seconds
+Epoch: [14][77/391]	LR: 0.002	DT: 0.000 (6.800)	BT: 0.170 (6.984)	Loss 0.2820 (0.2594)	Prec@1 90.625 (91.496)	
+Epoch: [14][155/391]	LR: 0.002	DT: 0.777 (6.838)	BT: 0.954 (7.020)	Loss 0.2253 (0.2654)	Prec@1 93.750 (91.241)	
+Epoch: [14][233/391]	LR: 0.002	DT: 10.722 (7.034)	BT: 10.919 (7.216)	Loss 0.2169 (0.2674)	Prec@1 94.531 (91.153)	
+Epoch: [14][311/391]	LR: 0.002	DT: 0.000 (6.925)	BT: 0.173 (7.107)	Loss 0.2306 (0.2685)	Prec@1 92.188 (91.133)	
+Epoch: [14][389/391]	LR: 0.002	DT: 0.000 (6.975)	BT: 0.172 (7.157)	Loss 0.1779 (0.2703)	Prec@1 95.312 (91.020)	
+Total train loss: 0.2703
+Avg Loading time: 6.9573 seconds
+Avg Batch time: 7.1392 seconds
 
-Train time: 56.07948112487793
- * Prec@1 94.780 Prec@5 99.850 Loss 0.1707
-Avg Loading time: 0.0944 seconds
-Avg Batch time: 0.1458 seconds
+Train time: 2791.49170255661
+ * Prec@1 89.120 Prec@5 99.680 Loss 0.3167
+Avg Loading time: 5.4888 seconds
+Avg Batch time: 5.5471 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 12.180169343948364
+Test time: 440.26588201522827
 
-Epoch: [15][77/391]	LR: 0.002	DT: 0.000 (0.152)	BT: 0.088 (0.275)	Loss 0.0128 (0.0144)	Prec@1 100.000 (99.990)	
-Epoch: [15][155/391]	LR: 0.002	DT: 0.000 (0.110)	BT: 0.086 (0.231)	Loss 0.0143 (0.0149)	Prec@1 100.000 (99.990)	
-Epoch: [15][233/391]	LR: 0.002	DT: 0.000 (0.081)	BT: 0.116 (0.197)	Loss 0.0170 (0.0149)	Prec@1 100.000 (99.993)	
-Epoch: [15][311/391]	LR: 0.002	DT: 0.000 (0.064)	BT: 0.159 (0.180)	Loss 0.0127 (0.0148)	Prec@1 100.000 (99.995)	
-Epoch: [15][389/391]	LR: 0.002	DT: 0.000 (0.052)	BT: 0.080 (0.169)	Loss 0.0169 (0.0148)	Prec@1 100.000 (99.996)	
-Total train loss: 0.0148
-Avg Loading time: 0.0517 seconds
-Avg Batch time: 0.1687 seconds
+Epoch: [15][77/391]	LR: 0.002	DT: 0.000 (5.853)	BT: 0.172 (6.033)	Loss 0.2244 (0.2707)	Prec@1 92.969 (90.845)	
+Epoch: [15][155/391]	LR: 0.002	DT: 0.000 (6.092)	BT: 0.172 (6.274)	Loss 0.2625 (0.2671)	Prec@1 89.062 (90.996)	
+Epoch: [15][233/391]	LR: 0.002	DT: 1.402 (6.577)	BT: 1.585 (6.759)	Loss 0.1809 (0.2668)	Prec@1 92.969 (91.059)	
+Epoch: [15][311/391]	LR: 0.002	DT: 0.000 (6.616)	BT: 0.177 (6.797)	Loss 0.3645 (0.2703)	Prec@1 88.281 (91.003)	
+Epoch: [15][389/391]	LR: 0.002	DT: 0.000 (6.732)	BT: 0.171 (6.914)	Loss 0.3181 (0.2697)	Prec@1 87.500 (91.030)	
+Total train loss: 0.2696
+Avg Loading time: 6.7151 seconds
+Avg Batch time: 6.8970 seconds
 
-Train time: 66.09732389450073
- * Prec@1 94.700 Prec@5 99.830 Loss 0.1718
-Avg Loading time: 0.1220 seconds
-Avg Batch time: 0.1614 seconds
+Train time: 2696.794264316559
+ * Prec@1 88.870 Prec@5 99.710 Loss 0.3179
+Avg Loading time: 6.5195 seconds
+Avg Batch time: 6.5750 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 13.431540727615356
+Test time: 520.4327826499939
 
-Epoch: [16][77/391]	LR: 0.002	DT: 0.000 (0.036)	BT: 0.112 (0.162)	Loss 0.0115 (0.0146)	Prec@1 100.000 (100.000)	
-Epoch: [16][155/391]	LR: 0.002	DT: 0.000 (0.018)	BT: 0.152 (0.148)	Loss 0.0131 (0.0148)	Prec@1 100.000 (100.000)	
-Epoch: [16][233/391]	LR: 0.002	DT: 0.000 (0.012)	BT: 0.152 (0.145)	Loss 0.0301 (0.0149)	Prec@1 100.000 (100.000)	
-Epoch: [16][311/391]	LR: 0.002	DT: 0.000 (0.009)	BT: 0.150 (0.145)	Loss 0.0171 (0.0151)	Prec@1 100.000 (100.000)	
-Epoch: [16][389/391]	LR: 0.002	DT: 0.000 (0.008)	BT: 0.158 (0.143)	Loss 0.0125 (0.0151)	Prec@1 100.000 (100.000)	
-Total train loss: 0.0151
-Avg Loading time: 0.0076 seconds
-Avg Batch time: 0.1430 seconds
+Epoch: [16][77/391]	LR: 0.002	DT: 3.115 (5.688)	BT: 3.312 (5.871)	Loss 0.2310 (0.2682)	Prec@1 92.969 (91.096)	
+Epoch: [16][155/391]	LR: 0.002	DT: 0.000 (5.680)	BT: 0.171 (5.863)	Loss 0.3105 (0.2673)	Prec@1 87.500 (91.021)	
+Epoch: [16][233/391]	LR: 0.002	DT: 0.000 (6.044)	BT: 0.180 (6.227)	Loss 0.2671 (0.2667)	Prec@1 89.844 (91.129)	
+Epoch: [16][311/391]	LR: 0.002	DT: 0.000 (6.135)	BT: 0.173 (6.319)	Loss 0.2318 (0.2685)	Prec@1 91.406 (91.001)	
+Epoch: [16][389/391]	LR: 0.002	DT: 2.353 (6.388)	BT: 2.538 (6.571)	Loss 0.2485 (0.2696)	Prec@1 92.969 (90.911)	
+Total train loss: 0.2695
+Avg Loading time: 6.3714 seconds
+Avg Batch time: 6.5546 seconds
 
-Train time: 56.02338695526123
- * Prec@1 94.880 Prec@5 99.850 Loss 0.1696
-Avg Loading time: 0.0965 seconds
-Avg Batch time: 0.1477 seconds
+Train time: 2562.899403810501
+ * Prec@1 88.900 Prec@5 99.700 Loss 0.3159
+Avg Loading time: 6.2846 seconds
+Avg Batch time: 6.3451 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 12.347490072250366
+Test time: 501.9699125289917
 
-Epoch: [17][77/391]	LR: 0.002	DT: 0.000 (0.023)	BT: 0.152 (0.158)	Loss 0.0152 (0.0148)	Prec@1 100.000 (100.000)	
-Epoch: [17][155/391]	LR: 0.002	DT: 0.000 (0.012)	BT: 0.157 (0.157)	Loss 0.0107 (0.0151)	Prec@1 100.000 (100.000)	
-Epoch: [17][233/391]	LR: 0.002	DT: 0.000 (0.008)	BT: 0.080 (0.153)	Loss 0.0138 (0.0153)	Prec@1 100.000 (99.997)	
-Epoch: [17][311/391]	LR: 0.002	DT: 0.000 (0.051)	BT: 0.093 (0.189)	Loss 0.0233 (0.0154)	Prec@1 100.000 (99.997)	
-Epoch: [17][389/391]	LR: 0.002	DT: 0.000 (0.047)	BT: 0.080 (0.177)	Loss 0.0159 (0.0152)	Prec@1 100.000 (99.998)	
-Total train loss: 0.0152
-Avg Loading time: 0.0469 seconds
-Avg Batch time: 0.1766 seconds
+Epoch: [17][77/391]	LR: 0.002	DT: 0.000 (6.371)	BT: 0.170 (6.552)	Loss 0.3093 (0.2619)	Prec@1 90.625 (91.216)	
+Epoch: [17][155/391]	LR: 0.002	DT: 0.000 (6.557)	BT: 0.176 (6.739)	Loss 0.2729 (0.2623)	Prec@1 92.188 (91.221)	
+Epoch: [17][233/391]	LR: 0.002	DT: 1.288 (6.290)	BT: 1.470 (6.472)	Loss 0.2588 (0.2678)	Prec@1 90.625 (91.052)	
+Epoch: [17][311/391]	LR: 0.002	DT: 0.729 (6.286)	BT: 0.911 (6.468)	Loss 0.3481 (0.2690)	Prec@1 86.719 (91.003)	
+Epoch: [17][389/391]	LR: 0.002	DT: 0.000 (6.358)	BT: 0.169 (6.540)	Loss 0.2908 (0.2684)	Prec@1 87.500 (91.040)	
+Total train loss: 0.2684
+Avg Loading time: 6.3414 seconds
+Avg Batch time: 6.5235 seconds
 
-Train time: 69.19290661811829
- * Prec@1 94.760 Prec@5 99.830 Loss 0.1707
-Avg Loading time: 0.1063 seconds
-Avg Batch time: 0.1518 seconds
+Train time: 2550.7240929603577
+ * Prec@1 89.050 Prec@5 99.680 Loss 0.3164
+Avg Loading time: 5.4738 seconds
+Avg Batch time: 5.5285 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 12.672977447509766
+Test time: 437.31172275543213
 
-Epoch: [18][77/391]	LR: 0.002	DT: 0.000 (0.026)	BT: 0.113 (0.152)	Loss 0.0108 (0.0151)	Prec@1 100.000 (100.000)	
-Epoch: [18][155/391]	LR: 0.002	DT: 0.000 (0.013)	BT: 0.112 (0.137)	Loss 0.0129 (0.0149)	Prec@1 100.000 (100.000)	
-Epoch: [18][233/391]	LR: 0.002	DT: 0.000 (0.016)	BT: 0.168 (0.140)	Loss 0.0105 (0.0151)	Prec@1 100.000 (99.993)	
-Epoch: [18][311/391]	LR: 0.002	DT: 0.000 (0.013)	BT: 0.171 (0.136)	Loss 0.0183 (0.0152)	Prec@1 100.000 (99.992)	
-Epoch: [18][389/391]	LR: 0.002	DT: 0.000 (0.011)	BT: 0.157 (0.137)	Loss 0.0176 (0.0151)	Prec@1 100.000 (99.992)	
-Total train loss: 0.0152
-Avg Loading time: 0.0106 seconds
-Avg Batch time: 0.1369 seconds
+Epoch: [18][77/391]	LR: 0.002	DT: 0.000 (6.477)	BT: 0.172 (6.659)	Loss 0.2017 (0.2550)	Prec@1 93.750 (91.406)	
+Epoch: [18][155/391]	LR: 0.002	DT: 0.000 (6.621)	BT: 0.182 (6.802)	Loss 0.3208 (0.2622)	Prec@1 88.281 (91.106)	
+Epoch: [18][233/391]	LR: 0.002	DT: 0.000 (6.846)	BT: 0.186 (7.027)	Loss 0.1598 (0.2671)	Prec@1 94.531 (90.865)	
+Epoch: [18][311/391]	LR: 0.002	DT: 0.000 (6.675)	BT: 0.172 (6.855)	Loss 0.3958 (0.2670)	Prec@1 89.844 (90.943)	
+Epoch: [18][389/391]	LR: 0.002	DT: 0.000 (6.465)	BT: 0.178 (6.645)	Loss 0.2993 (0.2661)	Prec@1 91.406 (90.980)	
+Total train loss: 0.2663
+Avg Loading time: 6.4480 seconds
+Avg Batch time: 6.6283 seconds
 
-Train time: 53.64604187011719
- * Prec@1 94.780 Prec@5 99.850 Loss 0.1702
-Avg Loading time: 0.1015 seconds
-Avg Batch time: 0.1465 seconds
+Train time: 2591.8640427589417
+ * Prec@1 88.990 Prec@5 99.670 Loss 0.3162
+Avg Loading time: 6.7130 seconds
+Avg Batch time: 6.7767 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 12.25355076789856
+Test time: 535.9491817951202
 
-Epoch: [19][77/391]	LR: 0.002	DT: 0.000 (0.027)	BT: 0.150 (0.177)	Loss 0.0132 (0.0149)	Prec@1 100.000 (100.000)	
-Epoch: [19][155/391]	LR: 0.002	DT: 0.000 (0.014)	BT: 0.152 (0.159)	Loss 0.0189 (0.0150)	Prec@1 100.000 (99.995)	
-Epoch: [19][233/391]	LR: 0.002	DT: 0.000 (0.009)	BT: 0.152 (0.150)	Loss 0.0250 (0.0153)	Prec@1 100.000 (99.990)	
-Epoch: [19][311/391]	LR: 0.002	DT: 0.000 (0.007)	BT: 0.152 (0.152)	Loss 0.0170 (0.0155)	Prec@1 100.000 (99.975)	
-Epoch: [19][389/391]	LR: 0.002	DT: 0.000 (0.006)	BT: 0.078 (0.151)	Loss 0.0127 (0.0153)	Prec@1 100.000 (99.978)	
-Total train loss: 0.0153
-Avg Loading time: 0.0055 seconds
-Avg Batch time: 0.1510 seconds
+Epoch: [19][77/391]	LR: 0.002	DT: 0.000 (7.474)	BT: 0.178 (7.655)	Loss 0.2949 (0.2674)	Prec@1 91.406 (90.915)	
+Epoch: [19][155/391]	LR: 0.002	DT: 0.000 (7.280)	BT: 0.172 (7.461)	Loss 0.2646 (0.2647)	Prec@1 92.188 (91.121)	
+Epoch: [19][233/391]	LR: 0.002	DT: 0.000 (7.279)	BT: 0.190 (7.460)	Loss 0.3110 (0.2639)	Prec@1 86.719 (91.096)	
+Epoch: [19][311/391]	LR: 0.002	DT: 0.000 (7.161)	BT: 0.171 (7.343)	Loss 0.2622 (0.2623)	Prec@1 89.062 (91.226)	
+Epoch: [19][389/391]	LR: 0.002	DT: 0.000 (7.171)	BT: 0.174 (7.353)	Loss 0.3777 (0.2637)	Prec@1 86.719 (91.134)	
+Total train loss: 0.2638
+Avg Loading time: 7.1526 seconds
+Avg Batch time: 7.3348 seconds
 
-Train time: 59.13223624229431
- * Prec@1 94.770 Prec@5 99.830 Loss 0.1697
-Avg Loading time: 0.2161 seconds
-Avg Batch time: 0.2579 seconds
+Train time: 2868.0211567878723
+ * Prec@1 88.860 Prec@5 99.700 Loss 0.3167
+Avg Loading time: 6.0510 seconds
+Avg Batch time: 6.1117 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 21.033687829971313
+Test time: 484.4469349384308
 
-Epoch: [20][77/391]	LR: 0.0004	DT: 0.000 (0.028)	BT: 0.082 (0.130)	Loss 0.0161 (0.0146)	Prec@1 100.000 (100.000)	
-Epoch: [20][155/391]	LR: 0.0004	DT: 0.000 (0.024)	BT: 0.184 (0.129)	Loss 0.0198 (0.0148)	Prec@1 100.000 (100.000)	
-Epoch: [20][233/391]	LR: 0.0004	DT: 0.000 (0.016)	BT: 0.144 (0.128)	Loss 0.0112 (0.0147)	Prec@1 100.000 (100.000)	
-Epoch: [20][311/391]	LR: 0.0004	DT: 0.000 (0.012)	BT: 0.120 (0.127)	Loss 0.0230 (0.0150)	Prec@1 100.000 (99.987)	
-Epoch: [20][389/391]	LR: 0.0004	DT: 0.000 (0.010)	BT: 0.092 (0.126)	Loss 0.0128 (0.0150)	Prec@1 100.000 (99.990)	
-Total train loss: 0.0150
-Avg Loading time: 0.0098 seconds
-Avg Batch time: 0.1255 seconds
+Epoch: [20][77/391]	LR: 0.0004	DT: 0.000 (5.933)	BT: 0.173 (6.114)	Loss 0.2101 (0.2648)	Prec@1 93.750 (91.006)	
+Epoch: [20][155/391]	LR: 0.0004	DT: 3.280 (6.196)	BT: 3.455 (6.378)	Loss 0.2695 (0.2620)	Prec@1 91.406 (91.041)	
+Epoch: [20][233/391]	LR: 0.0004	DT: 0.000 (6.457)	BT: 0.183 (6.639)	Loss 0.2274 (0.2599)	Prec@1 90.625 (91.169)	
+Epoch: [20][311/391]	LR: 0.0004	DT: 0.000 (6.542)	BT: 0.172 (6.724)	Loss 0.2284 (0.2603)	Prec@1 93.750 (91.208)	
+Epoch: [20][389/391]	LR: 0.0004	DT: 0.000 (6.724)	BT: 0.175 (6.907)	Loss 0.1906 (0.2603)	Prec@1 95.312 (91.250)	
+Total train loss: 0.2604
+Avg Loading time: 6.7072 seconds
+Avg Batch time: 6.8892 seconds
 
-Train time: 49.18181133270264
- * Prec@1 94.780 Prec@5 99.840 Loss 0.1707
-Avg Loading time: 0.0924 seconds
-Avg Batch time: 0.1302 seconds
+Train time: 2693.7709662914276
+ * Prec@1 89.120 Prec@5 99.640 Loss 0.3159
+Avg Loading time: 6.8392 seconds
+Avg Batch time: 6.8996 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 10.951371669769287
+Test time: 545.8784239292145
 
-Epoch: [21][77/391]	LR: 0.0004	DT: 0.000 (0.019)	BT: 0.153 (0.158)	Loss 0.0126 (0.0155)	Prec@1 100.000 (99.970)	
-Epoch: [21][155/391]	LR: 0.0004	DT: 0.000 (0.009)	BT: 0.148 (0.152)	Loss 0.0122 (0.0151)	Prec@1 100.000 (99.985)	
-Epoch: [21][233/391]	LR: 0.0004	DT: 0.000 (0.006)	BT: 0.186 (0.147)	Loss 0.0127 (0.0151)	Prec@1 100.000 (99.990)	
-Epoch: [21][311/391]	LR: 0.0004	DT: 0.000 (0.005)	BT: 0.155 (0.146)	Loss 0.0118 (0.0150)	Prec@1 100.000 (99.990)	
-Epoch: [21][389/391]	LR: 0.0004	DT: 0.000 (0.004)	BT: 0.078 (0.143)	Loss 0.0208 (0.0150)	Prec@1 100.000 (99.992)	
-Total train loss: 0.0150
-Avg Loading time: 0.0039 seconds
-Avg Batch time: 0.1431 seconds
+Epoch: [21][77/391]	LR: 0.0004	DT: 0.000 (6.010)	BT: 0.171 (6.191)	Loss 0.2399 (0.2703)	Prec@1 91.406 (90.695)	
+Epoch: [21][155/391]	LR: 0.0004	DT: 0.000 (5.793)	BT: 0.171 (5.974)	Loss 0.2878 (0.2636)	Prec@1 89.844 (90.951)	
+Epoch: [21][233/391]	LR: 0.0004	DT: 14.198 (6.274)	BT: 14.392 (6.455)	Loss 0.3135 (0.2633)	Prec@1 86.719 (91.062)	
+Epoch: [21][311/391]	LR: 0.0004	DT: 0.000 (6.517)	BT: 0.174 (6.699)	Loss 0.2146 (0.2625)	Prec@1 95.312 (91.173)	
+Epoch: [21][389/391]	LR: 0.0004	DT: 0.000 (6.837)	BT: 0.175 (7.019)	Loss 0.3169 (0.2626)	Prec@1 89.844 (91.124)	
+Total train loss: 0.2628
+Avg Loading time: 6.8197 seconds
+Avg Batch time: 7.0015 seconds
 
-Train time: 56.09917235374451
- * Prec@1 94.810 Prec@5 99.830 Loss 0.1699
-Avg Loading time: 0.1013 seconds
-Avg Batch time: 0.1371 seconds
+Train time: 2737.631507396698
+ * Prec@1 89.070 Prec@5 99.680 Loss 0.3147
+Avg Loading time: 7.6017 seconds
+Avg Batch time: 7.6605 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 11.530226945877075
+Test time: 605.7422595024109
 
-Epoch: [22][77/391]	LR: 0.0004	DT: 0.000 (0.022)	BT: 0.152 (0.177)	Loss 0.0158 (0.0144)	Prec@1 100.000 (100.000)	
-Epoch: [22][155/391]	LR: 0.0004	DT: 0.000 (0.072)	BT: 0.151 (0.207)	Loss 0.0146 (0.0149)	Prec@1 100.000 (99.995)	
-Epoch: [22][233/391]	LR: 0.0004	DT: 0.000 (0.051)	BT: 0.088 (0.178)	Loss 0.0164 (0.0151)	Prec@1 100.000 (99.997)	
-Epoch: [22][311/391]	LR: 0.0004	DT: 0.000 (0.043)	BT: 0.102 (0.164)	Loss 0.0160 (0.0152)	Prec@1 100.000 (99.995)	
-Epoch: [22][389/391]	LR: 0.0004	DT: 0.000 (0.037)	BT: 0.102 (0.156)	Loss 0.0122 (0.0150)	Prec@1 100.000 (99.996)	
-Total train loss: 0.0150
-Avg Loading time: 0.0364 seconds
-Avg Batch time: 0.1554 seconds
+Epoch: [22][77/391]	LR: 0.0004	DT: 0.000 (7.385)	BT: 0.173 (7.567)	Loss 0.2434 (0.2487)	Prec@1 92.188 (91.737)	
+Epoch: [22][155/391]	LR: 0.0004	DT: 0.000 (7.470)	BT: 0.172 (7.653)	Loss 0.2634 (0.2551)	Prec@1 92.969 (91.622)	
+Epoch: [22][233/391]	LR: 0.0004	DT: 5.494 (6.948)	BT: 5.686 (7.132)	Loss 0.2935 (0.2590)	Prec@1 86.719 (91.326)	
+Epoch: [22][311/391]	LR: 0.0004	DT: 0.000 (6.753)	BT: 0.171 (6.937)	Loss 0.3362 (0.2598)	Prec@1 88.281 (91.309)	
+Epoch: [22][389/391]	LR: 0.0004	DT: 0.000 (6.795)	BT: 0.171 (6.978)	Loss 0.2722 (0.2592)	Prec@1 91.406 (91.324)	
+Total train loss: 0.2593
+Avg Loading time: 6.7775 seconds
+Avg Batch time: 6.9609 seconds
 
-Train time: 60.90825653076172
- * Prec@1 94.820 Prec@5 99.820 Loss 0.1704
-Avg Loading time: 0.0941 seconds
-Avg Batch time: 0.1335 seconds
+Train time: 2721.7587337493896
+ * Prec@1 88.870 Prec@5 99.650 Loss 0.3154
+Avg Loading time: 6.2400 seconds
+Avg Batch time: 6.2948 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 11.236250400543213
+Test time: 497.85082244873047
 
-Epoch: [23][77/391]	LR: 0.0004	DT: 0.000 (0.027)	BT: 0.154 (0.153)	Loss 0.0137 (0.0156)	Prec@1 100.000 (99.980)	
-Epoch: [23][155/391]	LR: 0.0004	DT: 0.000 (0.014)	BT: 0.156 (0.135)	Loss 0.0142 (0.0156)	Prec@1 100.000 (99.985)	
-Epoch: [23][233/391]	LR: 0.0004	DT: 0.000 (0.009)	BT: 0.084 (0.133)	Loss 0.0160 (0.0154)	Prec@1 100.000 (99.987)	
-Epoch: [23][311/391]	LR: 0.0004	DT: 0.000 (0.007)	BT: 0.153 (0.133)	Loss 0.0230 (0.0154)	Prec@1 100.000 (99.990)	
-Epoch: [23][389/391]	LR: 0.0004	DT: 0.000 (0.006)	BT: 0.150 (0.135)	Loss 0.0103 (0.0152)	Prec@1 100.000 (99.990)	
-Total train loss: 0.0152
-Avg Loading time: 0.0056 seconds
-Avg Batch time: 0.1354 seconds
+Epoch: [23][77/391]	LR: 0.0004	DT: 0.000 (8.218)	BT: 0.175 (8.404)	Loss 0.2705 (0.2683)	Prec@1 89.844 (90.996)	
+Epoch: [23][155/391]	LR: 0.0004	DT: 0.000 (8.339)	BT: 0.172 (8.524)	Loss 0.2168 (0.2660)	Prec@1 93.750 (91.111)	
+Epoch: [23][233/391]	LR: 0.0004	DT: 14.053 (8.511)	BT: 14.263 (8.698)	Loss 0.2595 (0.2639)	Prec@1 90.625 (91.189)	
+Epoch: [23][311/391]	LR: 0.0004	DT: 2.668 (8.099)	BT: 2.843 (8.285)	Loss 0.3623 (0.2625)	Prec@1 87.500 (91.206)	
+Epoch: [23][389/391]	LR: 0.0004	DT: 0.000 (7.636)	BT: 0.172 (7.822)	Loss 0.2134 (0.2606)	Prec@1 93.750 (91.298)	
+Total train loss: 0.2606
+Avg Loading time: 7.6165 seconds
+Avg Batch time: 7.8025 seconds
 
-Train time: 53.04302906990051
- * Prec@1 94.890 Prec@5 99.840 Loss 0.1696
-Avg Loading time: 0.0848 seconds
-Avg Batch time: 0.1306 seconds
+Train time: 3050.8207359313965
+ * Prec@1 88.990 Prec@5 99.680 Loss 0.3145
+Avg Loading time: 7.0722 seconds
+Avg Batch time: 7.1352 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 10.977880716323853
+Test time: 564.4956679344177
 
-Epoch: [24][77/391]	LR: 0.0004	DT: 0.000 (0.020)	BT: 0.149 (0.172)	Loss 0.0180 (0.0145)	Prec@1 100.000 (99.990)	
-Epoch: [24][155/391]	LR: 0.0004	DT: 0.000 (0.010)	BT: 0.175 (0.154)	Loss 0.0164 (0.0150)	Prec@1 100.000 (99.990)	
-Epoch: [24][233/391]	LR: 0.0004	DT: 0.000 (0.007)	BT: 0.154 (0.149)	Loss 0.0146 (0.0151)	Prec@1 100.000 (99.993)	
-Epoch: [24][311/391]	LR: 0.0004	DT: 0.000 (0.005)	BT: 0.131 (0.149)	Loss 0.0148 (0.0152)	Prec@1 100.000 (99.995)	
-Epoch: [24][389/391]	LR: 0.0004	DT: 0.000 (0.012)	BT: 0.078 (0.154)	Loss 0.0146 (0.0152)	Prec@1 100.000 (99.996)	
-Total train loss: 0.0152
-Avg Loading time: 0.0124 seconds
-Avg Batch time: 0.1540 seconds
+Epoch: [24][77/391]	LR: 0.0004	DT: 0.000 (7.046)	BT: 0.175 (7.228)	Loss 0.2163 (0.2517)	Prec@1 92.188 (91.827)	
+Epoch: [24][155/391]	LR: 0.0004	DT: 0.000 (6.967)	BT: 0.174 (7.150)	Loss 0.2690 (0.2532)	Prec@1 89.844 (91.627)	
+Epoch: [24][233/391]	LR: 0.0004	DT: 0.000 (7.101)	BT: 0.190 (7.283)	Loss 0.2583 (0.2561)	Prec@1 89.844 (91.553)	
+Epoch: [24][311/391]	LR: 0.0004	DT: 0.000 (7.016)	BT: 0.170 (7.198)	Loss 0.1598 (0.2605)	Prec@1 95.312 (91.364)	
+Epoch: [24][389/391]	LR: 0.0004	DT: 0.879 (7.058)	BT: 1.054 (7.241)	Loss 0.2754 (0.2602)	Prec@1 89.062 (91.368)	
+Total train loss: 0.2601
+Avg Loading time: 7.0404 seconds
+Avg Batch time: 7.2224 seconds
 
-Train time: 60.32621717453003
- * Prec@1 94.740 Prec@5 99.830 Loss 0.1711
-Avg Loading time: 0.1383 seconds
-Avg Batch time: 0.1813 seconds
+Train time: 2824.0193395614624
+ * Prec@1 88.980 Prec@5 99.680 Loss 0.3152
+Avg Loading time: 6.2277 seconds
+Avg Batch time: 6.2897 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 14.985631465911865
+Test time: 498.9963889122009
 
-Epoch: [25][77/391]	LR: 0.0004	DT: 0.107 (0.034)	BT: 0.233 (0.136)	Loss 0.0162 (0.0155)	Prec@1 100.000 (99.990)	
-Epoch: [25][155/391]	LR: 0.0004	DT: 0.000 (0.025)	BT: 0.177 (0.127)	Loss 0.0155 (0.0153)	Prec@1 100.000 (99.995)	
-Epoch: [25][233/391]	LR: 0.0004	DT: 0.000 (0.017)	BT: 0.170 (0.128)	Loss 0.0163 (0.0153)	Prec@1 100.000 (99.997)	
-Epoch: [25][311/391]	LR: 0.0004	DT: 0.000 (0.013)	BT: 0.116 (0.127)	Loss 0.0108 (0.0152)	Prec@1 100.000 (99.987)	
-Epoch: [25][389/391]	LR: 0.0004	DT: 0.000 (0.010)	BT: 0.087 (0.126)	Loss 0.0126 (0.0151)	Prec@1 100.000 (99.990)	
-Total train loss: 0.0151
-Avg Loading time: 0.0102 seconds
-Avg Batch time: 0.1262 seconds
+Epoch: [25][77/391]	LR: 0.0004	DT: 0.000 (5.524)	BT: 0.178 (5.707)	Loss 0.2607 (0.2506)	Prec@1 91.406 (91.506)	
+Epoch: [25][155/391]	LR: 0.0004	DT: 6.075 (6.097)	BT: 6.261 (6.281)	Loss 0.3022 (0.2524)	Prec@1 90.625 (91.526)	
+Epoch: [25][233/391]	LR: 0.0004	DT: 4.912 (6.351)	BT: 5.086 (6.536)	Loss 0.2661 (0.2571)	Prec@1 92.188 (91.393)	
+Epoch: [25][311/391]	LR: 0.0004	DT: 0.000 (6.514)	BT: 0.176 (6.699)	Loss 0.2349 (0.2601)	Prec@1 91.406 (91.256)	
+Epoch: [25][389/391]	LR: 0.0004	DT: 0.000 (6.700)	BT: 0.171 (6.885)	Loss 0.3086 (0.2603)	Prec@1 90.625 (91.264)	
+Total train loss: 0.2604
+Avg Loading time: 6.6831 seconds
+Avg Batch time: 6.8677 seconds
 
-Train time: 49.435575008392334
- * Prec@1 94.830 Prec@5 99.830 Loss 0.1697
-Avg Loading time: 0.0933 seconds
-Avg Batch time: 0.1335 seconds
+Train time: 2685.3021953105927
+ * Prec@1 88.970 Prec@5 99.690 Loss 0.3147
+Avg Loading time: 6.7626 seconds
+Avg Batch time: 6.8193 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 11.212882995605469
+Test time: 539.3415687084198
 
-Epoch: [26][77/391]	LR: 0.0004	DT: 0.000 (0.031)	BT: 0.165 (0.163)	Loss 0.0148 (0.0148)	Prec@1 100.000 (100.000)	
-Epoch: [26][155/391]	LR: 0.0004	DT: 0.000 (0.016)	BT: 0.156 (0.151)	Loss 0.0121 (0.0151)	Prec@1 100.000 (100.000)	
-Epoch: [26][233/391]	LR: 0.0004	DT: 0.000 (0.011)	BT: 0.081 (0.147)	Loss 0.0122 (0.0149)	Prec@1 100.000 (100.000)	
-Epoch: [26][311/391]	LR: 0.0004	DT: 0.000 (0.008)	BT: 0.160 (0.144)	Loss 0.0140 (0.0151)	Prec@1 100.000 (100.000)	
-Epoch: [26][389/391]	LR: 0.0004	DT: 0.000 (0.006)	BT: 0.077 (0.144)	Loss 0.0158 (0.0150)	Prec@1 100.000 (100.000)	
-Total train loss: 0.0150
-Avg Loading time: 0.0064 seconds
-Avg Batch time: 0.1437 seconds
+Epoch: [26][77/391]	LR: 0.0004	DT: 0.000 (6.492)	BT: 0.172 (6.676)	Loss 0.1891 (0.2582)	Prec@1 93.750 (91.406)	
+Epoch: [26][155/391]	LR: 0.0004	DT: 0.000 (5.890)	BT: 0.173 (6.072)	Loss 0.2834 (0.2566)	Prec@1 91.406 (91.436)	
+Epoch: [26][233/391]	LR: 0.0004	DT: 11.611 (6.330)	BT: 11.808 (6.513)	Loss 0.1499 (0.2573)	Prec@1 96.875 (91.446)	
+Epoch: [26][311/391]	LR: 0.0004	DT: 0.000 (6.409)	BT: 0.180 (6.592)	Loss 0.2401 (0.2596)	Prec@1 91.406 (91.316)	
+Epoch: [26][389/391]	LR: 0.0004	DT: 0.000 (6.631)	BT: 0.176 (6.815)	Loss 0.3167 (0.2608)	Prec@1 89.844 (91.218)	
+Total train loss: 0.2608
+Avg Loading time: 6.6144 seconds
+Avg Batch time: 6.7978 seconds
 
-Train time: 56.330698013305664
- * Prec@1 94.830 Prec@5 99.850 Loss 0.1704
-Avg Loading time: 0.0859 seconds
-Avg Batch time: 0.1287 seconds
+Train time: 2657.9801025390625
+ * Prec@1 88.960 Prec@5 99.690 Loss 0.3169
+Avg Loading time: 7.5750 seconds
+Avg Batch time: 7.6371 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 10.830068111419678
+Test time: 603.8910114765167
 
-Epoch: [27][77/391]	LR: 0.0004	DT: 0.000 (0.023)	BT: 0.152 (0.177)	Loss 0.0141 (0.0150)	Prec@1 100.000 (100.000)	
-Epoch: [27][155/391]	LR: 0.0004	DT: 0.000 (0.012)	BT: 0.078 (0.156)	Loss 0.0146 (0.0149)	Prec@1 100.000 (100.000)	
-Epoch: [27][233/391]	LR: 0.0004	DT: 0.000 (0.062)	BT: 0.086 (0.197)	Loss 0.0127 (0.0149)	Prec@1 100.000 (100.000)	
-Epoch: [27][311/391]	LR: 0.0004	DT: 0.000 (0.050)	BT: 0.083 (0.176)	Loss 0.0257 (0.0149)	Prec@1 100.000 (100.000)	
-Epoch: [27][389/391]	LR: 0.0004	DT: 0.000 (0.042)	BT: 0.087 (0.165)	Loss 0.0124 (0.0148)	Prec@1 100.000 (100.000)	
-Total train loss: 0.0148
-Avg Loading time: 0.0423 seconds
-Avg Batch time: 0.1647 seconds
+Epoch: [27][77/391]	LR: 0.0004	DT: 0.000 (7.612)	BT: 0.172 (7.795)	Loss 0.2031 (0.2686)	Prec@1 94.531 (91.006)	
+Epoch: [27][155/391]	LR: 0.0004	DT: 3.461 (7.856)	BT: 3.637 (8.040)	Loss 0.2148 (0.2589)	Prec@1 91.406 (91.366)	
+Epoch: [27][233/391]	LR: 0.0004	DT: 5.899 (7.712)	BT: 6.096 (7.896)	Loss 0.2456 (0.2616)	Prec@1 92.188 (91.276)	
+Epoch: [27][311/391]	LR: 0.0004	DT: 0.000 (7.225)	BT: 0.172 (7.409)	Loss 0.2981 (0.2600)	Prec@1 85.938 (91.349)	
+Epoch: [27][389/391]	LR: 0.0004	DT: 0.000 (7.242)	BT: 0.172 (7.427)	Loss 0.3083 (0.2595)	Prec@1 89.062 (91.404)	
+Total train loss: 0.2595
+Avg Loading time: 7.2233 seconds
+Avg Batch time: 7.4081 seconds
 
-Train time: 64.53372836112976
- * Prec@1 94.760 Prec@5 99.810 Loss 0.1711
-Avg Loading time: 0.1014 seconds
-Avg Batch time: 0.1455 seconds
+Train time: 2896.6104803085327
+ * Prec@1 89.090 Prec@5 99.660 Loss 0.3157
+Avg Loading time: 6.5645 seconds
+Avg Batch time: 6.6307 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 12.177593231201172
+Test time: 525.7270030975342
 
-Epoch: [28][77/391]	LR: 0.0004	DT: 0.000 (0.026)	BT: 0.077 (0.142)	Loss 0.0145 (0.0150)	Prec@1 100.000 (100.000)	
-Epoch: [28][155/391]	LR: 0.0004	DT: 0.000 (0.015)	BT: 0.113 (0.130)	Loss 0.0153 (0.0152)	Prec@1 100.000 (99.995)	
-Epoch: [28][233/391]	LR: 0.0004	DT: 0.000 (0.010)	BT: 0.120 (0.132)	Loss 0.0129 (0.0152)	Prec@1 100.000 (99.997)	
-Epoch: [28][311/391]	LR: 0.0004	DT: 0.000 (0.008)	BT: 0.083 (0.127)	Loss 0.0127 (0.0151)	Prec@1 100.000 (99.997)	
-Epoch: [28][389/391]	LR: 0.0004	DT: 0.000 (0.006)	BT: 0.117 (0.129)	Loss 0.0149 (0.0150)	Prec@1 100.000 (99.998)	
-Total train loss: 0.0150
-Avg Loading time: 0.0063 seconds
-Avg Batch time: 0.1286 seconds
+Epoch: [28][77/391]	LR: 0.0004	DT: 0.205 (6.837)	BT: 0.385 (7.022)	Loss 0.3247 (0.2634)	Prec@1 87.500 (91.076)	
+Epoch: [28][155/391]	LR: 0.0004	DT: 0.000 (6.929)	BT: 0.175 (7.113)	Loss 0.2113 (0.2643)	Prec@1 94.531 (91.041)	
+Epoch: [28][233/391]	LR: 0.0004	DT: 0.000 (7.066)	BT: 0.190 (7.249)	Loss 0.2070 (0.2639)	Prec@1 94.531 (91.072)	
+Epoch: [28][311/391]	LR: 0.0004	DT: 0.000 (6.972)	BT: 0.171 (7.155)	Loss 0.2175 (0.2614)	Prec@1 92.969 (91.208)	
+Epoch: [28][389/391]	LR: 0.0004	DT: 0.000 (6.724)	BT: 0.172 (6.906)	Loss 0.2205 (0.2600)	Prec@1 92.969 (91.316)	
+Total train loss: 0.2597
+Avg Loading time: 6.7068 seconds
+Avg Batch time: 6.8890 seconds
 
-Train time: 50.41088080406189
- * Prec@1 94.770 Prec@5 99.820 Loss 0.1705
-Avg Loading time: 0.0942 seconds
-Avg Batch time: 0.1453 seconds
+Train time: 2693.6376247406006
+ * Prec@1 89.030 Prec@5 99.710 Loss 0.3157
+Avg Loading time: 6.7801 seconds
+Avg Batch time: 6.8438 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 12.139335632324219
+Test time: 541.8258903026581
 
-Epoch: [29][77/391]	LR: 0.0004	DT: 0.000 (0.028)	BT: 0.110 (0.165)	Loss 0.0168 (0.0146)	Prec@1 100.000 (100.000)	
-Epoch: [29][155/391]	LR: 0.0004	DT: 0.000 (0.014)	BT: 0.154 (0.154)	Loss 0.0145 (0.0143)	Prec@1 100.000 (100.000)	
-Epoch: [29][233/391]	LR: 0.0004	DT: 0.000 (0.010)	BT: 0.152 (0.147)	Loss 0.0124 (0.0146)	Prec@1 100.000 (99.997)	
-Epoch: [29][311/391]	LR: 0.0004	DT: 0.000 (0.007)	BT: 0.169 (0.147)	Loss 0.0177 (0.0146)	Prec@1 100.000 (99.997)	
-Epoch: [29][389/391]	LR: 0.0004	DT: 0.000 (0.006)	BT: 0.148 (0.147)	Loss 0.0197 (0.0146)	Prec@1 100.000 (99.998)	
-Total train loss: 0.0146
-Avg Loading time: 0.0058 seconds
-Avg Batch time: 0.1474 seconds
+Epoch: [29][77/391]	LR: 0.0004	DT: 1.673 (6.502)	BT: 1.855 (6.686)	Loss 0.2812 (0.2502)	Prec@1 92.188 (91.867)	
+Epoch: [29][155/391]	LR: 0.0004	DT: 0.000 (6.893)	BT: 0.173 (7.077)	Loss 0.2306 (0.2560)	Prec@1 94.531 (91.662)	
+Epoch: [29][233/391]	LR: 0.0004	DT: 5.099 (7.105)	BT: 5.287 (7.289)	Loss 0.2336 (0.2559)	Prec@1 94.531 (91.643)	
+Epoch: [29][311/391]	LR: 0.0004	DT: 0.000 (7.031)	BT: 0.173 (7.214)	Loss 0.2563 (0.2559)	Prec@1 92.188 (91.677)	
+Epoch: [29][389/391]	LR: 0.0004	DT: 0.000 (7.105)	BT: 0.171 (7.289)	Loss 0.3069 (0.2568)	Prec@1 89.062 (91.532)	
+Total train loss: 0.2567
+Avg Loading time: 7.0867 seconds
+Avg Batch time: 7.2702 seconds
 
-Train time: 57.7418794631958
- * Prec@1 94.850 Prec@5 99.830 Loss 0.1708
-Avg Loading time: 0.2531 seconds
-Avg Batch time: 0.2970 seconds
+Train time: 2842.699431180954
+ * Prec@1 88.920 Prec@5 99.710 Loss 0.3152
+Avg Loading time: 7.1652 seconds
+Avg Batch time: 7.2265 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 24.150469303131104
+Test time: 581.0620572566986
 
-Epoch: [30][77/391]	LR: 8e-05	DT: 0.000 (0.032)	BT: 0.082 (0.135)	Loss 0.0159 (0.0143)	Prec@1 100.000 (100.000)	
-Epoch: [30][155/391]	LR: 8e-05	DT: 0.001 (0.024)	BT: 0.103 (0.125)	Loss 0.0151 (0.0150)	Prec@1 100.000 (99.990)	
-Epoch: [30][233/391]	LR: 8e-05	DT: 0.000 (0.017)	BT: 0.078 (0.125)	Loss 0.0167 (0.0150)	Prec@1 100.000 (99.993)	
-Epoch: [30][311/391]	LR: 8e-05	DT: 0.000 (0.013)	BT: 0.100 (0.124)	Loss 0.0100 (0.0148)	Prec@1 100.000 (99.995)	
-Epoch: [30][389/391]	LR: 8e-05	DT: 0.000 (0.010)	BT: 0.152 (0.124)	Loss 0.0213 (0.0148)	Prec@1 100.000 (99.996)	
-Total train loss: 0.0148
-Avg Loading time: 0.0101 seconds
-Avg Batch time: 0.1235 seconds
+Epoch: [30][77/391]	LR: 8e-05	DT: 0.000 (6.051)	BT: 0.172 (6.234)	Loss 0.2925 (0.2447)	Prec@1 89.844 (91.897)	
+Epoch: [30][155/391]	LR: 8e-05	DT: 0.000 (6.834)	BT: 0.170 (7.016)	Loss 0.2888 (0.2581)	Prec@1 88.281 (91.256)	
+Epoch: [30][233/391]	LR: 8e-05	DT: 10.136 (7.657)	BT: 10.329 (7.841)	Loss 0.2554 (0.2552)	Prec@1 90.625 (91.400)	
+Epoch: [30][311/391]	LR: 8e-05	DT: 0.000 (7.821)	BT: 0.174 (8.005)	Loss 0.2274 (0.2570)	Prec@1 89.844 (91.406)	
+Epoch: [30][389/391]	LR: 8e-05	DT: 0.000 (7.823)	BT: 0.176 (8.007)	Loss 0.2438 (0.2573)	Prec@1 93.750 (91.494)	
+Total train loss: 0.2573
+Avg Loading time: 7.8034 seconds
+Avg Batch time: 7.9866 seconds
 
-Train time: 48.410685539245605
- * Prec@1 94.630 Prec@5 99.800 Loss 0.1718
-Avg Loading time: 0.0966 seconds
-Avg Batch time: 0.1410 seconds
+Train time: 3122.7837603092194
+ * Prec@1 89.080 Prec@5 99.710 Loss 0.3154
+Avg Loading time: 6.9302 seconds
+Avg Batch time: 6.9860 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 11.822204113006592
+Test time: 552.5506045818329
 
-Epoch: [31][77/391]	LR: 8e-05	DT: 0.000 (0.027)	BT: 0.154 (0.162)	Loss 0.0122 (0.0155)	Prec@1 100.000 (100.000)	
-Epoch: [31][155/391]	LR: 8e-05	DT: 0.000 (0.013)	BT: 0.152 (0.149)	Loss 0.0126 (0.0153)	Prec@1 100.000 (99.995)	
-Epoch: [31][233/391]	LR: 8e-05	DT: 0.000 (0.009)	BT: 0.110 (0.146)	Loss 0.0154 (0.0154)	Prec@1 100.000 (99.997)	
-Epoch: [31][311/391]	LR: 8e-05	DT: 0.000 (0.007)	BT: 0.145 (0.143)	Loss 0.0144 (0.0153)	Prec@1 100.000 (99.997)	
-Epoch: [31][389/391]	LR: 8e-05	DT: 0.000 (0.005)	BT: 0.148 (0.142)	Loss 0.0169 (0.0152)	Prec@1 100.000 (99.998)	
-Total train loss: 0.0152
-Avg Loading time: 0.0055 seconds
-Avg Batch time: 0.1413 seconds
+Epoch: [31][77/391]	LR: 8e-05	DT: 0.000 (6.786)	BT: 0.172 (6.970)	Loss 0.2264 (0.2647)	Prec@1 92.188 (91.256)	
+Epoch: [31][155/391]	LR: 8e-05	DT: 11.226 (6.317)	BT: 11.434 (6.501)	Loss 0.2695 (0.2669)	Prec@1 91.406 (91.111)	
+Epoch: [31][233/391]	LR: 8e-05	DT: 11.008 (6.478)	BT: 11.210 (6.663)	Loss 0.2493 (0.2604)	Prec@1 92.969 (91.319)	
+Epoch: [31][311/391]	LR: 8e-05	DT: 0.000 (6.522)	BT: 0.171 (6.707)	Loss 0.2524 (0.2605)	Prec@1 91.406 (91.246)	
+Epoch: [31][389/391]	LR: 8e-05	DT: 0.000 (6.670)	BT: 0.171 (6.855)	Loss 0.3162 (0.2608)	Prec@1 88.281 (91.250)	
+Total train loss: 0.2608
+Avg Loading time: 6.6533 seconds
+Avg Batch time: 6.8379 seconds
 
-Train time: 55.384501934051514
- * Prec@1 94.890 Prec@5 99.820 Loss 0.1700
-Avg Loading time: 0.1038 seconds
-Avg Batch time: 0.1518 seconds
+Train time: 2673.652692079544
+ * Prec@1 89.020 Prec@5 99.650 Loss 0.3149
+Avg Loading time: 6.3573 seconds
+Avg Batch time: 6.4183 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 12.678231954574585
+Test time: 507.6023895740509
 
-Epoch: [32][77/391]	LR: 8e-05	DT: 0.000 (0.028)	BT: 0.154 (0.179)	Loss 0.0127 (0.0143)	Prec@1 100.000 (100.000)	
-Epoch: [32][155/391]	LR: 8e-05	DT: 0.000 (0.051)	BT: 0.078 (0.190)	Loss 0.0153 (0.0144)	Prec@1 100.000 (100.000)	
-Epoch: [32][233/391]	LR: 8e-05	DT: 0.000 (0.069)	BT: 0.081 (0.200)	Loss 0.0125 (0.0145)	Prec@1 100.000 (100.000)	
-Epoch: [32][311/391]	LR: 8e-05	DT: 0.413 (0.064)	BT: 0.506 (0.186)	Loss 0.0137 (0.0144)	Prec@1 100.000 (99.997)	
-Epoch: [32][389/391]	LR: 8e-05	DT: 0.000 (0.064)	BT: 0.087 (0.183)	Loss 0.0143 (0.0146)	Prec@1 100.000 (99.998)	
-Total train loss: 0.0146
-Avg Loading time: 0.0643 seconds
-Avg Batch time: 0.1831 seconds
+Epoch: [32][77/391]	LR: 8e-05	DT: 0.000 (7.036)	BT: 0.172 (7.219)	Loss 0.2615 (0.2572)	Prec@1 91.406 (91.687)	
+Epoch: [32][155/391]	LR: 8e-05	DT: 0.000 (7.210)	BT: 0.170 (7.394)	Loss 0.2289 (0.2562)	Prec@1 93.750 (91.642)	
+Epoch: [32][233/391]	LR: 8e-05	DT: 13.480 (7.315)	BT: 13.674 (7.499)	Loss 0.2383 (0.2559)	Prec@1 90.625 (91.500)	
+Epoch: [32][311/391]	LR: 8e-05	DT: 0.000 (6.844)	BT: 0.172 (7.028)	Loss 0.1859 (0.2571)	Prec@1 95.312 (91.511)	
+Epoch: [32][389/391]	LR: 8e-05	DT: 4.818 (6.993)	BT: 5.003 (7.177)	Loss 0.2556 (0.2574)	Prec@1 92.188 (91.466)	
+Total train loss: 0.2573
+Avg Loading time: 6.9751 seconds
+Avg Batch time: 7.1592 seconds
 
-Train time: 71.69856190681458
- * Prec@1 94.860 Prec@5 99.830 Loss 0.1696
-Avg Loading time: 0.0882 seconds
-Avg Batch time: 0.1280 seconds
+Train time: 2799.427337884903
+ * Prec@1 88.940 Prec@5 99.690 Loss 0.3147
+Avg Loading time: 7.1434 seconds
+Avg Batch time: 7.2037 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 10.768313646316528
+Test time: 569.963299036026
 
-Epoch: [33][77/391]	LR: 8e-05	DT: 0.000 (0.034)	BT: 0.078 (0.157)	Loss 0.0157 (0.0150)	Prec@1 100.000 (99.990)	
-Epoch: [33][155/391]	LR: 8e-05	DT: 0.000 (0.020)	BT: 0.097 (0.143)	Loss 0.0131 (0.0148)	Prec@1 100.000 (99.995)	
-Epoch: [33][233/391]	LR: 8e-05	DT: 0.000 (0.014)	BT: 0.150 (0.134)	Loss 0.0109 (0.0148)	Prec@1 100.000 (99.997)	
-Epoch: [33][311/391]	LR: 8e-05	DT: 0.000 (0.011)	BT: 0.148 (0.136)	Loss 0.0132 (0.0147)	Prec@1 100.000 (99.997)	
-Epoch: [33][389/391]	LR: 8e-05	DT: 0.000 (0.009)	BT: 0.148 (0.137)	Loss 0.0100 (0.0148)	Prec@1 100.000 (99.996)	
-Total train loss: 0.0148
-Avg Loading time: 0.0085 seconds
-Avg Batch time: 0.1372 seconds
+Epoch: [33][77/391]	LR: 8e-05	DT: 0.000 (7.172)	BT: 0.186 (7.357)	Loss 0.3030 (0.2718)	Prec@1 87.500 (91.126)	
+Epoch: [33][155/391]	LR: 8e-05	DT: 0.000 (7.441)	BT: 0.170 (7.625)	Loss 0.2430 (0.2640)	Prec@1 90.625 (91.276)	
+Epoch: [33][233/391]	LR: 8e-05	DT: 1.719 (7.572)	BT: 1.922 (7.755)	Loss 0.2302 (0.2607)	Prec@1 94.531 (91.453)	
+Epoch: [33][311/391]	LR: 8e-05	DT: 0.000 (7.459)	BT: 0.177 (7.642)	Loss 0.2084 (0.2596)	Prec@1 95.312 (91.474)	
+Epoch: [33][389/391]	LR: 8e-05	DT: 0.000 (7.314)	BT: 0.170 (7.496)	Loss 0.1338 (0.2584)	Prec@1 96.875 (91.472)	
+Total train loss: 0.2584
+Avg Loading time: 7.2955 seconds
+Avg Batch time: 7.4773 seconds
 
-Train time: 53.79233717918396
- * Prec@1 94.830 Prec@5 99.820 Loss 0.1707
-Avg Loading time: 0.1099 seconds
-Avg Batch time: 0.1558 seconds
+Train time: 2923.7223155498505
+ * Prec@1 89.060 Prec@5 99.720 Loss 0.3152
+Avg Loading time: 6.6178 seconds
+Avg Batch time: 6.6787 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 12.973429441452026
+Test time: 529.2491312026978
 
-Epoch: [34][77/391]	LR: 8e-05	DT: 0.000 (0.025)	BT: 0.148 (0.168)	Loss 0.0123 (0.0145)	Prec@1 100.000 (100.000)	
-Epoch: [34][155/391]	LR: 8e-05	DT: 0.000 (0.013)	BT: 0.148 (0.150)	Loss 0.0227 (0.0147)	Prec@1 100.000 (100.000)	
-Epoch: [34][233/391]	LR: 8e-05	DT: 0.000 (0.009)	BT: 0.156 (0.150)	Loss 0.0164 (0.0151)	Prec@1 100.000 (99.997)	
-Epoch: [34][311/391]	LR: 8e-05	DT: 0.000 (0.006)	BT: 0.149 (0.150)	Loss 0.0178 (0.0153)	Prec@1 100.000 (99.997)	
-Epoch: [34][389/391]	LR: 8e-05	DT: 0.000 (0.046)	BT: 0.148 (0.185)	Loss 0.0173 (0.0152)	Prec@1 100.000 (99.998)	
-Total train loss: 0.0152
-Avg Loading time: 0.0463 seconds
-Avg Batch time: 0.1848 seconds
+Epoch: [34][77/391]	LR: 8e-05	DT: 0.000 (6.962)	BT: 0.175 (7.148)	Loss 0.3962 (0.2443)	Prec@1 87.500 (91.727)	
+Epoch: [34][155/391]	LR: 8e-05	DT: 4.738 (7.144)	BT: 4.918 (7.330)	Loss 0.2196 (0.2545)	Prec@1 93.750 (91.441)	
+Epoch: [34][233/391]	LR: 8e-05	DT: 0.000 (7.220)	BT: 0.189 (7.406)	Loss 0.1886 (0.2558)	Prec@1 96.875 (91.556)	
+Epoch: [34][311/391]	LR: 8e-05	DT: 0.000 (7.120)	BT: 0.176 (7.305)	Loss 0.3118 (0.2597)	Prec@1 89.062 (91.359)	
+Epoch: [34][389/391]	LR: 8e-05	DT: 0.000 (7.156)	BT: 0.172 (7.341)	Loss 0.2505 (0.2603)	Prec@1 90.625 (91.332)	
+Total train loss: 0.2604
+Avg Loading time: 7.1374 seconds
+Avg Batch time: 7.3225 seconds
 
-Train time: 72.36780786514282
- * Prec@1 94.910 Prec@5 99.840 Loss 0.1702
-Avg Loading time: 0.0985 seconds
-Avg Batch time: 0.1367 seconds
+Train time: 2863.1618382930756
+ * Prec@1 89.120 Prec@5 99.690 Loss 0.3137
+Avg Loading time: 6.8703 seconds
+Avg Batch time: 6.9300 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 11.47852635383606
+Test time: 548.3169965744019
 
-Epoch: [35][77/391]	LR: 8e-05	DT: 0.000 (0.033)	BT: 0.081 (0.138)	Loss 0.0141 (0.0148)	Prec@1 100.000 (100.000)	
-Epoch: [35][155/391]	LR: 8e-05	DT: 0.000 (0.020)	BT: 0.151 (0.133)	Loss 0.0213 (0.0153)	Prec@1 100.000 (99.995)	
-Epoch: [35][233/391]	LR: 8e-05	DT: 0.000 (0.013)	BT: 0.151 (0.132)	Loss 0.0122 (0.0153)	Prec@1 100.000 (99.993)	
-Epoch: [35][311/391]	LR: 8e-05	DT: 0.000 (0.010)	BT: 0.084 (0.129)	Loss 0.0309 (0.0154)	Prec@1 100.000 (99.992)	
-Epoch: [35][389/391]	LR: 8e-05	DT: 0.000 (0.012)	BT: 0.081 (0.132)	Loss 0.0373 (0.0154)	Prec@1 99.219 (99.992)	
-Total train loss: 0.0154
-Avg Loading time: 0.0118 seconds
-Avg Batch time: 0.1320 seconds
+Epoch: [35][77/391]	LR: 8e-05	DT: 1.847 (5.162)	BT: 2.030 (5.346)	Loss 0.2190 (0.2478)	Prec@1 92.188 (91.947)	
+Epoch: [35][155/391]	LR: 8e-05	DT: 0.000 (5.791)	BT: 0.170 (5.974)	Loss 0.2825 (0.2617)	Prec@1 91.406 (91.326)	
+Epoch: [35][233/391]	LR: 8e-05	DT: 0.000 (6.169)	BT: 0.187 (6.352)	Loss 0.2303 (0.2585)	Prec@1 91.406 (91.453)	
+Epoch: [35][311/391]	LR: 8e-05	DT: 0.000 (6.202)	BT: 0.178 (6.385)	Loss 0.3889 (0.2591)	Prec@1 86.719 (91.486)	
+Epoch: [35][389/391]	LR: 8e-05	DT: 6.045 (6.398)	BT: 6.220 (6.581)	Loss 0.3230 (0.2597)	Prec@1 91.406 (91.506)	
+Total train loss: 0.2596
+Avg Loading time: 6.3820 seconds
+Avg Batch time: 6.5648 seconds
 
-Train time: 51.73052978515625
- * Prec@1 94.770 Prec@5 99.820 Loss 0.1722
-Avg Loading time: 0.0907 seconds
-Avg Batch time: 0.1280 seconds
+Train time: 2566.8637340068817
+ * Prec@1 89.050 Prec@5 99.720 Loss 0.3159
+Avg Loading time: 6.7205 seconds
+Avg Batch time: 6.7802 seconds
 
-Best acc: 94.950
+Best acc: 89.120
 --------------------------------------------------------------------------------
-Test time: 10.800223350524902
+Test time: 536.2153134346008
 
-Epoch: [36][77/391]	LR: 8e-05	DT: 0.000 (0.019)	BT: 0.120 (0.155)	Loss 0.0140 (0.0160)	Prec@1 100.000 (100.000)	
-Epoch: [36][155/391]	LR: 8e-05	DT: 0.000 (0.013)	BT: 0.154 (0.153)	Loss 0.0151 (0.0151)	Prec@1 100.000 (100.000)	
-Epoch: [36][233/391]	LR: 8e-05	DT: 0.000 (0.009)	BT: 0.091 (0.149)	Loss 0.0136 (0.0151)	Prec@1 100.000 (100.000)	
-Epoch: [36][311/391]	LR: 8e-05	DT: 0.000 (0.006)	BT: 0.088 (0.147)	Loss 0.0121 (0.0151)	Prec@1 100.000 (99.997)	
-Epoch: [36][389/391]	LR: 8e-05	DT: 0.000 (0.005)	BT: 0.148 (0.146)	Loss 0.0147 (0.0150)	Prec@1 100.000 (99.998)	
-Total train loss: 0.0150
-Avg Loading time: 0.0052 seconds
-Avg Batch time: 0.1461 seconds
+Epoch: [36][77/391]	LR: 8e-05	DT: 0.000 (6.590)	BT: 0.172 (6.772)	Loss 0.1974 (0.2619)	Prec@1 95.312 (91.266)	
+Epoch: [36][155/391]	LR: 8e-05	DT: 0.000 (6.577)	BT: 0.172 (6.760)	Loss 0.2122 (0.2607)	Prec@1 94.531 (91.316)	
+Epoch: [36][233/391]	LR: 8e-05	DT: 0.000 (6.296)	BT: 0.192 (6.479)	Loss 0.1957 (0.2574)	Prec@1 96.094 (91.560)	
+Epoch: [36][311/391]	LR: 8e-05	DT: 13.118 (6.398)	BT: 13.302 (6.581)	Loss 0.2329 (0.2588)	Prec@1 89.844 (91.489)	
+Epoch: [36][389/391]	LR: 8e-05	DT: 0.000 (6.475)	BT: 0.172 (6.658)	Loss 0.2310 (0.2598)	Prec@1 91.406 (91.410)	
+Total train loss: 0.2598
+Avg Loading time: 6.4581 seconds
+Avg Batch time: 6.6410 seconds
 
-Train time: 57.252540826797485
- * Prec@1 94.870 Prec@5 99.850 Loss 0.1685
-Avg Loading time: 0.0854 seconds
-Avg Batch time: 0.1234 seconds
+Train time: 2596.6623408794403
+ * Prec@1 89.190 Prec@5 99.670 Loss 0.3154
+Avg Loading time: 5.3263 seconds
+Avg Batch time: 5.3801 seconds
 
-Best acc: 94.950
+Best acc: 89.190
 --------------------------------------------------------------------------------
-Test time: 10.417691469192505
+Test time: 426.0312011241913
 
-Epoch: [37][77/391]	LR: 8e-05	DT: 0.000 (0.018)	BT: 0.078 (0.152)	Loss 0.0224 (0.0152)	Prec@1 100.000 (99.990)	
-Epoch: [37][155/391]	LR: 8e-05	DT: 0.000 (0.083)	BT: 0.080 (0.206)	Loss 0.0165 (0.0151)	Prec@1 100.000 (99.980)	
-Epoch: [37][233/391]	LR: 8e-05	DT: 0.000 (0.069)	BT: 0.101 (0.184)	Loss 0.0142 (0.0150)	Prec@1 100.000 (99.987)	
-Epoch: [37][311/391]	LR: 8e-05	DT: 0.000 (0.053)	BT: 0.183 (0.168)	Loss 0.0130 (0.0150)	Prec@1 100.000 (99.990)	
-Epoch: [37][389/391]	LR: 8e-05	DT: 0.000 (0.043)	BT: 0.116 (0.159)	Loss 0.0135 (0.0151)	Prec@1 100.000 (99.992)	
-Total train loss: 0.0151
-Avg Loading time: 0.0425 seconds
-Avg Batch time: 0.1592 seconds
+Epoch: [37][77/391]	LR: 8e-05	DT: 0.000 (6.812)	BT: 0.178 (6.995)	Loss 0.2717 (0.2619)	Prec@1 90.625 (91.166)	
+Epoch: [37][155/391]	LR: 8e-05	DT: 0.000 (6.988)	BT: 0.168 (7.170)	Loss 0.2000 (0.2576)	Prec@1 96.094 (91.441)	
+Epoch: [37][233/391]	LR: 8e-05	DT: 3.501 (7.102)	BT: 3.706 (7.284)	Loss 0.2617 (0.2579)	Prec@1 90.625 (91.396)	
+Epoch: [37][311/391]	LR: 8e-05	DT: 0.000 (6.742)	BT: 0.172 (6.924)	Loss 0.1718 (0.2590)	Prec@1 94.531 (91.394)	
+Epoch: [37][389/391]	LR: 8e-05	DT: 0.000 (6.671)	BT: 0.173 (6.854)	Loss 0.2617 (0.2596)	Prec@1 90.625 (91.372)	
+Total train loss: 0.2595
+Avg Loading time: 6.6544 seconds
+Avg Batch time: 6.8363 seconds
 
-Train time: 62.36797332763672
- * Prec@1 94.750 Prec@5 99.840 Loss 0.1707
-Avg Loading time: 0.0854 seconds
-Avg Batch time: 0.1233 seconds
+Train time: 2673.194735765457
+ * Prec@1 88.960 Prec@5 99.700 Loss 0.3142
+Avg Loading time: 6.9512 seconds
+Avg Batch time: 7.0146 seconds
 
-Best acc: 94.950
+Best acc: 89.190
 --------------------------------------------------------------------------------
-Test time: 10.43353271484375
+Test time: 555.3399999141693
 
-Epoch: [38][77/391]	LR: 8e-05	DT: 0.000 (0.020)	BT: 0.112 (0.143)	Loss 0.0109 (0.0152)	Prec@1 100.000 (100.000)	
-Epoch: [38][155/391]	LR: 8e-05	DT: 0.000 (0.010)	BT: 0.081 (0.137)	Loss 0.0155 (0.0148)	Prec@1 100.000 (100.000)	
-Epoch: [38][233/391]	LR: 8e-05	DT: 0.000 (0.007)	BT: 0.080 (0.136)	Loss 0.0118 (0.0148)	Prec@1 100.000 (99.997)	
-Epoch: [38][311/391]	LR: 8e-05	DT: 0.000 (0.005)	BT: 0.155 (0.137)	Loss 0.0107 (0.0147)	Prec@1 100.000 (99.997)	
-Epoch: [38][389/391]	LR: 8e-05	DT: 0.000 (0.004)	BT: 0.104 (0.137)	Loss 0.0173 (0.0146)	Prec@1 100.000 (99.998)	
-Total train loss: 0.0147
-Avg Loading time: 0.0042 seconds
-Avg Batch time: 0.1370 seconds
+Epoch: [38][77/391]	LR: 8e-05	DT: 1.238 (6.322)	BT: 1.420 (6.507)	Loss 0.2296 (0.2593)	Prec@1 91.406 (91.336)	
+Epoch: [38][155/391]	LR: 8e-05	DT: 0.000 (6.700)	BT: 0.176 (6.884)	Loss 0.3318 (0.2574)	Prec@1 84.375 (91.381)	
+Epoch: [38][233/391]	LR: 8e-05	DT: 3.612 (7.005)	BT: 3.802 (7.189)	Loss 0.2690 (0.2576)	Prec@1 92.188 (91.326)	
+Epoch: [38][311/391]	LR: 8e-05	DT: 0.000 (6.984)	BT: 0.177 (7.168)	Loss 0.2864 (0.2574)	Prec@1 91.406 (91.301)	
+Epoch: [38][389/391]	LR: 8e-05	DT: 0.000 (7.075)	BT: 0.172 (7.259)	Loss 0.3364 (0.2572)	Prec@1 85.156 (91.320)	
+Total train loss: 0.2573
+Avg Loading time: 7.0569 seconds
+Avg Batch time: 7.2408 seconds
 
-Train time: 53.68210029602051
- * Prec@1 94.770 Prec@5 99.830 Loss 0.1719
-Avg Loading time: 0.0813 seconds
-Avg Batch time: 0.1270 seconds
+Train time: 2831.2469429969788
+ * Prec@1 89.140 Prec@5 99.670 Loss 0.3147
+Avg Loading time: 5.9510 seconds
+Avg Batch time: 6.0124 seconds
 
-Best acc: 94.950
+Best acc: 89.190
 --------------------------------------------------------------------------------
-Test time: 10.73107123374939
+Test time: 475.6583971977234
 
-Epoch: [39][77/391]	LR: 8e-05	DT: 0.001 (0.025)	BT: 0.178 (0.160)	Loss 0.0190 (0.0149)	Prec@1 100.000 (100.000)	
-Epoch: [39][155/391]	LR: 8e-05	DT: 0.000 (0.013)	BT: 0.173 (0.153)	Loss 0.0127 (0.0150)	Prec@1 100.000 (100.000)	
-Epoch: [39][233/391]	LR: 8e-05	DT: 0.000 (0.009)	BT: 0.108 (0.152)	Loss 0.0158 (0.0150)	Prec@1 100.000 (99.997)	
-Epoch: [39][311/391]	LR: 8e-05	DT: 0.030 (0.017)	BT: 0.110 (0.158)	Loss 0.0131 (0.0149)	Prec@1 100.000 (99.997)	
-Epoch: [39][389/391]	LR: 8e-05	DT: 0.000 (0.036)	BT: 0.086 (0.172)	Loss 0.0120 (0.0149)	Prec@1 100.000 (99.998)	
-Total train loss: 0.0149
-Avg Loading time: 0.0358 seconds
-Avg Batch time: 0.1715 seconds
+Epoch: [39][77/391]	LR: 8e-05	DT: 0.000 (6.335)	BT: 0.168 (6.517)	Loss 0.3003 (0.2595)	Prec@1 89.062 (91.306)	
+Epoch: [39][155/391]	LR: 8e-05	DT: 0.053 (6.646)	BT: 0.226 (6.828)	Loss 0.2413 (0.2583)	Prec@1 89.844 (91.256)	
+Epoch: [39][233/391]	LR: 8e-05	DT: 0.000 (6.975)	BT: 0.184 (7.158)	Loss 0.1774 (0.2608)	Prec@1 93.750 (91.286)	
+Epoch: [39][311/391]	LR: 8e-05	DT: 0.000 (6.891)	BT: 0.179 (7.074)	Loss 0.1896 (0.2594)	Prec@1 94.531 (91.356)	
+Epoch: [39][389/391]	LR: 8e-05	DT: 0.000 (6.973)	BT: 0.171 (7.156)	Loss 0.2330 (0.2591)	Prec@1 90.625 (91.390)	
+Total train loss: 0.2591
+Avg Loading time: 6.9553 seconds
+Avg Batch time: 7.1380 seconds
 
-Train time: 67.17095375061035
- * Prec@1 94.780 Prec@5 99.860 Loss 0.1692
-Avg Loading time: 0.0907 seconds
-Avg Batch time: 0.1268 seconds
+Train time: 2790.981861114502
+ * Prec@1 89.040 Prec@5 99.680 Loss 0.3157
+Avg Loading time: 6.5728 seconds
+Avg Batch time: 6.6305 seconds
 
-Best acc: 94.950
+Best acc: 89.190
 --------------------------------------------------------------------------------
-Test time: 10.666421890258789
+Test time: 524.4743292331696
 
-Epoch: [40][77/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.028)	BT: 0.115 (0.140)	Loss 0.0137 (0.0151)	Prec@1 100.000 (100.000)	
-Epoch: [40][155/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.014)	BT: 0.094 (0.133)	Loss 0.0176 (0.0152)	Prec@1 100.000 (100.000)	
-Epoch: [40][233/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.009)	BT: 0.138 (0.128)	Loss 0.0135 (0.0149)	Prec@1 100.000 (100.000)	
-Epoch: [40][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.007)	BT: 0.151 (0.128)	Loss 0.0250 (0.0150)	Prec@1 100.000 (100.000)	
-Epoch: [40][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.006)	BT: 0.086 (0.129)	Loss 0.0214 (0.0149)	Prec@1 100.000 (100.000)	
-Total train loss: 0.0149
-Avg Loading time: 0.0057 seconds
-Avg Batch time: 0.1284 seconds
+Epoch: [40][77/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.126)	BT: 0.172 (6.311)	Loss 0.2192 (0.2611)	Prec@1 92.969 (91.486)	
+Epoch: [40][155/391]	LR: 1.6000000000000003e-05	DT: 0.000 (5.810)	BT: 0.178 (5.995)	Loss 0.2168 (0.2579)	Prec@1 93.750 (91.516)	
+Epoch: [40][233/391]	LR: 1.6000000000000003e-05	DT: 10.567 (6.296)	BT: 10.761 (6.480)	Loss 0.2301 (0.2573)	Prec@1 92.188 (91.530)	
+Epoch: [40][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.328)	BT: 0.173 (6.512)	Loss 0.2377 (0.2598)	Prec@1 92.969 (91.406)	
+Epoch: [40][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.403)	BT: 0.177 (6.587)	Loss 0.2427 (0.2594)	Prec@1 91.406 (91.446)	
+Total train loss: 0.2594
+Avg Loading time: 6.3865 seconds
+Avg Batch time: 6.5706 seconds
 
-Train time: 50.32381820678711
- * Prec@1 94.920 Prec@5 99.850 Loss 0.1721
-Avg Loading time: 0.0928 seconds
-Avg Batch time: 0.1274 seconds
+Train time: 2569.1674354076385
+ * Prec@1 88.910 Prec@5 99.720 Loss 0.3162
+Avg Loading time: 6.2225 seconds
+Avg Batch time: 6.2809 seconds
 
-Best acc: 94.950
+Best acc: 89.190
 --------------------------------------------------------------------------------
-Test time: 10.73416543006897
+Test time: 496.7702338695526
 
-Epoch: [41][77/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.018)	BT: 0.148 (0.168)	Loss 0.0111 (0.0149)	Prec@1 100.000 (100.000)	
-Epoch: [41][155/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.009)	BT: 0.150 (0.148)	Loss 0.0104 (0.0151)	Prec@1 100.000 (100.000)	
-Epoch: [41][233/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.006)	BT: 0.152 (0.146)	Loss 0.0134 (0.0151)	Prec@1 100.000 (99.997)	
-Epoch: [41][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.005)	BT: 0.087 (0.143)	Loss 0.0204 (0.0151)	Prec@1 100.000 (99.995)	
-Epoch: [41][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.004)	BT: 0.127 (0.142)	Loss 0.0140 (0.0151)	Prec@1 100.000 (99.996)	
-Total train loss: 0.0151
-Avg Loading time: 0.0038 seconds
-Avg Batch time: 0.1419 seconds
+Epoch: [41][77/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.745)	BT: 0.172 (6.928)	Loss 0.2015 (0.2585)	Prec@1 95.312 (90.765)	
+Epoch: [41][155/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.937)	BT: 0.174 (7.121)	Loss 0.1406 (0.2608)	Prec@1 96.094 (91.071)	
+Epoch: [41][233/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.732)	BT: 0.190 (6.915)	Loss 0.2057 (0.2608)	Prec@1 93.750 (91.183)	
+Epoch: [41][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.426)	BT: 0.177 (6.609)	Loss 0.2333 (0.2601)	Prec@1 91.406 (91.201)	
+Epoch: [41][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.562)	BT: 0.173 (6.745)	Loss 0.2283 (0.2604)	Prec@1 91.406 (91.234)	
+Total train loss: 0.2605
+Avg Loading time: 6.5455 seconds
+Avg Batch time: 6.7282 seconds
 
-Train time: 55.58847713470459
- * Prec@1 94.770 Prec@5 99.810 Loss 0.1711
-Avg Loading time: 0.0763 seconds
-Avg Batch time: 0.1272 seconds
+Train time: 2630.8900225162506
+ * Prec@1 89.090 Prec@5 99.680 Loss 0.3159
+Avg Loading time: 6.5277 seconds
+Avg Batch time: 6.5904 seconds
 
-Best acc: 94.950
+Best acc: 89.190
 --------------------------------------------------------------------------------
-Test time: 10.709376811981201
+Test time: 521.507196187973
 
-Epoch: [42][77/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.125)	BT: 0.078 (0.247)	Loss 0.0115 (0.0151)	Prec@1 100.000 (100.000)	
-Epoch: [42][155/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.089)	BT: 0.081 (0.210)	Loss 0.0103 (0.0150)	Prec@1 100.000 (100.000)	
-Epoch: [42][233/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.063)	BT: 0.100 (0.177)	Loss 0.0102 (0.0150)	Prec@1 100.000 (99.997)	
-Epoch: [42][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.051)	BT: 0.108 (0.163)	Loss 0.0123 (0.0151)	Prec@1 100.000 (99.997)	
-Epoch: [42][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.041)	BT: 0.152 (0.156)	Loss 0.0123 (0.0150)	Prec@1 100.000 (99.996)	
-Total train loss: 0.0150
-Avg Loading time: 0.0411 seconds
-Avg Batch time: 0.1556 seconds
+Epoch: [42][77/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.737)	BT: 0.174 (6.922)	Loss 0.2325 (0.2613)	Prec@1 92.969 (91.376)	
+Epoch: [42][155/391]	LR: 1.6000000000000003e-05	DT: 0.000 (7.013)	BT: 0.170 (7.196)	Loss 0.2181 (0.2599)	Prec@1 95.312 (91.481)	
+Epoch: [42][233/391]	LR: 1.6000000000000003e-05	DT: 0.000 (7.185)	BT: 0.177 (7.368)	Loss 0.2422 (0.2597)	Prec@1 91.406 (91.450)	
+Epoch: [42][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (7.010)	BT: 0.174 (7.192)	Loss 0.1886 (0.2600)	Prec@1 93.750 (91.396)	
+Epoch: [42][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.723)	BT: 0.178 (6.904)	Loss 0.3079 (0.2595)	Prec@1 90.625 (91.400)	
+Total train loss: 0.2597
+Avg Loading time: 6.7057 seconds
+Avg Batch time: 6.8870 seconds
 
-Train time: 60.971495389938354
- * Prec@1 94.830 Prec@5 99.820 Loss 0.1710
-Avg Loading time: 0.0880 seconds
-Avg Batch time: 0.1295 seconds
+Train time: 2692.8986337184906
+ * Prec@1 88.980 Prec@5 99.700 Loss 0.3157
+Avg Loading time: 6.9034 seconds
+Avg Batch time: 6.9679 seconds
 
-Best acc: 94.950
+Best acc: 89.190
 --------------------------------------------------------------------------------
-Test time: 10.91869330406189
+Test time: 552.3485403060913
 
-Epoch: [43][77/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.026)	BT: 0.097 (0.147)	Loss 0.0175 (0.0149)	Prec@1 100.000 (100.000)	
-Epoch: [43][155/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.013)	BT: 0.173 (0.138)	Loss 0.0132 (0.0150)	Prec@1 100.000 (99.995)	
-Epoch: [43][233/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.009)	BT: 0.160 (0.134)	Loss 0.0141 (0.0151)	Prec@1 100.000 (99.993)	
-Epoch: [43][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.007)	BT: 0.209 (0.136)	Loss 0.0133 (0.0151)	Prec@1 100.000 (99.995)	
-Epoch: [43][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.005)	BT: 0.150 (0.136)	Loss 0.0186 (0.0151)	Prec@1 100.000 (99.994)	
-Total train loss: 0.0151
-Avg Loading time: 0.0055 seconds
-Avg Batch time: 0.1355 seconds
+Epoch: [43][77/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.504)	BT: 0.171 (6.686)	Loss 0.2903 (0.2530)	Prec@1 89.844 (91.396)	
+Epoch: [43][155/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.651)	BT: 0.170 (6.832)	Loss 0.1979 (0.2529)	Prec@1 93.750 (91.632)	
+Epoch: [43][233/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.871)	BT: 0.186 (7.051)	Loss 0.2115 (0.2547)	Prec@1 93.750 (91.520)	
+Epoch: [43][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.811)	BT: 0.170 (6.992)	Loss 0.2324 (0.2564)	Prec@1 94.531 (91.514)	
+Epoch: [43][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.880)	BT: 0.172 (7.061)	Loss 0.2793 (0.2582)	Prec@1 89.844 (91.374)	
+Total train loss: 0.2585
+Avg Loading time: 6.8628 seconds
+Avg Batch time: 7.0428 seconds
 
-Train time: 53.083660364151
- * Prec@1 94.830 Prec@5 99.840 Loss 0.1709
-Avg Loading time: 0.0876 seconds
-Avg Batch time: 0.1315 seconds
+Train time: 2753.81583237648
+ * Prec@1 89.110 Prec@5 99.680 Loss 0.3154
+Avg Loading time: 6.4311 seconds
+Avg Batch time: 6.4894 seconds
 
-Best acc: 94.950
+Best acc: 89.190
 --------------------------------------------------------------------------------
-Test time: 11.057899713516235
+Test time: 513.2970674037933
 
-Epoch: [44][77/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.027)	BT: 0.182 (0.166)	Loss 0.0237 (0.0147)	Prec@1 100.000 (100.000)	
-Epoch: [44][155/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.014)	BT: 0.137 (0.152)	Loss 0.0214 (0.0151)	Prec@1 100.000 (99.995)	
-Epoch: [44][233/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.010)	BT: 0.148 (0.150)	Loss 0.0111 (0.0151)	Prec@1 100.000 (99.997)	
-Epoch: [44][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.008)	BT: 0.154 (0.151)	Loss 0.0107 (0.0151)	Prec@1 100.000 (99.997)	
-Epoch: [44][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.039)	BT: 0.149 (0.176)	Loss 0.0114 (0.0150)	Prec@1 100.000 (99.998)	
-Total train loss: 0.0150
-Avg Loading time: 0.0388 seconds
-Avg Batch time: 0.1760 seconds
+Epoch: [44][77/391]	LR: 1.6000000000000003e-05	DT: 0.000 (5.596)	BT: 0.174 (5.777)	Loss 0.2944 (0.2605)	Prec@1 88.281 (91.156)	
+Epoch: [44][155/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.441)	BT: 0.170 (6.622)	Loss 0.3088 (0.2615)	Prec@1 89.844 (91.191)	
+Epoch: [44][233/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.779)	BT: 0.186 (6.961)	Loss 0.2073 (0.2601)	Prec@1 94.531 (91.329)	
+Epoch: [44][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.788)	BT: 0.172 (6.969)	Loss 0.2993 (0.2610)	Prec@1 89.844 (91.329)	
+Epoch: [44][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.978)	BT: 0.169 (7.159)	Loss 0.2275 (0.2594)	Prec@1 93.750 (91.462)	
+Total train loss: 0.2593
+Avg Loading time: 6.9606 seconds
+Avg Batch time: 7.1411 seconds
 
-Train time: 68.93345808982849
- * Prec@1 94.700 Prec@5 99.820 Loss 0.1700
-Avg Loading time: 0.0951 seconds
-Avg Batch time: 0.1302 seconds
+Train time: 2792.199522972107
+ * Prec@1 88.940 Prec@5 99.680 Loss 0.3149
+Avg Loading time: 7.0653 seconds
+Avg Batch time: 7.1272 seconds
 
-Best acc: 94.950
+Best acc: 89.190
 --------------------------------------------------------------------------------
-Test time: 10.962094068527222
+Test time: 563.7259945869446
 
-Epoch: [45][77/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.031)	BT: 0.082 (0.137)	Loss 0.0148 (0.0150)	Prec@1 100.000 (100.000)	
-Epoch: [45][155/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.019)	BT: 0.151 (0.127)	Loss 0.0179 (0.0148)	Prec@1 100.000 (99.995)	
-Epoch: [45][233/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.016)	BT: 0.147 (0.128)	Loss 0.0112 (0.0148)	Prec@1 100.000 (99.997)	
-Epoch: [45][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.013)	BT: 0.150 (0.126)	Loss 0.0122 (0.0149)	Prec@1 100.000 (99.997)	
-Epoch: [45][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.012)	BT: 0.145 (0.126)	Loss 0.0119 (0.0149)	Prec@1 100.000 (99.998)	
-Total train loss: 0.0150
-Avg Loading time: 0.0119 seconds
-Avg Batch time: 0.1256 seconds
+Epoch: [45][77/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.650)	BT: 0.172 (6.836)	Loss 0.2191 (0.2583)	Prec@1 92.188 (91.647)	
+Epoch: [45][155/391]	LR: 1.6000000000000003e-05	DT: 0.470 (6.139)	BT: 0.653 (6.324)	Loss 0.3462 (0.2612)	Prec@1 88.281 (91.416)	
+Epoch: [45][233/391]	LR: 1.6000000000000003e-05	DT: 2.562 (6.333)	BT: 2.743 (6.519)	Loss 0.2200 (0.2625)	Prec@1 92.969 (91.343)	
+Epoch: [45][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.471)	BT: 0.175 (6.657)	Loss 0.2205 (0.2602)	Prec@1 94.531 (91.449)	
+Epoch: [45][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.520)	BT: 0.177 (6.706)	Loss 0.2852 (0.2602)	Prec@1 90.625 (91.400)	
+Total train loss: 0.2602
+Avg Loading time: 6.5033 seconds
+Avg Batch time: 6.6891 seconds
 
-Train time: 49.24785590171814
- * Prec@1 94.900 Prec@5 99.850 Loss 0.1705
-Avg Loading time: 0.1022 seconds
-Avg Batch time: 0.1435 seconds
+Train time: 2615.490849018097
+ * Prec@1 89.060 Prec@5 99.680 Loss 0.3154
+Avg Loading time: 5.7692 seconds
+Avg Batch time: 5.8279 seconds
 
-Best acc: 94.950
+Best acc: 89.190
 --------------------------------------------------------------------------------
-Test time: 12.028082609176636
+Test time: 460.94650077819824
 
-Epoch: [46][77/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.027)	BT: 0.149 (0.159)	Loss 0.0132 (0.0144)	Prec@1 100.000 (100.000)	
-Epoch: [46][155/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.013)	BT: 0.076 (0.151)	Loss 0.0126 (0.0149)	Prec@1 100.000 (99.995)	
-Epoch: [46][233/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.009)	BT: 0.146 (0.144)	Loss 0.0218 (0.0152)	Prec@1 100.000 (99.993)	
-Epoch: [46][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.007)	BT: 0.146 (0.142)	Loss 0.0132 (0.0152)	Prec@1 100.000 (99.995)	
-Epoch: [46][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.006)	BT: 0.142 (0.140)	Loss 0.0151 (0.0152)	Prec@1 100.000 (99.994)	
-Total train loss: 0.0153
-Avg Loading time: 0.0055 seconds
-Avg Batch time: 0.1398 seconds
+Epoch: [46][77/391]	LR: 1.6000000000000003e-05	DT: 0.000 (7.083)	BT: 0.172 (7.268)	Loss 0.1924 (0.2515)	Prec@1 94.531 (91.687)	
+Epoch: [46][155/391]	LR: 1.6000000000000003e-05	DT: 0.000 (7.275)	BT: 0.172 (7.460)	Loss 0.1489 (0.2576)	Prec@1 96.094 (91.441)	
+Epoch: [46][233/391]	LR: 1.6000000000000003e-05	DT: 0.000 (7.338)	BT: 0.185 (7.523)	Loss 0.3411 (0.2602)	Prec@1 87.500 (91.346)	
+Epoch: [46][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.809)	BT: 0.178 (6.993)	Loss 0.2820 (0.2609)	Prec@1 90.625 (91.248)	
+Epoch: [46][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.924)	BT: 0.175 (7.108)	Loss 0.3027 (0.2609)	Prec@1 88.281 (91.256)	
+Total train loss: 0.2609
+Avg Loading time: 6.9066 seconds
+Avg Batch time: 7.0902 seconds
 
-Train time: 54.79229807853699
- * Prec@1 94.850 Prec@5 99.840 Loss 0.1707
-Avg Loading time: 0.1169 seconds
-Avg Batch time: 0.1610 seconds
+Train time: 2772.3223707675934
+ * Prec@1 89.030 Prec@5 99.670 Loss 0.3179
+Avg Loading time: 7.6812 seconds
+Avg Batch time: 7.7437 seconds
 
-Best acc: 94.950
+Best acc: 89.190
 --------------------------------------------------------------------------------
-Test time: 13.379793167114258
+Test time: 612.7906746864319
 
-Epoch: [47][77/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.030)	BT: 0.114 (0.170)	Loss 0.0162 (0.0142)	Prec@1 100.000 (100.000)	
-Epoch: [47][155/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.105)	BT: 0.107 (0.230)	Loss 0.0371 (0.0147)	Prec@1 100.000 (100.000)	
-Epoch: [47][233/391]	LR: 1.6000000000000003e-05	DT: 0.112 (0.075)	BT: 0.192 (0.192)	Loss 0.0122 (0.0147)	Prec@1 100.000 (100.000)	
-Epoch: [47][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.060)	BT: 0.087 (0.174)	Loss 0.0204 (0.0148)	Prec@1 100.000 (100.000)	
-Epoch: [47][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.050)	BT: 0.149 (0.164)	Loss 0.0122 (0.0148)	Prec@1 100.000 (100.000)	
-Total train loss: 0.0148
-Avg Loading time: 0.0500 seconds
-Avg Batch time: 0.1634 seconds
+Epoch: [47][77/391]	LR: 1.6000000000000003e-05	DT: 0.000 (8.000)	BT: 0.171 (8.181)	Loss 0.2299 (0.2494)	Prec@1 92.188 (91.927)	
+Epoch: [47][155/391]	LR: 1.6000000000000003e-05	DT: 0.000 (8.058)	BT: 0.177 (8.239)	Loss 0.2942 (0.2557)	Prec@1 89.062 (91.572)	
+Epoch: [47][233/391]	LR: 1.6000000000000003e-05	DT: 0.000 (8.212)	BT: 0.180 (8.393)	Loss 0.2021 (0.2547)	Prec@1 93.750 (91.580)	
+Epoch: [47][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (7.813)	BT: 0.169 (7.993)	Loss 0.2620 (0.2550)	Prec@1 92.969 (91.609)	
+Epoch: [47][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (7.443)	BT: 0.174 (7.624)	Loss 0.1843 (0.2583)	Prec@1 94.531 (91.506)	
+Total train loss: 0.2583
+Avg Loading time: 7.4241 seconds
+Avg Batch time: 7.6046 seconds
 
-Train time: 64.0042896270752
- * Prec@1 94.720 Prec@5 99.850 Loss 0.1711
-Avg Loading time: 0.1063 seconds
-Avg Batch time: 0.1429 seconds
+Train time: 2973.491550207138
+ * Prec@1 89.050 Prec@5 99.640 Loss 0.3174
+Avg Loading time: 6.5122 seconds
+Avg Batch time: 6.5744 seconds
 
-Best acc: 94.950
+Best acc: 89.190
 --------------------------------------------------------------------------------
-Test time: 11.949850797653198
+Test time: 520.1781210899353
 
-Epoch: [48][77/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.031)	BT: 0.079 (0.153)	Loss 0.0114 (0.0152)	Prec@1 100.000 (99.990)	
-Epoch: [48][155/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.016)	BT: 0.096 (0.141)	Loss 0.0100 (0.0150)	Prec@1 100.000 (99.995)	
-Epoch: [48][233/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.013)	BT: 0.150 (0.139)	Loss 0.0112 (0.0150)	Prec@1 100.000 (99.997)	
-Epoch: [48][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.010)	BT: 0.151 (0.138)	Loss 0.0129 (0.0149)	Prec@1 100.000 (99.997)	
-Epoch: [48][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.008)	BT: 0.141 (0.138)	Loss 0.0144 (0.0150)	Prec@1 100.000 (99.998)	
-Total train loss: 0.0150
-Avg Loading time: 0.0077 seconds
-Avg Batch time: 0.1383 seconds
+Epoch: [48][77/391]	LR: 1.6000000000000003e-05	DT: 2.331 (6.691)	BT: 2.523 (6.876)	Loss 0.2095 (0.2620)	Prec@1 93.750 (91.186)	
+Epoch: [48][155/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.677)	BT: 0.171 (6.862)	Loss 0.2783 (0.2613)	Prec@1 90.625 (91.311)	
+Epoch: [48][233/391]	LR: 1.6000000000000003e-05	DT: 6.544 (6.822)	BT: 6.723 (7.006)	Loss 0.2311 (0.2635)	Prec@1 91.406 (91.223)	
+Epoch: [48][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.821)	BT: 0.173 (7.005)	Loss 0.2844 (0.2596)	Prec@1 91.406 (91.326)	
+Epoch: [48][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.879)	BT: 0.172 (7.063)	Loss 0.2844 (0.2604)	Prec@1 92.969 (91.324)	
+Total train loss: 0.2603
+Avg Loading time: 6.8613 seconds
+Avg Batch time: 7.0455 seconds
 
-Train time: 54.2209255695343
- * Prec@1 94.870 Prec@5 99.860 Loss 0.1704
-Avg Loading time: 0.1225 seconds
-Avg Batch time: 0.1643 seconds
+Train time: 2754.9222283363342
+ * Prec@1 89.120 Prec@5 99.680 Loss 0.3145
+Avg Loading time: 6.5565 seconds
+Avg Batch time: 6.6178 seconds
 
-Best acc: 94.950
+Best acc: 89.190
 --------------------------------------------------------------------------------
-Test time: 13.651493310928345
+Test time: 523.4308693408966
 
-Epoch: [49][77/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.030)	BT: 0.173 (0.161)	Loss 0.0149 (0.0144)	Prec@1 100.000 (100.000)	
-Epoch: [49][155/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.015)	BT: 0.146 (0.148)	Loss 0.0155 (0.0147)	Prec@1 100.000 (100.000)	
-Epoch: [49][233/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.010)	BT: 0.171 (0.150)	Loss 0.0111 (0.0147)	Prec@1 100.000 (99.997)	
-Epoch: [49][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.008)	BT: 0.074 (0.146)	Loss 0.0130 (0.0147)	Prec@1 100.000 (99.997)	
-Epoch: [49][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (0.046)	BT: 0.081 (0.179)	Loss 0.0139 (0.0147)	Prec@1 100.000 (99.998)	
-Total train loss: 0.0147
-Avg Loading time: 0.0458 seconds
-Avg Batch time: 0.1785 seconds
+Epoch: [49][77/391]	LR: 1.6000000000000003e-05	DT: 4.085 (5.226)	BT: 4.273 (5.410)	Loss 0.3074 (0.2523)	Prec@1 88.281 (91.426)	
+Epoch: [49][155/391]	LR: 1.6000000000000003e-05	DT: 12.317 (6.115)	BT: 12.507 (6.301)	Loss 0.2529 (0.2600)	Prec@1 89.844 (91.106)	
+Epoch: [49][233/391]	LR: 1.6000000000000003e-05	DT: 8.965 (6.449)	BT: 9.143 (6.634)	Loss 0.1702 (0.2595)	Prec@1 93.750 (91.139)	
+Epoch: [49][311/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.567)	BT: 0.177 (6.752)	Loss 0.2637 (0.2594)	Prec@1 91.406 (91.233)	
+Epoch: [49][389/391]	LR: 1.6000000000000003e-05	DT: 0.000 (6.682)	BT: 0.171 (6.867)	Loss 0.3413 (0.2590)	Prec@1 84.375 (91.264)	
+Total train loss: 0.2588
+Avg Loading time: 6.6649 seconds
+Avg Batch time: 6.8497 seconds
 
-Train time: 69.91816806793213
- * Prec@1 94.870 Prec@5 99.840 Loss 0.1696
-Avg Loading time: 0.1239 seconds
-Avg Batch time: 0.1574 seconds
+Train time: 2678.2774770259857
+ * Prec@1 89.070 Prec@5 99.690 Loss 0.3135
+Avg Loading time: 6.2433 seconds
+Avg Batch time: 6.3045 seconds
 
-Best acc: 94.950
+Best acc: 89.190
 --------------------------------------------------------------------------------
-Test time: 13.11641240119934
+Test time: 498.63187646865845
 

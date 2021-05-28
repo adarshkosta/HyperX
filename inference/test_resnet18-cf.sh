@@ -1,12 +1,12 @@
 #!/bin/bash
 
-DATASET="cifar10"
+DATASET="cifar100"
 PRETRAINED="../pretrained_models/frozen/x64-8b/"
 LOADDIR="/home/nano01/a/esoufler/activations/x64-8b/"
-MODE="rram"
-GPUS="$1"
-START=$2
-STOP=$3
+MODE="$1"
+GPUS="$2"
+START=$3
+STOP=$4
 
 for ((f=$START; f<=$STOP; f=f+2))
 do

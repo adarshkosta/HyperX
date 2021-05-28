@@ -9,7 +9,7 @@ import os
 import sys
 
 #Filepath handling
-root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+root_dir = os.path.dirname(os.get_cwd()))
 inference_dir = os.path.join(root_dir, "inference")
 src_dir = os.path.join(root_dir, "src")
 models_dir = os.path.join(root_dir, "models")
@@ -68,43 +68,101 @@ for path, dirs, files in os.walk(models_dir):
 model_names.sort()
 
 # Evaluate on a model
-def test(device):
-    global best_acc
-    flag = True
-    training = False
-    model.eval()
+# def test(device):
+#     global best_acc
+#     flag = True
+#     training = False
+
+#     model.eval()
+#     losses = AverageMeter()
+#     top1 = AverageMeter()
+#     top5 = AverageMeter()
+
+#     with torch.no_grad():
+#         for batch_idx,(data, target) in enumerate(testloader):
+#             data_var = data.to(device)
+#             target_var = target.to(device)
+#             target = target.to(device)
+            
+#             if args.half:
+#                 data_var = data_var.half()
+#                 # target_var = target_var.half()
+            
+#             output = model(data_var)
+#             loss= criterion(output, target_var)
+
+#             output = output.float()
+#             loss = loss.float()
+            
+#             # prec1, prec5 = accuracy(output.data, target_var.data, topk=(1, 5))
+#             prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
+#             losses.update(loss.data, data.size(0))
+#             top1.update(prec1[0], data.size(0))
+#             top5.update(prec5[0], data.size(0))
+
+
+#             if batch_idx % 1 == 0:
+#                 print('[{0}/{1}({2:.0f}%)]\t'
+#                     'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+#                     'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+#                     'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
+#                     batch_idx, len(testloader), 100. *float(batch_idx)/len(testloader),
+#                     loss=losses, top1=top1, top5=top5))
+
+
+#     print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'
+#           .format(top1=top1, top5=top5))
+#     acc = top1.avg
+#     return acc, losses.avg
+
+def test(model, device):
+    """
+    Run evaluation
+    """
+    batch_time = AverageMeter()
     losses = AverageMeter()
     top1 = AverageMeter()
-    top5 = AverageMeter()
 
-    for batch_idx,(data, target) in enumerate(testloader):
-        data_var = data.to(device)
-        target_var = target.to(device)
-        
-        if args.half:
-            data_var = data_var.half()
-        
-        output = model(data_var)
-        loss= criterion(output, target_var)
-        prec1, prec5 = accuracy(output.data, target_var.data, topk=(1, 5))
-        losses.update(loss.data, data.size(0))
-        top1.update(prec1[0], data.size(0))
-        top5.update(prec5[0], data.size(0))
+    # switch to evaluate mode
+    model.eval()
 
+    end = time.time()
+    with torch.no_grad():
+        for i, (input, target) in enumerate(testloader):
+            target = target.cuda()
+            input_var = input.cuda()
+            target_var = target.cuda()
 
-        if batch_idx % 1 == 0:
-            print('[{0}/{1}({2:.0f}%)]\t'
-                  'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                  'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
-                  'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
-                   batch_idx, len(testloader), 100. *float(batch_idx)/len(testloader),
-                   loss=losses, top1=top1, top5=top5))
+            if args.half:
+                input_var = input_var.half()
 
+            # compute output
+            output = model(input_var)
+            loss = criterion(output, target_var)
 
-    print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'
-          .format(top1=top1, top5=top5))
-    acc = top1.avg
-    return acc, losses.avg
+            output = output.float()
+            loss = loss.float()
+
+            # measure accuracy and record loss
+            prec1 = accuracy(output.data, target)[0]
+            losses.update(loss.item(), input.size(0))
+            top1.update(prec1.item(), input.size(0))
+
+            # measure elapsed time
+            batch_time.update(time.time() - end)
+            end = time.time()
+
+            if i % 1 == 0:
+                print('Test: [{0}/{1}]\t'
+                        'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                        'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
+                            i, len(testloader), loss=losses,
+                            top1=top1))
+
+    print(' * Prec@1 {top1.avg:.3f}'
+          .format(top1=top1))
+
+    return top1.avg, losses.avg
   
 # Intermediate feature maps
 activation = {}
@@ -118,6 +176,36 @@ def print_args(args):
     for k, v in vars(args).items():
         print(' '*10 + k + ': ' + str(v))
 
+def get_weight_range(model):
+    max = torch.tensor(-float('Inf'))
+    min = torch.tensor(float('Inf'))
+    for name, m in model.named_modules():
+        if 'conv' in name or 'fc' in name or 'resconv' in name:
+            if 'resconv' in name and '.0' not in name:
+                continue
+            else:
+                tmax = m.weight.data.max()
+                tmin = m.weight.data.min()
+
+                print('{} weight-range: [{}, {}]'.format(name, tmin, tmax))
+
+                if tmax > max:
+                    max = tmax
+
+                if tmin < min:
+                    min = tmin
+
+    return min, max
+
+def get_unique_weights(model):
+    for name, m in model.named_modules():
+        if 'conv' in name or 'fc' in name or 'resconv' in name:
+            if 'resconv' in name and '.0' not in name:
+                continue
+            else:
+                u = torch.unique(m.weight.data)
+                print('{} unique length: {} '.format(name, len(u)))
+
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-b', '--batch-size', default=256, type=int,
@@ -127,14 +215,12 @@ if __name__=='__main__':
     parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
                 choices=model_names,
                 help='name of the model')
-    parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20fp_cifar100.pth.tar',
+    parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20fp_cifar10.pth.tar',
         help='the path to the pretrained model')
     parser.add_argument('--mvm', action='store_true', default=None,
                 help='if running functional simulator backend')
     parser.add_argument('--nideal', action='store_true', default=None,
                 help='Add xbar non-idealities')
-    # parser.add_argument('--xbsize', type=int, default=64,
-    #             help='xbar size')
     
     parser.add_argument('--input_size', type=int, default=None,
                 help='image input size')
@@ -146,33 +232,6 @@ if __name__=='__main__':
     args = parser.parse_args()
     
     print_args(args)
-    
-    # if args.xbsize == 32:
-    #     # print('32')    
-    #     cfg.xbmodel_weight_path = '../xb_models/XB_32_stream1slice207dropout50epochs.pth.tar'
-    #     cfg.xbar_row_size = int(32)
-    #     cfg.xbar_col_size = int(32)
-    #     cfg.inmax_test = 1.1
-    #     cfg.inmin_test = 0.874
-    #     cfg.xbmodel = cfg.NN_model(cfg.xbar_row_size)
-
-    # elif args.xbsize == 64:
-    #     # print('64')     
-    #     cfg.xbmodel_weight_path = '../xb_models/XB_64_stream1slice207dropout50epochs.pth.tar'
-    #     cfg.xbar_row_size = int(64)
-    #     cfg.xbar_col_size = int(64)
-    #     cfg.inmax_test = 1.2
-    #     cfg.inmin_test = 0.857
-    #     cfg.xbmodel = cfg.NN_model(cfg.xbar_row_size)
-
-    # elif args.xbsize == 128:
-    #     # print('128')     
-    #     cfg.xbmodel_weight_path = '../xb_models/XB_128_stream1slice207dropout50epochs.pth.tar'
-    #     cfg.xbar_row_size = int(128)
-    #     cfg.xbar_col_size = int(128)
-    #     cfg.inmax_test = 1.4
-    #     cfg.inmin_test = 0.826
-    #     cfg.xbmodel = cfg.NN_model(cfg.xbar_row_size)
 
     if args.nideal:
       cfg.non_ideality = True
@@ -205,9 +264,7 @@ if __name__=='__main__':
         model = model.net(num_classes=100)
         model_mvm = model_mvm.net(num_classes=100)
     else:
-      raise Exception(args.dataset + 'is currently not supported')
-      
-    #print(model_mvm)
+        raise Exception(args.dataset + 'is currently not supported')
 
     print('==> Initializing model parameters ...')
     weights_conv = []
@@ -256,17 +313,29 @@ if __name__=='__main__':
             m.weight.data = weights_lin[k]
             k=k+1
 
+    wt_min, wt_max = get_weight_range(model)
+
+    get_unique_weights(model)
+
     # Move required model to GPU (if applicable)
     if args.mvm:
         cfg.mvm = True
         model = model_mvm
+
+    if args.half:
+        model = model.half() # FP16
         
     model.to(device)
     
-    if args.half:
-        model.half() # FP16
 
-    model = torch.nn.DataParallel(model)
+    # model = torch.nn.DataParallel(model)
+
+
+    print('Weight range: ({}, {})'.format(wt_min, wt_max))
+
+    
+
+    # summary(model, (3,32,32))
 
     default_transform = {
         'train': get_transform(args.dataset,
@@ -288,10 +357,10 @@ if __name__=='__main__':
         batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True)
     
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss().to(device)
     
     if args.half:
-        criterion.half()
+        criterion = criterion.half()
 
-    test(device)
+    test(model, device)
     exit(0)

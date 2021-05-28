@@ -311,5 +311,7 @@ if __name__=='__main__':
     if args.half:
         criterion.half()
 
+    summary(model, (3,224,224))
+
     test(device)
     exit(0)

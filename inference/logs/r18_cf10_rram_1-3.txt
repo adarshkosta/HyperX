@@ -4,16 +4,16 @@ WARNING: crossbar sizes with different row annd column dimension not supported.
           dataset: cifar10
           model: resnet18
           load_dir: /home/nano01/a/esoufler/activations/x64-8b/
-          mode: sram
+          mode: rram
           savedir: ../results/discp_analysis/
           pretrained: ../pretrained_models/frozen/x64-8b/
           mvm: True
           nideal: None
-          workers: 8
-          batch_size: 64
+          workers: 20
+          batch_size: 400
           print_freq: 5
           half: None
-          gpus: 3
+          gpus: 2
           frozen_layers: 1
 
       ==> Functional simulator configurations:
@@ -46,9 +46,9 @@ xbmodel_weight_path=../xb_models/XB_64_stream1slice207dropout50epochs.pth.tar
 
 
 DEVICE: cuda
-GPU Id(s) being used: 3
+GPU Id(s) being used: 2
 ==> Building model for resnet18 ...
 WARNING: crossbar sizes with different row annd column dimension not supported.
 ==> Initializing model parameters ...
-==> Load pretrained model form ../pretrained_models/frozen/x64-8b/rram/cifar10/resnet18/freeze1_hp_best.pth.tar ...
+==> Load pretrained model from ../pretrained_models/frozen/x64-8b/rram/cifar10/resnet18/freeze1_hp_best.pth.tar ...
 Pretrained model accuracy: 95.02999877929688

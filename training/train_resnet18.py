@@ -23,7 +23,7 @@ import collections
 root_dir = os.path.dirname(os.getcwd())
 inference_dir = os.path.join(root_dir, "inference")
 src_dir = os.path.join(root_dir, "src")
-models_dir = os.path.join(root_dir, "models")
+models_dir = os.path.join(root_dir, "frozen_quantized_models")
 datasets_dir = os.path.join(root_dir, "datasets")
 
 sys.path.insert(0, root_dir) # 1 adds path to end of PYTHONPATH
@@ -47,6 +47,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision.utils import save_image
 from torchsummary import summary
+import torchvision.datasets as datasets
 
 #torch.set_default_tensor_type(torch.HalfTensor)
 
@@ -77,26 +78,20 @@ for path, dirs, files in os.walk(models_dir):
     break # only traverse top level directory
 model_names.sort()
 
-#model_names = sorted(name for name in resnet.__dict__
-#    if name.islower() and not name.startswith("__")
-#                     and name.startswith("resnet")
-#                     and callable(resnet.__dict__[name]))
 
-print(model_names)
-
-parser = argparse.ArgumentParser(description='ResNet-20 CIFAR10 Training')
-parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
+parser = argparse.ArgumentParser(description='ResNet-18 ImageNet Training')
+parser.add_argument('--dataset', metavar='DATASET', default='imagenet',
                 help='dataset name or folder')
-parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
+parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18',
                 choices=model_names,
                 help='name of the model')
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', default=250, type=int, metavar='N',
+parser.add_argument('--epochs', default=100, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
-parser.add_argument('-b', '--batch-size', default=128, type=int,
+parser.add_argument('-b', '--batch-size', default=512, type=int,
                     metavar='N', help='mini-batch size (default: 128)')
 parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
                     metavar='LR', help='initial learning rate')
@@ -105,14 +100,14 @@ parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
 parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar='W', 
                     help='weight decay (default: 1e-4)')
 
-parser.add_argument('--milestones', default=[100, 150], 
+parser.add_argument('--milestones', default=[20,40,60,80], 
             help='Milestones for LR decay')
 parser.add_argument('--gamma', default=0.1, type=float,
             help='learning rate decay')
 
 parser.add_argument('--input_size', type=int, default=None,
                     help='image input size')
-parser.add_argument('--print-freq', '-p', default=50, type=int,
+parser.add_argument('--print-freq', '-p', default=1000, type=int,
                     metavar='N', help='print frequency (default: 50)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
                     help='path to latest checkpoint (default: none)')
@@ -122,7 +117,7 @@ parser.add_argument('--pretrained', dest='pretrained', action='store_true', defa
                     help='use pre-trained model')
 parser.add_argument('--half', dest='half', action='store_true',
                     help='use half-precision(16-bit) ')
-parser.add_argument('--savedir', default='/home/min/a/akosta/Current_Projects/Hybrid_RRAM-SRAM/pretrained_models/ideal/',
+parser.add_argument('--savedir', default='../pretrained_models/ideal/',
                 help='base path for saving activations')
 parser.add_argument('--save-every', dest='save_every',
                     help='Saves checkpoints at every specified number of epochs',
@@ -150,7 +145,7 @@ def main():
     print('DEVICE:', device)
     print('GPU Id(s) being used:', args.gpus)
 
-    print('==> Building model and model_mvm for', args.model, '...')
+    print('==> Building model for', args.model, '...')
     if (args.model in model_names):
         model = (__import__(args.model)) #import module using the string/variable_name
     else:
@@ -160,11 +155,11 @@ def main():
         model = model.net(num_classes=10)
     elif args.dataset == 'cifar100':
         model = model.net(num_classes=100)
+    elif args.dataset == 'imagenet':
+        model = model.net(num_classes=1000)
     else:
-      raise Exception(args.dataset + 'is currently not supported')
-    
-    model.to(device)#.half() # uncomment for FP16
-#    model = nn.DataParallel(model)
+      raise Exception(args.dataset + ' is currently not supported')
+
 
     # optionally resume from a checkpoint
     if args.resume:
@@ -181,23 +176,54 @@ def main():
             print("=> no checkpoint found at '{}'".format(args.resume))
 
 
-    default_transform = {
-        'train': get_transform(args.dataset,
-                               input_size=args.input_size, augment=True),
-        'eval': get_transform(args.dataset,
-                              input_size=args.input_size, augment=False)
-    }
-    transform = getattr(model, 'input_transform', default_transform)
+    # default_transform = {
+    #     'train': get_transform(args.dataset,
+    #                            input_size=args.input_size, augment=True),
+    #     'eval': get_transform(args.dataset,
+    #                           input_size=args.input_size, augment=False)
+    # }
+    # transform = getattr(model, 'input_transform', default_transform)
     
-    train_data = get_dataset(args.dataset, 'train', transform['train'])
-    trainloader = torch.utils.data.DataLoader(
-        train_data,
-        batch_size=args.batch_size, shuffle=True,
-        num_workers=args.workers, pin_memory=True)
+    # train_data = get_dataset(args.dataset, 'train', transform['train'])
+    # trainloader = torch.utils.data.DataLoader(
+    #     train_data,
+    #     batch_size=args.batch_size, shuffle=True,
+    #     num_workers=args.workers, pin_memory=True)
 
-    test_data = get_dataset(args.dataset, 'val', transform['eval'], download=True)
+    # test_data = get_dataset(args.dataset, 'val', transform['eval'], download=True)
+    # testloader = torch.utils.data.DataLoader(
+    #     test_data,
+    #     batch_size=args.batch_size, shuffle=False,
+    #     num_workers=args.workers, pin_memory=True)
+
+    traindir = os.path.join('/local/a/imagenet/imagenet2012/', 'train')
+    valdir = os.path.join('/local/a/imagenet/imagenet2012/', 'val')
+
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                     std=[0.229, 0.224, 0.225])
+
+    train_dataset = datasets.ImageFolder(
+        traindir,
+        transforms.Compose([
+            transforms.RandomResizedCrop(224),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            normalize,
+        ]))
+
+    train_sampler = None
+
+    trainloader = torch.utils.data.DataLoader(
+        train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
+        num_workers=args.workers, pin_memory=True, sampler=train_sampler)
+
     testloader = torch.utils.data.DataLoader(
-        test_data,
+        datasets.ImageFolder(valdir, transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            normalize,
+        ])),
         batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
@@ -207,6 +233,9 @@ def main():
         model = model.half()
         criterion = criterion.half()
 
+    model.to(device)
+    model = torch.nn.DataParallel(model)
+
     optimizer = torch.optim.SGD(model.parameters(), args.lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)
@@ -215,8 +244,6 @@ def main():
                                                         milestones=args.milestones, 
                                                         gamma=args.gamma, 
                                                         last_epoch=args.start_epoch - 1)
-
-
 
     if args.evaluate:
         validate(testloader, model, criterion)
@@ -240,17 +267,17 @@ def main():
                 'epoch': epoch + 1,
                 'state_dict': model.state_dict(),
                 'best_acc': best_acc,
-            }, is_best, path=args.savedir, filename=args.model +'fp_' + args.dataset + '_checkpoint.pth.tar')
+            }, is_best, path=args.savedir, filename=args.model +'fp_' + args.dataset + '_checkpoint')
         if args.half:
             save_checkpoint({
                 'state_dict': model.state_dict(),
                 'best_acc': best_acc,
-            }, is_best, path= args.savedir, filename=args.model +'fp_' + args.dataset + '_half.pth.tar')
+            }, is_best, path= args.savedir, filename=args.model +'fp_' + args.dataset + '_half')
         else:
             save_checkpoint({
                 'state_dict': model.state_dict(),
                 'best_acc': best_acc,
-            }, is_best, path=args.savedir, filename=args.model +'fp_' + args.dataset + '_full.pth.tar')
+            }, is_best, path=args.savedir, filename=args.model +'fp_' + args.dataset + '_full')
 
 def train(train_loader, model, criterion, optimizer, epoch):
     """
@@ -300,11 +327,10 @@ def train(train_loader, model, criterion, optimizer, epoch):
         if i % args.print_freq == 0:
             print('Epoch: [{0}][{1}/{2}]\t'
                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                  'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                   'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
                       epoch, i, len(train_loader), batch_time=batch_time,
-                      data_time=data_time, loss=losses, top1=top1))
+                      loss=losses, top1=top1))
 
 
 def validate(val_loader, model, criterion):

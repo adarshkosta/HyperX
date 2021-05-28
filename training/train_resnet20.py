@@ -12,6 +12,8 @@ import os
 import sys
 import time
 import collections
+import math
+
 
 #Min
 #savedir = '/home/min/a/akosta/Current_Projects/Hybrid_RRAM-SRAM/activations/multiple_batches/'
@@ -23,7 +25,7 @@ import collections
 root_dir = os.path.dirname(os.getcwd())
 inference_dir = os.path.join(root_dir, "inference")
 src_dir = os.path.join(root_dir, "src")
-models_dir = os.path.join(root_dir, "models")
+models_dir = os.path.join(root_dir, "frozen_quantized_models")
 datasets_dir = os.path.join(root_dir, "datasets")
 
 sys.path.insert(0, root_dir) # 1 adds path to end of PYTHONPATH
@@ -55,6 +57,7 @@ import models
 from utils.data import get_dataset
 from utils.preprocess import get_transform
 from utils.utils import *
+from frozen_quantized_models.quant_dorefa import *
 
 #Seeding
 def reset_seed():
@@ -77,12 +80,6 @@ for path, dirs, files in os.walk(models_dir):
     break # only traverse top level directory
 model_names.sort()
 
-#model_names = sorted(name for name in resnet.__dict__
-#    if name.islower() and not name.startswith("__")
-#                     and name.startswith("resnet")
-#                     and callable(resnet.__dict__[name]))
-
-print(model_names)
 
 parser = argparse.ArgumentParser(description='ResNet-20 CIFAR10 Training')
 parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
@@ -92,37 +89,40 @@ parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
                 help='name of the model')
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', default=250, type=int, metavar='N',
+parser.add_argument('--epochs', default=300, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=128, type=int,
                     metavar='N', help='mini-batch size (default: 128)')
-parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
+parser.add_argument('--lr', '--learning-rate', default=0.02, type=float,
                     metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
 parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar='W', 
                     help='weight decay (default: 1e-4)')
 
-parser.add_argument('--milestones', default=[100, 150], 
+parser.add_argument('--tag', metavar='tag', default=None, type=str,
+                    help='use first and last layers with 16b precision and assign a tag to sim')
+
+parser.add_argument('--milestones', default=[40, 80, 120, 160, 200, 240], 
             help='Milestones for LR decay')
-parser.add_argument('--gamma', default=0.1, type=float,
+parser.add_argument('--gamma', default=0.2, type=float,
             help='learning rate decay')
 
 parser.add_argument('--input_size', type=int, default=None,
                     help='image input size')
-parser.add_argument('--print-freq', '-p', default=50, type=int,
+parser.add_argument('--print-freq', '-p', default=200, type=int,
                     metavar='N', help='print frequency (default: 50)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
                     help='path to latest checkpoint (default: none)')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true', 
                     help='evaluate model on validation set')
-parser.add_argument('--pretrained', dest='pretrained', action='store_true', default=None,
-                    help='use pre-trained model')
+parser.add_argument('--pretrained', dest='pretrained', type=str, default=None,
+                    help='pretrained model path')
 parser.add_argument('--half', dest='half', action='store_true',
                     help='use half-precision(16-bit) ')
-parser.add_argument('--savedir', default='/home/min/a/akosta/Current_Projects/Hybrid_RRAM-SRAM/pretrained_models/ideal/',
+parser.add_argument('--savedir', default='../pretrained_models/ideal/',
                 help='base path for saving activations')
 parser.add_argument('--save-every', dest='save_every',
                     help='Saves checkpoints at every specified number of epochs',
@@ -150,9 +150,12 @@ def main():
     print('DEVICE:', device)
     print('GPU Id(s) being used:', args.gpus)
 
-    print('==> Building model and model_mvm for', args.model, '...')
+    print('==> Building model for', args.model, '...')
     if (args.model in model_names):
-        model = (__import__(args.model)) #import module using the string/variable_name
+        if args.tag:
+            model = (__import__(args.model + '_iofp')) #import module using the string/variable_name
+        else:
+            model = (__import__(args.model))
     else:
         raise Exception(args.model+'is currently not supported')
         
@@ -163,23 +166,50 @@ def main():
     else:
       raise Exception(args.dataset + 'is currently not supported')
     
+    if args.half:
+        model = model.half()
+
     model.to(device)#.half() # uncomment for FP16
-#    model = nn.DataParallel(model)
+
+    # summary(model, (3,32,32))
 
     # optionally resume from a checkpoint
     if args.resume:
         if os.path.isfile(args.resume):
             print("=> loading checkpoint '{}'".format(args.resume))
             checkpoint = torch.load(args.resume)
-            args.start_epoch = checkpoint['epoch']
-            best_acc = checkpoint['best_acc']
-            print('Pretrained model accuracy: {}'.format(best_acc))
+            args.start_epoch = 0
+            best_acc = 0
+            print('Resumed model accuracy: {}'.format(checkpoint['best_acc']))
             model.load_state_dict(checkpoint['state_dict'])
-            print("=> loaded checkpoint '{}' (epoch {})"
-                  .format(args.evaluate, checkpoint['epoch']))
+            print("=> loaded checkpoint from {}".format(args.resume))
         else:
             print("=> no checkpoint found at '{}'".format(args.resume))
-
+    elif args.pretrained:
+        if os.path.isfile(args.pretrained):
+            print("=> loading pretrained model '{}'".format(args.pretrained))
+            checkpoint = torch.load(args.pretrained)
+            args.start_epoch = 0
+            best_acc = 0
+            print('Pretrained model accuracy: {}'.format(checkpoint['best_acc']))
+            model.load_state_dict(checkpoint['state_dict'])
+            print("=> loaded pretrained model from {}".format(args.pretrained))
+        else:
+            print("=> no model found at '{}'".format(args.pretrained))
+    # else:
+    #     print("=> Intializing model '{}'".format(args.pretrained))
+    #     for name, m in model.named_modules():
+    #         if 'conv' in name:
+    #             n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+    #             m.weight.data.normal_(0, math.sqrt(2. / n))
+    #         elif 'bn' in name:
+    #             m.weight.data.fill_(1)
+    #             m.bias.data.zero_()
+    #         elif 'fc' in name:
+    #             stdv = 1. / math.sqrt(m.weight.data.size(1))
+    #             m.weight.data.uniform_(-stdv, stdv)
+    #             if m.bias is not None:
+    #                m.bias.data.uniform_(-stdv, stdv)
 
     default_transform = {
         'train': get_transform(args.dataset,
@@ -204,7 +234,6 @@ def main():
     criterion = nn.CrossEntropyLoss().to(device)
 
     if args.half:
-        model = model.half()
         criterion = criterion.half()
 
     optimizer = torch.optim.SGD(model.parameters(), args.lr,
@@ -222,9 +251,12 @@ def main():
         validate(testloader, model, criterion)
         return
 
+    # evaluate on validation set
+    acc = validate(testloader, model, criterion)
+    print('Pretrained model accuracy: {}'.format(acc))
+
     for epoch in range(args.start_epoch, args.epochs):
         # train for one epoch
-        print('Current lr {:.5e}'.format(optimizer.param_groups[0]['lr']))
         train(trainloader, model, criterion, optimizer, epoch)
         lr_scheduler.step()
 
@@ -234,23 +266,31 @@ def main():
         # remember best prec@1 and save checkpoint
         is_best = acc > best_acc
         best_acc = max(acc, best_acc)
+        print('Best accuracy: {}\n'.format(best_acc))
 
         if epoch > 0 and epoch % args.save_every == 0:
-            save_checkpoint({
-                'epoch': epoch + 1,
-                'state_dict': model.state_dict(),
-                'best_acc': best_acc,
-            }, is_best, path=args.savedir, filename=args.model +'fp_' + args.dataset + '_checkpoint.pth.tar')
-        if args.half:
-            save_checkpoint({
-                'state_dict': model.state_dict(),
-                'best_acc': best_acc,
-            }, is_best, path= args.savedir, filename=args.model +'fp_' + args.dataset + '_half.pth.tar')
-        else:
-            save_checkpoint({
-                'state_dict': model.state_dict(),
-                'best_acc': best_acc,
-            }, is_best, path=args.savedir, filename=args.model +'fp_' + args.dataset + '_full.pth.tar')
+            if args.half:
+                if args.tag:
+                    save_checkpoint({
+                        'state_dict': model.state_dict(),
+                        'best_acc': best_acc,
+                    }, is_best, path= args.savedir, filename=args.model +'qfp_' + args.dataset + '_half_' + str(args.tag))
+                else:
+                    save_checkpoint({
+                        'state_dict': model.state_dict(),
+                        'best_acc': best_acc,
+                    }, is_best, path= args.savedir, filename=args.model +'qfp_' + args.dataset + '_half')
+            else:
+                if args.tag:
+                    save_checkpoint({
+                        'state_dict': model.state_dict(),
+                        'best_acc': best_acc,
+                    }, is_best, path=args.savedir, filename=args.model +'qfp_' + args.dataset + '_full_' + str(args.tag))
+                else:
+                    save_checkpoint({
+                        'state_dict': model.state_dict(),
+                        'best_acc': best_acc,
+                    }, is_best, path= args.savedir, filename=args.model +'qfp_' + args.dataset + '_full')
 
 def train(train_loader, model, criterion, optimizer, epoch):
     """
@@ -299,12 +339,11 @@ def train(train_loader, model, criterion, optimizer, epoch):
 
         if i % args.print_freq == 0:
             print('Epoch: [{0}][{1}/{2}]\t'
-                  'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                  'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
+                  'LR {3}\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                   'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
-                      epoch, i, len(train_loader), batch_time=batch_time,
-                      data_time=data_time, loss=losses, top1=top1))
+                      epoch, i, len(train_loader), optimizer.param_groups[0]['lr'],
+                      loss=losses, top1=top1))
 
 
 def validate(val_loader, model, criterion):
@@ -344,13 +383,12 @@ def validate(val_loader, model, criterion):
             batch_time.update(time.time() - end)
             end = time.time()
 
-            if i % 10 == 0:
-                print('Test: [{0}/{1}]\t'
-                      'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                      'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
-                          i, len(val_loader), batch_time=batch_time, loss=losses,
-                          top1=top1))
+            # if i % 40 == 0:
+        print('Test: [{0}/{1}]\t'
+                'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
+                    i, len(val_loader), loss=losses,
+                    top1=top1))
 
     print(' * Prec@1 {top1.avg:.3f}'
           .format(top1=top1))

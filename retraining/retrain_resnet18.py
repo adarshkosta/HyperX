@@ -174,16 +174,6 @@ def test(test_loader, model, criterion, device):
             batch_time.update(time.time() - end)
             end = time.time()
 
-    
-            # if batch_idx % 10 == 0:
-            #         print('[{0}/{1}({2:.0f}%)]\t'
-            #             'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-            #             'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
-            #             'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
-            #             batch_idx, len(test_loader), 100. *float(batch_idx)/len(test_loader),
-            #             loss=losses, top1=top1, top5=top5))
-
-
     print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f} Loss {loss.avg:.4f}'
           .format(top1=top1, top5=top5, loss=losses))
     print('Avg Loading time: {duration.avg:.4f} seconds'.format(duration=data_time))
@@ -462,7 +452,6 @@ lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer,
                                             last_epoch=args.start_epoch - 1)
 
 print(model)
-
 
 if args.evaluate:
     acc, loss = test(test_loader, model, criterion, device)
