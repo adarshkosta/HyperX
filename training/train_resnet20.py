@@ -89,13 +89,13 @@ parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
                 help='name of the model')
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', default=300, type=int, metavar='N',
+parser.add_argument('--epochs', default=200, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=128, type=int,
                     metavar='N', help='mini-batch size (default: 128)')
-parser.add_argument('--lr', '--learning-rate', default=0.02, type=float,
+parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
                     metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
@@ -105,9 +105,9 @@ parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar=
 parser.add_argument('--tag', metavar='tag', default=None, type=str,
                     help='use first and last layers with 16b precision and assign a tag to sim')
 
-parser.add_argument('--milestones', default=[40, 80, 120, 160, 200, 240], 
+parser.add_argument('--milestones', default=[80, 120, 160], 
             help='Milestones for LR decay')
-parser.add_argument('--gamma', default=0.2, type=float,
+parser.add_argument('--gamma', default=0.1, type=float,
             help='learning rate decay')
 
 parser.add_argument('--input_size', type=int, default=None,
@@ -136,7 +136,7 @@ for k, v in vars(args).items():
     print(' '*10 + k + ': ' + str(v))
 
 best_acc = 0
-
+best_train_acc= 0
 
 def main():
     global args, best_acc
@@ -152,10 +152,7 @@ def main():
 
     print('==> Building model for', args.model, '...')
     if (args.model in model_names):
-        if args.tag:
-            model = (__import__(args.model + '_iofp')) #import module using the string/variable_name
-        else:
-            model = (__import__(args.model))
+        model = (__import__(args.model))
     else:
         raise Exception(args.model+'is currently not supported')
         
@@ -172,7 +169,6 @@ def main():
     model.to(device)#.half() # uncomment for FP16
 
     # summary(model, (3,32,32))
-
     # optionally resume from a checkpoint
     if args.resume:
         if os.path.isfile(args.resume):
@@ -180,6 +176,7 @@ def main():
             checkpoint = torch.load(args.resume)
             args.start_epoch = 0
             best_acc = 0
+            best_train_acc= 0
             print('Resumed model accuracy: {}'.format(checkpoint['best_acc']))
             model.load_state_dict(checkpoint['state_dict'])
             print("=> loaded checkpoint from {}".format(args.resume))
@@ -191,6 +188,7 @@ def main():
             checkpoint = torch.load(args.pretrained)
             args.start_epoch = 0
             best_acc = 0
+            best_train_acc= 0
             print('Pretrained model accuracy: {}'.format(checkpoint['best_acc']))
             model.load_state_dict(checkpoint['state_dict'])
             print("=> loaded pretrained model from {}".format(args.pretrained))
@@ -238,7 +236,8 @@ def main():
 
     optimizer = torch.optim.SGD(model.parameters(), args.lr,
                                 momentum=args.momentum,
-                                weight_decay=args.weight_decay)
+                                weight_decay=args.weight_decay,
+                                nesterov=True)
 
     lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,
                                                         milestones=args.milestones, 
@@ -252,16 +251,16 @@ def main():
         return
 
     # evaluate on validation set
-    acc = validate(testloader, model, criterion)
+    [acc, loss] = validate(testloader, model, criterion)
     print('Pretrained model accuracy: {}'.format(acc))
 
     for epoch in range(args.start_epoch, args.epochs):
         # train for one epoch
-        train(trainloader, model, criterion, optimizer, epoch)
+        [train_acc, train_loss] = train(trainloader, model, criterion, optimizer, epoch)
         lr_scheduler.step()
 
         # evaluate on validation set
-        acc = validate(testloader, model, criterion)
+        [acc, loss] = validate(testloader, model, criterion)
 
         # remember best prec@1 and save checkpoint
         is_best = acc > best_acc
@@ -296,11 +295,12 @@ def train(train_loader, model, criterion, optimizer, epoch):
     """
         Run one train epoch
     """
+    global best_train_acc
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
     top1 = AverageMeter()
-
+    top5 = AverageMeter()
     # switch to train mode
     model.train()
 
@@ -329,9 +329,13 @@ def train(train_loader, model, criterion, optimizer, epoch):
         loss = loss.float()
         
         # measure accuracy and record loss
-        prec1 = accuracy(output.data, target)[0]
-        losses.update(loss.item(), input.size(0))
-        top1.update(prec1.item(), input.size(0))
+        prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
+        losses.update(loss.data, input.size(0))
+        top1.update(prec1[0], input.size(0))
+        top5.update(prec5[0], input.size(0))
+        # prec1 = accuracy(output.data, target)[0]
+        # losses.update(loss.item(), input.size(0))
+        # top1.update(prec1.item(), input.size(0))
 
         # measure elapsed time
         batch_time.update(time.time() - end)
@@ -345,11 +349,22 @@ def train(train_loader, model, criterion, optimizer, epoch):
                       epoch, i, len(train_loader), optimizer.param_groups[0]['lr'],
                       loss=losses, top1=top1))
 
+    acc = top1.avg
+    if acc > best_train_acc:
+        best_train_acc = acc
+    print('Train Epoch: {}\t({:.2f}%)]\tLoss: {:.6f}\n'.format(
+                epoch,
+                acc, losses.avg))
+
+    print('Best Accuracy: {:.2f}%\n'.format(best_train_acc))
+    return acc, losses.avg
+
 
 def validate(val_loader, model, criterion):
     """
     Run evaluation
     """
+    global best_acc
     batch_time = AverageMeter()
     losses = AverageMeter()
     top1 = AverageMeter()
@@ -362,7 +377,7 @@ def validate(val_loader, model, criterion):
         for i, (input, target) in enumerate(val_loader):
             target = target.cuda()
             input_var = input.cuda()
-            target_var = target.cuda()
+            target_var = target#.cuda()
 
             if args.half:
                 input_var = input_var.half()
@@ -371,29 +386,31 @@ def validate(val_loader, model, criterion):
             output = model(input_var)
             loss = criterion(output, target_var)
 
-            output = output.float()
-            loss = loss.float()
+            # output = output.float()
+            # loss = loss.float()
 
             # measure accuracy and record loss
-            prec1 = accuracy(output.data, target)[0]
-            losses.update(loss.item(), input.size(0))
-            top1.update(prec1.item(), input.size(0))
+            # prec1 = accuracy(output.data, target)[0]
+            # losses.update(loss.item(), input.size(0))
+            # top1.update(prec1.item(), input.size(0))
+
+            prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
+            losses.update(loss.data, input.size(0))
+            top1.update(prec1[0], input.size(0))
 
             # measure elapsed time
             batch_time.update(time.time() - end)
             end = time.time()
 
-            # if i % 40 == 0:
-        print('Test: [{0}/{1}]\t'
-                'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
-                    i, len(val_loader), loss=losses,
-                    top1=top1))
+            if i % 100 == 0:
+                print('Test: [{0}/{1}]\t'
+                        'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                        'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
+                            i, len(val_loader), loss=losses,
+                            top1=top1))
 
-    print(' * Prec@1 {top1.avg:.3f}'
-          .format(top1=top1))
 
-    return top1.avg
+    return top1.avg, losses.avg
 
 #def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
 #    """s

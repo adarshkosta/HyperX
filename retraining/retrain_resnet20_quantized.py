@@ -376,7 +376,8 @@ if args.half:
 if args.optim == 'sgd':
     optimizer = torch.optim.SGD(model.parameters(), lr=args.lr,
                             momentum=args.momentum,
-                            weight_decay=args.weight_decay)
+                            weight_decay=args.weight_decay,
+                            nesterov=True)
 elif args.optim == 'adam':
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, 
                             weight_decay=args.weight_decay)

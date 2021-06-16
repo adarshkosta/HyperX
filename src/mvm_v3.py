@@ -63,6 +63,8 @@ def bit_slicing(weight, frac_bit, bit_slice, weight_bits):  # version 2
     weight = torch.clamp(weight, -2**int_bit, 2**int_bit-1/2**frac_bit)
     out_channel = weight.shape[0]
 
+    # pdb.set_trace()
+
     n = weight_bits
     while(n > bit_slice):
         n //= 2
@@ -72,15 +74,21 @@ def bit_slicing(weight, frac_bit, bit_slice, weight_bits):  # version 2
             weight.div_(2**n)
         weight = slicing(weight, n)
 
+    # pdb.set_trace()
     weight[:out_channel].add_(2**bit_slice).fmod_(2**bit_slice) #.fmod_(4)# with bias ## .fmod_(4) # for negative numbers. 4 = 2**2. 
     weight[-out_channel:]= torch.floor(weight[-out_channel:])   # last layer
+
+    # pdb.set_trace()
 
     # already made 2-bit. -> stop.
     # If I use 2^n bit-slice, I d(on't have to slice more to make 1-bits and then combine it again.
     weight_idx = get_index_rearrange(idxs[int(math.log2(weight_bits//bit_slice))-1], out_channel)
     bitslice = weight.clone()
     bitslice[weight_idx[0],:] = weight
+
+    # pdb.set_trace()
     bitslice = bitslice.t()
+
     return bitslice
 
 def float_to_16bits_tensor_fast(input, frac_bits, bit_slice, bit_slice_num, input_bits): # input is batch x n tensor / output is n x 16 tensor..
@@ -96,6 +104,7 @@ def float_to_16bits_tensor_fast(input, frac_bits, bit_slice, bit_slice_num, inpu
     #divide by scalar to get the decimal representation back, MSB----->LSB
     input_sliced = torch.stack([torch.floor(torch.div(input, 2**(i*bit_slice))) - \
                                 torch.mul(torch.floor(torch.div(input, 2**((i+1)*bit_slice))), 2**bit_slice) for i in range(bit_slice_num-1,-1,-1) ])
+    # pdb.set_trace()
     del input
     return input_sliced.permute(1,2,0)
 

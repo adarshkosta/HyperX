@@ -1,0 +1,599 @@
+
+      ==> Arguments:
+          dataset: imagenet
+          model: resnet18
+          workers: 8
+          epochs: 150
+          start_epoch: 0
+          batch_size: 512
+          lr: 0.1
+          momentum: 0.9
+          weight_decay: 0.0005
+          tag: qfp_i8b7f_w8b7f_3
+          milestones: [40, 80, 120]
+          gamma: 0.1
+          input_size: None
+          print_freq: 1000
+          resume: 
+          evaluate: False
+          pretrained: None
+          half: False
+          savedir: ../pretrained_models/ideal/
+          save_every: 10
+          gpus: 0,1,2
+DEVICE: cuda
+GPU Id(s) being used: 0,1,2
+==> Building model for resnet18 ...
+ResNet18(
+  (fq0): activation_quantize_fn()
+  (conv1): Conv2d_Q(
+    3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False
+    (quantize_fn): weight_quantize_fn()
+  )
+  (bn1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (relu1): ReLU(inplace=True)
+  (fq1): activation_quantize_fn()
+  (maxpool): MaxPool2d(kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False)
+  (conv2): Conv2d_Q(
+    64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+    (quantize_fn): weight_quantize_fn()
+  )
+  (bn2): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (relu2): ReLU(inplace=True)
+  (fq2): activation_quantize_fn()
+  (conv3): Conv2d_Q(
+    64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+    (quantize_fn): weight_quantize_fn()
+  )
+  (bn3): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (relu3): ReLU(inplace=True)
+  (fq3): activation_quantize_fn()
+  (conv4): Conv2d_Q(
+    64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+    (quantize_fn): weight_quantize_fn()
+  )
+  (bn4): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (relu4): ReLU(inplace=True)
+  (fq4): activation_quantize_fn()
+  (conv5): Conv2d_Q(
+    64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+    (quantize_fn): weight_quantize_fn()
+  )
+  (bn5): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (relu5): ReLU(inplace=True)
+  (fq5): activation_quantize_fn()
+  (conv6): Conv2d_Q(
+    64, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
+    (quantize_fn): weight_quantize_fn()
+  )
+  (bn6): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (fqr1): activation_quantize_fn()
+  (resconv1): Sequential(
+    (0): Conv2d_Q(
+      64, 128, kernel_size=(1, 1), stride=(2, 2), bias=False
+      (quantize_fn): weight_quantize_fn()
+    )
+    (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): ReLU(inplace=True)
+  )
+  (relu6): ReLU(inplace=True)
+  (fq6): activation_quantize_fn()
+  (conv7): Conv2d_Q(
+    128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+    (quantize_fn): weight_quantize_fn()
+  )
+  (bn7): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (relu7): ReLU(inplace=True)
+  (fq7): activation_quantize_fn()
+  (conv8): Conv2d_Q(
+    128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+    (quantize_fn): weight_quantize_fn()
+  )
+  (bn8): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (relu8): ReLU(inplace=True)
+  (fq8): activation_quantize_fn()
+  (conv9): Conv2d_Q(
+    128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+    (quantize_fn): weight_quantize_fn()
+  )
+  (bn9): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (relu9): ReLU(inplace=True)
+  (fq9): activation_quantize_fn()
+  (conv10): Conv2d_Q(
+    128, 256, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
+    (quantize_fn): weight_quantize_fn()
+  )
+  (bn10): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (fqr2): activation_quantize_fn()
+  (resconv2): Sequential(
+    (0): Conv2d_Q(
+      128, 256, kernel_size=(1, 1), stride=(2, 2), bias=False
+      (quantize_fn): weight_quantize_fn()
+    )
+    (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): ReLU(inplace=True)
+  )
+  (relu10): ReLU(inplace=True)
+  (fq10): activation_quantize_fn()
+  (conv11): Conv2d_Q(
+    256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+    (quantize_fn): weight_quantize_fn()
+  )
+  (bn11): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (relu11): ReLU(inplace=True)
+  (fq11): activation_quantize_fn()
+  (conv12): Conv2d_Q(
+    256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+    (quantize_fn): weight_quantize_fn()
+  )
+  (bn12): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (relu12): ReLU(inplace=True)
+  (fq12): activation_quantize_fn()
+  (conv13): Conv2d_Q(
+    256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+    (quantize_fn): weight_quantize_fn()
+  )
+  (bn13): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (relu13): ReLU(inplace=True)
+  (fq13): activation_quantize_fn()
+  (conv14): Conv2d_Q(
+    256, 512, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
+    (quantize_fn): weight_quantize_fn()
+  )
+  (bn14): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (fqr3): activation_quantize_fn()
+  (resconv3): Sequential(
+    (0): Conv2d_Q(
+      256, 512, kernel_size=(1, 1), stride=(2, 2), bias=False
+      (quantize_fn): weight_quantize_fn()
+    )
+    (1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): ReLU(inplace=True)
+  )
+  (relu14): ReLU(inplace=True)
+  (fq14): activation_quantize_fn()
+  (conv15): Conv2d_Q(
+    512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+    (quantize_fn): weight_quantize_fn()
+  )
+  (bn15): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (relu15): ReLU(inplace=True)
+  (fq15): activation_quantize_fn()
+  (conv16): Conv2d_Q(
+    512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+    (quantize_fn): weight_quantize_fn()
+  )
+  (bn16): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (relu16): ReLU(inplace=True)
+  (fq16): activation_quantize_fn()
+  (conv17): Conv2d_Q(
+    512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+    (quantize_fn): weight_quantize_fn()
+  )
+  (bn17): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (relu17): ReLU(inplace=True)
+  (fq17): activation_quantize_fn()
+  (avgpool): AvgPool2d(kernel_size=7, stride=7, padding=0)
+  (bn18): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (fq18): activation_quantize_fn()
+  (fc): Linear_Q(
+    in_features=512, out_features=1000, bias=False
+    (quantize_fn): weight_quantize_fn()
+  )
+  (bn19): BatchNorm1d(1000, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (logsoftmax): LogSoftmax(dim=1)
+)
+Intializing model with normal distribution...
+Test: [0/98]	Loss 6.9077 (6.9077)	Prec@1 0.195 (0.195)	Prec@5 0.977 (0.977)
+ * Prec@1 0.118 Prec@5 0.516
+Pretrained model accuracy: 0.11800000071525574
+Epoch: [0][0/2503]	Loss 6.9086 (6.9086)	Prec@1 0.000 (0.000)	Prec@5 0.586 (0.586)	LR: 0.1
+Epoch: [0][1000/2503]	Loss 6.8451 (6.8794)	Prec@1 0.586 (0.169)	Prec@5 0.781 (0.851)	LR: 0.1
+Epoch: [0][2000/2503]	Loss 5.9069 (6.6533)	Prec@1 5.078 (0.900)	Prec@5 13.477 (3.286)	LR: 0.1
+ * Prec@1 1.891 Prec@5 5.951
+Best Train Accuracy: 1.89%
+
+Test: [0/98]	Loss 5.0400 (5.0400)	Prec@1 11.328 (11.328)	Prec@5 34.570 (34.570)
+ * Prec@1 6.396 Prec@5 17.848
+Best accuracy: 6.40%
+
+Epoch: [1][0/2503]	Loss 5.5316 (5.5316)	Prec@1 6.250 (6.250)	Prec@5 17.773 (17.773)	LR: 0.1
+Epoch: [1][1000/2503]	Loss 4.7836 (5.1390)	Prec@1 12.891 (10.602)	Prec@5 31.250 (25.691)	LR: 0.1
+Epoch: [1][2000/2503]	Loss 4.5875 (4.9063)	Prec@1 16.602 (12.946)	Prec@5 36.328 (29.720)	LR: 0.1
+ * Prec@1 13.917 Prec@5 31.321
+Best Train Accuracy: 13.92%
+
+Test: [0/98]	Loss 4.0077 (4.0077)	Prec@1 23.242 (23.242)	Prec@5 51.562 (51.562)
+ * Prec@1 15.428 Prec@5 33.802
+Best accuracy: 15.43%
+
+Epoch: [2][0/2503]	Loss 4.5325 (4.5325)	Prec@1 17.188 (17.188)	Prec@5 37.500 (37.500)	LR: 0.1
+Epoch: [2][1000/2503]	Loss 4.1301 (4.2889)	Prec@1 20.117 (19.811)	Prec@5 42.188 (40.749)	LR: 0.1
+Epoch: [2][2000/2503]	Loss 4.1549 (4.2175)	Prec@1 18.945 (20.736)	Prec@5 43.750 (42.032)	LR: 0.1
+ * Prec@1 21.141 Prec@5 42.620
+Best Train Accuracy: 21.14%
+
+Test: [0/98]	Loss 4.0825 (4.0825)	Prec@1 21.875 (21.875)	Prec@5 45.898 (45.898)
+ * Prec@1 13.634 Prec@5 29.622
+Best accuracy: 15.43%
+
+Epoch: [3][0/2503]	Loss 4.1696 (4.1696)	Prec@1 22.852 (22.852)	Prec@5 44.531 (44.531)	LR: 0.1
+Epoch: [3][1000/2503]	Loss 3.9519 (3.9867)	Prec@1 25.195 (23.799)	Prec@5 44.336 (46.271)	LR: 0.1
+Epoch: [3][2000/2503]	Loss 3.8268 (3.9595)	Prec@1 26.758 (24.090)	Prec@5 50.000 (46.727)	LR: 0.1
+ * Prec@1 24.277 Prec@5 46.961
+Best Train Accuracy: 24.28%
+
+Test: [0/98]	Loss 3.7020 (3.7020)	Prec@1 23.438 (23.438)	Prec@5 54.688 (54.688)
+ * Prec@1 21.624 Prec@5 44.044
+Best accuracy: 21.62%
+
+Epoch: [4][0/2503]	Loss 4.0414 (4.0414)	Prec@1 23.047 (23.047)	Prec@5 48.047 (48.047)	LR: 0.1
+Epoch: [4][1000/2503]	Loss 3.9239 (3.8526)	Prec@1 25.195 (25.532)	Prec@5 45.898 (48.729)	LR: 0.1
+Epoch: [4][2000/2503]	Loss 4.0251 (3.8363)	Prec@1 23.242 (25.745)	Prec@5 46.289 (48.984)	LR: 0.1
+ * Prec@1 25.859 Prec@5 49.149
+Best Train Accuracy: 25.86%
+
+Test: [0/98]	Loss 3.2608 (3.2608)	Prec@1 35.938 (35.938)	Prec@5 62.305 (62.305)
+ * Prec@1 21.632 Prec@5 43.288
+Best accuracy: 21.63%
+
+Epoch: [5][0/2503]	Loss 3.9379 (3.9379)	Prec@1 23.828 (23.828)	Prec@5 45.703 (45.703)	LR: 0.1
+Epoch: [5][1000/2503]	Loss 3.5838 (3.7724)	Prec@1 26.953 (26.609)	Prec@5 52.344 (50.143)	LR: 0.1
+Epoch: [5][2000/2503]	Loss 3.6200 (3.7672)	Prec@1 28.516 (26.686)	Prec@5 51.953 (50.241)	LR: 0.1
+ * Prec@1 26.725 Prec@5 50.295
+Best Train Accuracy: 26.73%
+
+Test: [0/98]	Loss 3.5361 (3.5361)	Prec@1 30.664 (30.664)	Prec@5 53.516 (53.516)
+ * Prec@1 23.632 Prec@5 46.128
+Best accuracy: 23.63%
+
+Epoch: [6][0/2503]	Loss 3.8251 (3.8251)	Prec@1 24.219 (24.219)	Prec@5 49.609 (49.609)	LR: 0.1
+Epoch: [6][1000/2503]	Loss 3.7657 (3.7198)	Prec@1 27.930 (27.335)	Prec@5 49.414 (51.054)	LR: 0.1
+Epoch: [6][2000/2503]	Loss 3.7661 (3.7196)	Prec@1 21.680 (27.356)	Prec@5 51.758 (51.069)	LR: 0.1
+ * Prec@1 27.355 Prec@5 51.110
+Best Train Accuracy: 27.35%
+
+Test: [0/98]	Loss 3.6599 (3.6599)	Prec@1 25.977 (25.977)	Prec@5 54.102 (54.102)
+ * Prec@1 19.188 Prec@5 40.138
+Best accuracy: 23.63%
+
+Epoch: [7][0/2503]	Loss 3.6505 (3.6505)	Prec@1 28.711 (28.711)	Prec@5 51.953 (51.953)	LR: 0.1
+Epoch: [7][1000/2503]	Loss 3.5148 (3.6839)	Prec@1 29.297 (27.716)	Prec@5 55.664 (51.733)	LR: 0.1
+Epoch: [7][2000/2503]	Loss 3.6809 (3.6817)	Prec@1 28.516 (27.767)	Prec@5 53.906 (51.761)	LR: 0.1
+ * Prec@1 27.781 Prec@5 51.785
+Best Train Accuracy: 27.78%
+
+Test: [0/98]	Loss 3.1976 (3.1976)	Prec@1 34.375 (34.375)	Prec@5 62.305 (62.305)
+ * Prec@1 23.006 Prec@5 45.834
+Best accuracy: 23.63%
+
+Epoch: [8][0/2503]	Loss 3.6383 (3.6383)	Prec@1 29.688 (29.688)	Prec@5 51.562 (51.562)	LR: 0.1
+Epoch: [8][1000/2503]	Loss 3.6058 (3.6516)	Prec@1 29.492 (28.241)	Prec@5 51.953 (52.311)	LR: 0.1
+Epoch: [8][2000/2503]	Loss 3.7321 (3.6495)	Prec@1 23.828 (28.282)	Prec@5 49.805 (52.367)	LR: 0.1
+ * Prec@1 28.292 Prec@5 52.369
+Best Train Accuracy: 28.29%
+
+Test: [0/98]	Loss 2.8072 (2.8072)	Prec@1 41.602 (41.602)	Prec@5 68.945 (68.945)
+ * Prec@1 24.904 Prec@5 48.482
+Best accuracy: 24.90%
+
+Epoch: [9][0/2503]	Loss 3.8165 (3.8165)	Prec@1 30.078 (30.078)	Prec@5 51.367 (51.367)	LR: 0.1
+Epoch: [9][1000/2503]	Loss 3.4871 (3.6282)	Prec@1 28.125 (28.526)	Prec@5 56.641 (52.691)	LR: 0.1
+Epoch: [9][2000/2503]	Loss 3.6706 (3.6255)	Prec@1 27.734 (28.598)	Prec@5 50.977 (52.745)	LR: 0.1
+ * Prec@1 28.580 Prec@5 52.749
+Best Train Accuracy: 28.58%
+
+Test: [0/98]	Loss 3.0381 (3.0381)	Prec@1 35.352 (35.352)	Prec@5 66.406 (66.406)
+ * Prec@1 23.986 Prec@5 47.580
+Best accuracy: 24.90%
+
+Epoch: [10][0/2503]	Loss 3.4343 (3.4343)	Prec@1 30.273 (30.273)	Prec@5 56.250 (56.250)	LR: 0.1
+Epoch: [10][1000/2503]	Loss 3.6114 (3.6040)	Prec@1 28.906 (28.839)	Prec@5 54.102 (53.123)	LR: 0.1
+Epoch: [10][2000/2503]	Loss 3.5210 (3.6048)	Prec@1 30.859 (28.815)	Prec@5 55.859 (53.135)	LR: 0.1
+ * Prec@1 28.830 Prec@5 53.143
+Best Train Accuracy: 28.83%
+
+Test: [0/98]	Loss 3.1598 (3.1598)	Prec@1 35.547 (35.547)	Prec@5 63.086 (63.086)
+ * Prec@1 24.306 Prec@5 47.328
+Best accuracy: 24.90%
+
+Epoch: [11][0/2503]	Loss 3.7829 (3.7829)	Prec@1 27.148 (27.148)	Prec@5 50.195 (50.195)	LR: 0.1
+Epoch: [11][1000/2503]	Loss 3.6829 (3.5851)	Prec@1 25.781 (29.066)	Prec@5 51.172 (53.420)	LR: 0.1
+Epoch: [11][2000/2503]	Loss 3.6300 (3.5832)	Prec@1 27.148 (29.123)	Prec@5 52.344 (53.462)	LR: 0.1
+ * Prec@1 29.113 Prec@5 53.443
+Best Train Accuracy: 29.11%
+
+Test: [0/98]	Loss 3.0657 (3.0657)	Prec@1 38.477 (38.477)	Prec@5 65.234 (65.234)
+ * Prec@1 27.084 Prec@5 51.132
+Best accuracy: 27.08%
+
+Epoch: [12][0/2503]	Loss 3.5527 (3.5527)	Prec@1 29.492 (29.492)	Prec@5 53.516 (53.516)	LR: 0.1
+Epoch: [12][1000/2503]	Loss 3.6373 (3.5633)	Prec@1 27.344 (29.367)	Prec@5 52.148 (53.839)	LR: 0.1
+Epoch: [12][2000/2503]	Loss 3.5754 (3.5648)	Prec@1 29.297 (29.347)	Prec@5 54.688 (53.768)	LR: 0.1
+ * Prec@1 29.363 Prec@5 53.737
+Best Train Accuracy: 29.36%
+
+Test: [0/98]	Loss 3.0456 (3.0456)	Prec@1 36.133 (36.133)	Prec@5 64.648 (64.648)
+ * Prec@1 21.060 Prec@5 41.774
+Best accuracy: 27.08%
+
+Epoch: [13][0/2503]	Loss 3.4752 (3.4752)	Prec@1 34.180 (34.180)	Prec@5 55.469 (55.469)	LR: 0.1
+Epoch: [13][1000/2503]	Loss 3.4259 (3.5485)	Prec@1 28.320 (29.609)	Prec@5 57.227 (53.979)	LR: 0.1
+Epoch: [13][2000/2503]	Loss 3.6391 (3.5518)	Prec@1 28.711 (29.560)	Prec@5 52.344 (53.965)	LR: 0.1
+ * Prec@1 29.550 Prec@5 53.956
+Best Train Accuracy: 29.55%
+
+Test: [0/98]	Loss 3.0518 (3.0518)	Prec@1 36.133 (36.133)	Prec@5 63.867 (63.867)
+ * Prec@1 26.546 Prec@5 50.494
+Best accuracy: 27.08%
+
+Epoch: [14][0/2503]	Loss 3.7481 (3.7481)	Prec@1 26.758 (26.758)	Prec@5 50.586 (50.586)	LR: 0.1
+Epoch: [14][1000/2503]	Loss 3.4987 (3.5387)	Prec@1 31.445 (29.698)	Prec@5 57.031 (54.185)	LR: 0.1
+Epoch: [14][2000/2503]	Loss 3.5163 (3.5434)	Prec@1 28.516 (29.646)	Prec@5 54.102 (54.119)	LR: 0.1
+ * Prec@1 29.660 Prec@5 54.108
+Best Train Accuracy: 29.66%
+
+Test: [0/98]	Loss 3.2057 (3.2057)	Prec@1 30.078 (30.078)	Prec@5 62.305 (62.305)
+ * Prec@1 20.840 Prec@5 41.960
+Best accuracy: 27.08%
+
+Epoch: [15][0/2503]	Loss 3.6851 (3.6851)	Prec@1 27.148 (27.148)	Prec@5 50.586 (50.586)	LR: 0.1
+Epoch: [15][1000/2503]	Loss 3.6163 (3.5288)	Prec@1 30.469 (29.811)	Prec@5 53.125 (54.440)	LR: 0.1
+Epoch: [15][2000/2503]	Loss 3.7007 (3.5316)	Prec@1 25.195 (29.788)	Prec@5 49.414 (54.367)	LR: 0.1
+ * Prec@1 29.781 Prec@5 54.350
+Best Train Accuracy: 29.78%
+
+Test: [0/98]	Loss 2.4057 (2.4057)	Prec@1 44.141 (44.141)	Prec@5 73.438 (73.438)
+ * Prec@1 29.168 Prec@5 54.326
+Best accuracy: 29.17%
+
+Epoch: [16][0/2503]	Loss 3.4652 (3.4652)	Prec@1 30.469 (30.469)	Prec@5 54.102 (54.102)	LR: 0.1
+Epoch: [16][1000/2503]	Loss 3.5048 (3.5204)	Prec@1 31.250 (29.957)	Prec@5 57.031 (54.451)	LR: 0.1
+Epoch: [16][2000/2503]	Loss 3.5607 (3.5263)	Prec@1 27.344 (29.847)	Prec@5 52.344 (54.377)	LR: 0.1
+ * Prec@1 29.821 Prec@5 54.388
+Best Train Accuracy: 29.82%
+
+Test: [0/98]	Loss 3.0927 (3.0927)	Prec@1 33.789 (33.789)	Prec@5 66.406 (66.406)
+ * Prec@1 23.540 Prec@5 46.766
+Best accuracy: 29.17%
+
+Epoch: [17][0/2503]	Loss 3.6182 (3.6182)	Prec@1 26.953 (26.953)	Prec@5 52.148 (52.148)	LR: 0.1
+Epoch: [17][1000/2503]	Loss 3.5263 (3.5186)	Prec@1 28.125 (29.912)	Prec@5 53.711 (54.529)	LR: 0.1
+Epoch: [17][2000/2503]	Loss 3.5225 (3.5222)	Prec@1 27.148 (29.865)	Prec@5 54.688 (54.453)	LR: 0.1
+ * Prec@1 29.848 Prec@5 54.439
+Best Train Accuracy: 29.85%
+
+Test: [0/98]	Loss 3.7554 (3.7554)	Prec@1 28.516 (28.516)	Prec@5 54.688 (54.688)
+ * Prec@1 21.444 Prec@5 42.660
+Best accuracy: 29.17%
+
+Epoch: [18][0/2503]	Loss 3.6889 (3.6889)	Prec@1 25.391 (25.391)	Prec@5 51.367 (51.367)	LR: 0.1
+Epoch: [18][1000/2503]	Loss 3.5159 (3.5202)	Prec@1 31.055 (29.820)	Prec@5 54.883 (54.462)	LR: 0.1
+Epoch: [18][2000/2503]	Loss 3.4694 (3.5169)	Prec@1 30.273 (29.936)	Prec@5 53.320 (54.528)	LR: 0.1
+ * Prec@1 29.936 Prec@5 54.530
+Best Train Accuracy: 29.94%
+
+Test: [0/98]	Loss 2.9684 (2.9684)	Prec@1 35.352 (35.352)	Prec@5 63.672 (63.672)
+ * Prec@1 23.214 Prec@5 46.404
+Best accuracy: 29.17%
+
+Epoch: [19][0/2503]	Loss 3.5939 (3.5939)	Prec@1 27.734 (27.734)	Prec@5 51.953 (51.953)	LR: 0.1
+Epoch: [19][1000/2503]	Loss 3.5464 (3.5083)	Prec@1 33.984 (30.088)	Prec@5 55.078 (54.719)	LR: 0.1
+Epoch: [19][2000/2503]	Loss 3.4479 (3.5090)	Prec@1 30.664 (30.067)	Prec@5 56.836 (54.696)	LR: 0.1
+ * Prec@1 30.085 Prec@5 54.710
+Best Train Accuracy: 30.09%
+
+Test: [0/98]	Loss 2.5607 (2.5607)	Prec@1 38.867 (38.867)	Prec@5 72.656 (72.656)
+ * Prec@1 24.056 Prec@5 47.540
+Best accuracy: 29.17%
+
+Epoch: [20][0/2503]	Loss 3.4631 (3.4631)	Prec@1 28.906 (28.906)	Prec@5 55.469 (55.469)	LR: 0.1
+Epoch: [20][1000/2503]	Loss 3.4862 (3.4985)	Prec@1 29.883 (30.123)	Prec@5 54.883 (54.896)	LR: 0.1
+Epoch: [20][2000/2503]	Loss 3.4350 (3.5033)	Prec@1 29.492 (30.106)	Prec@5 54.297 (54.803)	LR: 0.1
+ * Prec@1 30.107 Prec@5 54.780
+Best Train Accuracy: 30.11%
+
+Test: [0/98]	Loss 3.6947 (3.6947)	Prec@1 28.906 (28.906)	Prec@5 52.148 (52.148)
+ * Prec@1 19.228 Prec@5 38.686
+Best accuracy: 29.17%
+
+Epoch: [21][0/2503]	Loss 3.5830 (3.5830)	Prec@1 30.859 (30.859)	Prec@5 50.977 (50.977)	LR: 0.1
+Epoch: [21][1000/2503]	Loss 3.4320 (3.4946)	Prec@1 30.469 (30.315)	Prec@5 56.445 (54.971)	LR: 0.1
+Epoch: [21][2000/2503]	Loss 3.3399 (3.4985)	Prec@1 31.445 (30.244)	Prec@5 58.594 (54.911)	LR: 0.1
+ * Prec@1 30.228 Prec@5 54.900
+Best Train Accuracy: 30.23%
+
+Test: [0/98]	Loss 2.3256 (2.3256)	Prec@1 46.289 (46.289)	Prec@5 77.734 (77.734)
+ * Prec@1 26.486 Prec@5 50.762
+Best accuracy: 29.17%
+
+Epoch: [22][0/2503]	Loss 3.5138 (3.5138)	Prec@1 30.859 (30.859)	Prec@5 55.078 (55.078)	LR: 0.1
+Epoch: [22][1000/2503]	Loss 3.5203 (3.4926)	Prec@1 29.688 (30.253)	Prec@5 54.688 (55.057)	LR: 0.1
+Epoch: [22][2000/2503]	Loss 3.4720 (3.4948)	Prec@1 30.078 (30.248)	Prec@5 55.273 (54.995)	LR: 0.1
+ * Prec@1 30.196 Prec@5 54.945
+Best Train Accuracy: 30.23%
+
+Test: [0/98]	Loss 2.9446 (2.9446)	Prec@1 36.719 (36.719)	Prec@5 64.648 (64.648)
+ * Prec@1 24.432 Prec@5 48.248
+Best accuracy: 29.17%
+
+Epoch: [23][0/2503]	Loss 3.5916 (3.5916)	Prec@1 32.031 (32.031)	Prec@5 51.953 (51.953)	LR: 0.1
+Epoch: [23][1000/2503]	Loss 3.3992 (3.4869)	Prec@1 31.055 (30.286)	Prec@5 55.859 (55.055)	LR: 0.1
+Epoch: [23][2000/2503]	Loss 3.3699 (3.4902)	Prec@1 33.398 (30.293)	Prec@5 57.812 (55.002)	LR: 0.1
+ * Prec@1 30.286 Prec@5 55.002
+Best Train Accuracy: 30.29%
+
+Test: [0/98]	Loss 3.3953 (3.3953)	Prec@1 32.031 (32.031)	Prec@5 57.031 (57.031)
+ * Prec@1 21.746 Prec@5 43.988
+Best accuracy: 29.17%
+
+Epoch: [24][0/2503]	Loss 3.6787 (3.6787)	Prec@1 28.125 (28.125)	Prec@5 52.930 (52.930)	LR: 0.1
+Epoch: [24][1000/2503]	Loss 3.5322 (3.4794)	Prec@1 30.273 (30.459)	Prec@5 55.078 (55.214)	LR: 0.1
+Epoch: [24][2000/2503]	Loss 3.5447 (3.4863)	Prec@1 31.250 (30.357)	Prec@5 53.516 (55.108)	LR: 0.1
+ * Prec@1 30.334 Prec@5 55.075
+Best Train Accuracy: 30.33%
+
+Test: [0/98]	Loss 3.9786 (3.9786)	Prec@1 26.758 (26.758)	Prec@5 48.633 (48.633)
+ * Prec@1 23.418 Prec@5 46.454
+Best accuracy: 29.17%
+
+Epoch: [25][0/2503]	Loss 3.6902 (3.6902)	Prec@1 27.539 (27.539)	Prec@5 53.516 (53.516)	LR: 0.1
+Epoch: [25][1000/2503]	Loss 3.3552 (3.4746)	Prec@1 31.641 (30.523)	Prec@5 58.203 (55.359)	LR: 0.1
+Epoch: [25][2000/2503]	Loss 3.3499 (3.4837)	Prec@1 30.078 (30.424)	Prec@5 56.055 (55.188)	LR: 0.1
+ * Prec@1 30.399 Prec@5 55.166
+Best Train Accuracy: 30.40%
+
+Test: [0/98]	Loss 3.1718 (3.1718)	Prec@1 37.305 (37.305)	Prec@5 65.430 (65.430)
+ * Prec@1 29.112 Prec@5 53.724
+Best accuracy: 29.17%
+
+Epoch: [26][0/2503]	Loss 3.5891 (3.5891)	Prec@1 28.711 (28.711)	Prec@5 52.539 (52.539)	LR: 0.1
+Epoch: [26][1000/2503]	Loss 3.5877 (3.4800)	Prec@1 29.883 (30.438)	Prec@5 52.344 (55.244)	LR: 0.1
+Epoch: [26][2000/2503]	Loss 3.6080 (3.4824)	Prec@1 29.102 (30.442)	Prec@5 52.930 (55.200)	LR: 0.1
+ * Prec@1 30.392 Prec@5 55.145
+Best Train Accuracy: 30.40%
+
+Test: [0/98]	Loss 3.1962 (3.1962)	Prec@1 35.352 (35.352)	Prec@5 61.523 (61.523)
+ * Prec@1 18.436 Prec@5 37.586
+Best accuracy: 29.17%
+
+Epoch: [27][0/2503]	Loss 3.6997 (3.6997)	Prec@1 24.219 (24.219)	Prec@5 51.758 (51.758)	LR: 0.1
+Epoch: [27][1000/2503]	Loss 3.4246 (3.4761)	Prec@1 32.031 (30.586)	Prec@5 56.836 (55.254)	LR: 0.1
+Epoch: [27][2000/2503]	Loss 3.4969 (3.4786)	Prec@1 27.930 (30.528)	Prec@5 54.297 (55.220)	LR: 0.1
+ * Prec@1 30.479 Prec@5 55.193
+Best Train Accuracy: 30.48%
+
+Test: [0/98]	Loss 3.2011 (3.2011)	Prec@1 32.227 (32.227)	Prec@5 63.086 (63.086)
+ * Prec@1 23.522 Prec@5 46.458
+Best accuracy: 29.17%
+
+Epoch: [28][0/2503]	Loss 3.5691 (3.5691)	Prec@1 30.664 (30.664)	Prec@5 52.148 (52.148)	LR: 0.1
+Epoch: [28][1000/2503]	Loss 3.3944 (3.4711)	Prec@1 32.617 (30.552)	Prec@5 58.203 (55.395)	LR: 0.1
+Epoch: [28][2000/2503]	Loss 3.4483 (3.4742)	Prec@1 30.469 (30.558)	Prec@5 56.836 (55.311)	LR: 0.1
+ * Prec@1 30.519 Prec@5 55.284
+Best Train Accuracy: 30.52%
+
+Test: [0/98]	Loss 3.3439 (3.3439)	Prec@1 35.352 (35.352)	Prec@5 60.547 (60.547)
+ * Prec@1 26.632 Prec@5 51.306
+Best accuracy: 29.17%
+
+Epoch: [29][0/2503]	Loss 3.5662 (3.5662)	Prec@1 30.859 (30.859)	Prec@5 55.078 (55.078)	LR: 0.1
+Epoch: [29][1000/2503]	Loss 3.4150 (3.4712)	Prec@1 33.398 (30.656)	Prec@5 58.008 (55.398)	LR: 0.1
+Epoch: [29][2000/2503]	Loss 3.6815 (3.4724)	Prec@1 25.000 (30.606)	Prec@5 51.367 (55.373)	LR: 0.1
+ * Prec@1 30.585 Prec@5 55.332
+Best Train Accuracy: 30.58%
+
+Test: [0/98]	Loss 2.4285 (2.4285)	Prec@1 45.703 (45.703)	Prec@5 74.805 (74.805)
+ * Prec@1 30.362 Prec@5 55.330
+Best accuracy: 30.36%
+
+Epoch: [30][0/2503]	Loss 3.6456 (3.6456)	Prec@1 29.883 (29.883)	Prec@5 52.734 (52.734)	LR: 0.1
+Epoch: [30][1000/2503]	Loss 3.3943 (3.4662)	Prec@1 30.859 (30.636)	Prec@5 56.836 (55.447)	LR: 0.1
+Epoch: [30][2000/2503]	Loss 3.5057 (3.4671)	Prec@1 30.273 (30.597)	Prec@5 55.078 (55.419)	LR: 0.1
+ * Prec@1 30.590 Prec@5 55.391
+Best Train Accuracy: 30.59%
+
+Test: [0/98]	Loss 3.0192 (3.0192)	Prec@1 36.523 (36.523)	Prec@5 66.211 (66.211)
+ * Prec@1 23.804 Prec@5 47.006
+Best accuracy: 30.36%
+
+Epoch: [31][0/2503]	Loss 3.6229 (3.6229)	Prec@1 27.344 (27.344)	Prec@5 52.930 (52.930)	LR: 0.1
+Epoch: [31][1000/2503]	Loss 3.4885 (3.4659)	Prec@1 30.078 (30.622)	Prec@5 56.836 (55.531)	LR: 0.1
+Epoch: [31][2000/2503]	Loss 3.3813 (3.4675)	Prec@1 33.008 (30.622)	Prec@5 56.641 (55.448)	LR: 0.1
+ * Prec@1 30.637 Prec@5 55.449
+Best Train Accuracy: 30.64%
+
+Test: [0/98]	Loss 2.5249 (2.5249)	Prec@1 44.336 (44.336)	Prec@5 72.461 (72.461)
+ * Prec@1 30.624 Prec@5 56.112
+Best accuracy: 30.62%
+
+Epoch: [32][0/2503]	Loss 3.3134 (3.3134)	Prec@1 34.375 (34.375)	Prec@5 58.984 (58.984)	LR: 0.1
+Epoch: [32][1000/2503]	Loss 3.6003 (3.4608)	Prec@1 26.953 (30.754)	Prec@5 52.539 (55.530)	LR: 0.1
+Epoch: [32][2000/2503]	Loss 3.3686 (3.4657)	Prec@1 30.664 (30.664)	Prec@5 58.008 (55.438)	LR: 0.1
+ * Prec@1 30.682 Prec@5 55.440
+Best Train Accuracy: 30.68%
+
+Test: [0/98]	Loss 3.2870 (3.2870)	Prec@1 32.812 (32.812)	Prec@5 61.133 (61.133)
+ * Prec@1 23.362 Prec@5 45.914
+Best accuracy: 30.62%
+
+Epoch: [33][0/2503]	Loss 3.3789 (3.3789)	Prec@1 31.250 (31.250)	Prec@5 56.836 (56.836)	LR: 0.1
+Epoch: [33][1000/2503]	Loss 3.4614 (3.4499)	Prec@1 30.469 (30.901)	Prec@5 54.883 (55.754)	LR: 0.1
+Epoch: [33][2000/2503]	Loss 3.3944 (3.4613)	Prec@1 31.445 (30.721)	Prec@5 57.031 (55.545)	LR: 0.1
+ * Prec@1 30.722 Prec@5 55.510
+Best Train Accuracy: 30.72%
+
+Test: [0/98]	Loss 2.7292 (2.7292)	Prec@1 43.164 (43.164)	Prec@5 70.703 (70.703)
+ * Prec@1 27.496 Prec@5 52.122
+Best accuracy: 30.62%
+
+Epoch: [34][0/2503]	Loss 3.3904 (3.3904)	Prec@1 33.008 (33.008)	Prec@5 57.031 (57.031)	LR: 0.1
+Epoch: [34][1000/2503]	Loss 3.5428 (3.4607)	Prec@1 28.125 (30.683)	Prec@5 53.125 (55.545)	LR: 0.1
+Epoch: [34][2000/2503]	Loss 3.3639 (3.4646)	Prec@1 32.227 (30.661)	Prec@5 57.422 (55.507)	LR: 0.1
+ * Prec@1 30.636 Prec@5 55.483
+Best Train Accuracy: 30.72%
+
+Test: [0/98]	Loss 2.8630 (2.8630)	Prec@1 37.109 (37.109)	Prec@5 67.188 (67.188)
+ * Prec@1 26.050 Prec@5 49.862
+Best accuracy: 30.62%
+
+Epoch: [35][0/2503]	Loss 3.4634 (3.4634)	Prec@1 29.297 (29.297)	Prec@5 55.859 (55.859)	LR: 0.1
+Epoch: [35][1000/2503]	Loss 3.3166 (3.4602)	Prec@1 31.250 (30.694)	Prec@5 59.961 (55.556)	LR: 0.1
+Epoch: [35][2000/2503]	Loss 3.4342 (3.4634)	Prec@1 31.641 (30.648)	Prec@5 54.883 (55.484)	LR: 0.1
+ * Prec@1 30.623 Prec@5 55.450
+Best Train Accuracy: 30.72%
+
+Test: [0/98]	Loss 2.9458 (2.9458)	Prec@1 37.891 (37.891)	Prec@5 66.602 (66.602)
+ * Prec@1 26.356 Prec@5 50.326
+Best accuracy: 30.62%
+
+Epoch: [36][0/2503]	Loss 3.5384 (3.5384)	Prec@1 31.836 (31.836)	Prec@5 57.031 (57.031)	LR: 0.1
+Epoch: [36][1000/2503]	Loss 3.5671 (3.4602)	Prec@1 30.469 (30.758)	Prec@5 53.711 (55.490)	LR: 0.1
+Epoch: [36][2000/2503]	Loss 3.4831 (3.4665)	Prec@1 30.273 (30.634)	Prec@5 53.906 (55.382)	LR: 0.1
+ * Prec@1 30.604 Prec@5 55.364
+Best Train Accuracy: 30.72%
+
+Test: [0/98]	Loss 2.7781 (2.7781)	Prec@1 41.016 (41.016)	Prec@5 71.875 (71.875)
+ * Prec@1 28.960 Prec@5 53.714
+Best accuracy: 30.62%
+
+Epoch: [37][0/2503]	Loss 3.4571 (3.4571)	Prec@1 30.859 (30.859)	Prec@5 55.273 (55.273)	LR: 0.1
+Epoch: [37][1000/2503]	Loss 3.2886 (3.4612)	Prec@1 34.180 (30.692)	Prec@5 59.766 (55.504)	LR: 0.1
+Epoch: [37][2000/2503]	Loss 3.6753 (3.4656)	Prec@1 27.734 (30.621)	Prec@5 52.344 (55.453)	LR: 0.1
+ * Prec@1 30.628 Prec@5 55.450
+Best Train Accuracy: 30.72%
+
+Test: [0/98]	Loss 2.8062 (2.8062)	Prec@1 36.328 (36.328)	Prec@5 67.969 (67.969)
+ * Prec@1 27.982 Prec@5 52.324
+Best accuracy: 30.62%
+
+Epoch: [38][0/2503]	Loss 3.5074 (3.5074)	Prec@1 29.883 (29.883)	Prec@5 55.664 (55.664)	LR: 0.1
+Epoch: [38][1000/2503]	Loss 3.4332 (3.4596)	Prec@1 32.031 (30.782)	Prec@5 54.688 (55.563)	LR: 0.1
+Epoch: [38][2000/2503]	Loss 3.5982 (3.4638)	Prec@1 26.758 (30.663)	Prec@5 52.344 (55.508)	LR: 0.1
+ * Prec@1 30.630 Prec@5 55.485
+Best Train Accuracy: 30.72%
+
+Test: [0/98]	Loss 2.9123 (2.9123)	Prec@1 37.109 (37.109)	Prec@5 69.922 (69.922)
+ * Prec@1 28.166 Prec@5 52.360
+Best accuracy: 30.62%
+
+Epoch: [39][0/2503]	Loss 3.5930 (3.5930)	Prec@1 30.859 (30.859)	Prec@5 51.172 (51.172)	LR: 0.1
+Epoch: [39][1000/2503]	Loss 3.3867 (3.4557)	Prec@1 31.445 (30.794)	Prec@5 57.031 (55.643)	LR: 0.1
+Epoch: [39][2000/2503]	Loss 3.2877 (3.4591)	Prec@1 34.375 (30.734)	Prec@5 59.570 (55.596)	LR: 0.1
+ * Prec@1 30.696 Prec@5 55.552
+Best Train Accuracy: 30.72%
+
+Test: [0/98]	Loss 4.0320 (4.0320)	Prec@1 22.656 (22.656)	Prec@5 49.805 (49.805)
+ * Prec@1 20.600 Prec@5 42.412
+Best accuracy: 30.62%
+
+Epoch: [40][0/2503]	Loss 3.5296 (3.5296)	Prec@1 27.734 (27.734)	Prec@5 53.516 (53.516)	LR: 0.010000000000000002
+Epoch: [40][1000/2503]	Loss 2.6964 (2.9816)	Prec@1 42.969 (38.317)	Prec@5 67.578 (63.804)	LR: 0.010000000000000002
+Epoch: [40][2000/2503]	Loss 2.8595 (2.9044)	Prec@1 38.672 (39.625)	Prec@5 64.648 (65.071)	LR: 0.010000000000000002
+ * Prec@1 40.074 Prec@5 65.499
+Best Train Accuracy: 40.07%
+
+Test: [0/98]	Loss 1.5095 (1.5095)	Prec@1 62.891 (62.891)	Prec@5 87.500 (87.500)
+ * Prec@1 49.388 Prec@5 75.318
+Best accuracy: 49.39%
+

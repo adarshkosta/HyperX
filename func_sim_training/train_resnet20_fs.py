@@ -112,9 +112,9 @@ parser.add_argument('--nideal', action='store_true', default=None,
 parser.add_argument('--tag', metavar='tag', default=None, type=str,
                     help='use first and last layers with 16b precision and assign a tag to sim')
 
-parser.add_argument('--milestones', default=[5, 10, 15, 20], 
+parser.add_argument('--milestones', default=[10, 15, 20], 
             help='Milestones for LR decay')
-parser.add_argument('--gamma', default=0.2, type=float,
+parser.add_argument('--gamma', default=0.1, type=float,
             help='learning rate decay')
 
 parser.add_argument('--input_size', type=int, default=None,

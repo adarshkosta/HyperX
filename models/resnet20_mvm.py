@@ -16,42 +16,73 @@ class resnet(nn.Module):
         super(resnet, self).__init__()
 
     def forward(self, x):
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu1(x)
-        residual = x.clone() 
-        out = x.clone()
+        # print('Input:', torch.mean(x))
+
+        out = self.conv1(x)
+        # print('Conv1: ', torch.mean(out))
+        # pdb.set_trace()
+
+        out = self.bn1(out)
+        out = self.relu1(out)
+        residual = out.clone() 
+
+        # print('Conv2_In: ', torch.mean(out))
         out = self.conv2(out)
+        # print('Conv2_out: ', torch.mean(out))
+        # pdb.set_trace()
+
         out = self.bn2(out)
         out = self.relu2(out)
+
         out = self.conv3(out)
+        # print('Conv3: ', torch.mean(out))
+        # pdb.set_trace()
+
         out = self.bn3(out)
         out+=residual
         out = self.relu3(out)
         residual = out.clone() 
         ################################### 
         out = self.conv4(out)
+        # print('Conv4: ', torch.mean(out))
+        # pdb.set_trace()
+
         out = self.bn4(out)
         out = self.relu4(out)
         out = self.conv5(out)
+        # print('Conv5: ', torch.mean(out))
+        # pdb.set_trace()
+
         out = self.bn5(out)
         out+=residual
         out = self.relu5(out)
         residual = out.clone() 
         ################################### 
         out = self.conv6(out)
+        # print('Conv6: ', torch.mean(out))
+        # pdb.set_trace()
+
         out = self.bn6(out)
         out = self.relu6(out)
         out = self.conv7(out)
+        # print('Conv7: ', torch.mean(out))
+        # pdb.set_trace()
+
         out = self.bn7(out)
         out+=residual
         out = self.relu7(out)
         residual = out.clone() 
         ################################### 
         out = self.conv8(out)
+        # print('Conv8: ', torch.mean(out))
+        # pdb.set_trace()
+
         out = self.bn8(out)
         out = self.relu8(out)
         out = self.conv9(out)
+        # print('Conv9: ', torch.mean(out))
+        # pdb.set_trace()
+
         out = self.bn9(out)
         residual = self.resconv1(residual)
         out+=residual
@@ -59,27 +90,45 @@ class resnet(nn.Module):
         residual = out.clone() 
         ################################### 
         out = self.conv10(out)
+        # print('Conv10: ', torch.mean(out))
+        # pdb.set_trace()
+
         out = self.bn10(out)
         out = self.relu10(out)
         out = self.conv11(out)
+        # print('Conv11: ', torch.mean(out))
+        # pdb.set_trace()
+
         out = self.bn11(out)
         out+=residual
         out = self.relu11(out)
         residual = out.clone() 
         ################################### 
         out = self.conv12(out)
+        # print('Conv12: ', torch.mean(out))
+        # pdb.set_trace()
+
         out = self.bn12(out)
         out = self.relu12(out)
         out = self.conv13(out)
+        # print('Conv13: ', torch.mean(out))
+        # pdb.set_trace()
+
         out = self.bn13(out)
         out+=residual
         out = self.relu13(out)
         residual = out.clone() 
         ################################### 
         out = self.conv14(out)
+        # print('Conv14: ', torch.mean(out))
+        # pdb.set_trace()
+
         out = self.bn14(out)
         out = self.relu14(out)
         out = self.conv15(out)
+        # print('Conv15: ', torch.mean(out))
+        # pdb.set_trace()
+
         out = self.bn15(out)
         residual = self.resconv2(residual)
         out+=residual
@@ -87,18 +136,30 @@ class resnet(nn.Module):
         residual = out.clone() 
         ################################### 
         out = self.conv16(out)
+        # print('Conv16: ', torch.mean(out))
+        # pdb.set_trace()
+
         out = self.bn16(out)
         out = self.relu16(out)
         out = self.conv17(out)
+        # print('Conv17: ', torch.mean(out))
+        # pdb.set_trace()
+
         out = self.bn17(out)
         out+=residual
         out = self.relu17(out)
         residual = out.clone() 
         ################################### 
         out = self.conv18(out)
+        # print('Conv18: ', torch.mean(out))
+        # pdb.set_trace()
+
         out = self.bn18(out)
         out = self.relu18(out)
         out = self.conv19(out)
+        # print('Conv19: ', torch.mean(out))
+        # pdb.set_trace()
+
         out = self.bn19(out)
         out+=residual
         out = self.relu19(out)
@@ -110,6 +171,9 @@ class resnet(nn.Module):
         x = x.view(x.size(0), -1)
         x = self.bn20(x)
         x = self.fc(x)
+        # print('FC: ', torch.mean(out))
+        # pdb.set_trace()
+
         x = self.bn21(x)
         x = self.logsoftmax(x)
         

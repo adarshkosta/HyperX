@@ -33,9 +33,9 @@ ifglobal_dataset = True  # if True data collected from all layers
 
 ## Fixed point arithmetic configurations
 weight_bits = 8 #16 #8 
-weight_bit_frac = 6 #12 #6
+weight_bit_frac = 7 #12 #6
 input_bits = 8
-input_bit_frac = 4
+input_bit_frac = 7
 
 ## Tiling configurations
 tile_row = 2

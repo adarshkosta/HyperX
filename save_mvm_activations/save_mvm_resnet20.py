@@ -202,12 +202,14 @@ if __name__=='__main__':
     parser.add_argument('--mode', default='test', 
                 help='save activations for \'train\' or \'test\' sets')
 
+    parser.add_argument('--fsmodel', action='store_true', default=None,
+                help='Ideal model or FS model')
     parser.add_argument('--input_size', type=int, default=None,
                 help='image input size')
     parser.add_argument('-j', '--workers', default=8, type=int, metavar='J',
                 help='number of data loading workers (default: 8)')
     parser.add_argument('--gpus', default='0,1,2,3', help='gpus (default: 0,1,2,3)')
-    parser.add_argument('-exp', '--experiment', default='64x64', metavar='N',
+    parser.add_argument('-exp', '--experiment', default='x128', metavar='N',
                 help='experiment name')
     parser.add_argument('--batch-start', default=0, type=int, metavar='N', 
                 help='Start batch')
@@ -242,7 +244,7 @@ if __name__=='__main__':
         model_mvm = (__import__(args.model+'_mvm'))
     else:
         raise Exception(args.model+'is currently not supported')
-        
+
     if args.dataset == 'cifar10':
         model = model.net(num_classes=10)
         model_mvm = model_mvm.net(num_classes=10)
@@ -250,8 +252,8 @@ if __name__=='__main__':
         model = model.net(num_classes=100)
         model_mvm = model_mvm.net(num_classes=100)
     else:
-      raise Exception(args.dataset + 'is currently not supported')
-      
+        raise Exception(args.dataset + 'is currently not supported')
+    
     #print(model_mvm)
 
     print('==> Initializing model parameters ...')
@@ -270,7 +272,15 @@ if __name__=='__main__':
         pretrained_model = torch.load(args.pretrained)
         best_acc = pretrained_model['best_acc']
         print('Pretrained model accuracy: {}'.format(best_acc))
-        model.load_state_dict(pretrained_model['state_dict'])
+
+        if args.fsmodel:
+            state_dict = {key:val for key, val in pretrained_model['state_dict'].items() if 'xbmodel' not in key}
+        else:
+            state_dict = pretrained_model['state_dict']
+
+        model.load_state_dict(state_dict)
+
+
         for m in model.modules():
             if isinstance(m, nn.Conv2d):
                 weights_conv.append(m.weight.data.clone())
@@ -284,24 +294,24 @@ if __name__=='__main__':
                 num_batches.append(m.num_batches_tracked.clone())
             elif isinstance(m, nn.Linear):
                 weights_lin.append(m.weight.data.clone())
-
-    i=j=k=0
-    for m in model_mvm.modules():
-        if isinstance(m, (Conv2d_mvm, nn.Conv2d)):
-            m.weight.data = weights_conv[i]
-            i = i+1
-        #print(m.weight.data)
-        #raw_input()
-        elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.BatchNorm1d):
-            m.weight.data = bn_data[j]
-            m.bias.data = bn_bias[j]
-            m.running_mean.data = running_mean[j]
-            m.running_var.data = running_var[j]
-            m.num_batches_tracked = num_batches[j]
-            j = j+1
-        elif isinstance(m, Linear_mvm):
-            m.weight.data = weights_lin[k]
-            k=k+1
+    
+        i=j=k=0
+        for m in model_mvm.modules():
+            if isinstance(m, (Conv2d_mvm)):
+                m.weight.data = weights_conv[i]
+                i = i+1
+            #print(m.weight.data)
+            #raw_input()
+            elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.BatchNorm1d):
+                m.weight.data = bn_data[j]
+                m.bias.data = bn_bias[j]
+                m.running_mean.data = running_mean[j]
+                m.running_var.data = running_var[j]
+                m.num_batches_tracked = num_batches[j]
+                j = j+1
+            elif isinstance(m, Linear_mvm):
+                m.weight.data = weights_lin[k]
+                k=k+1
 
     # Move required model to GPU (if applicable)
     if args.mvm:

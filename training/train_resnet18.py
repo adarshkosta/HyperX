@@ -196,8 +196,8 @@ def main():
     #     batch_size=args.batch_size, shuffle=False,
     #     num_workers=args.workers, pin_memory=True)
 
-    traindir = os.path.join('/local/a/imagenet/imagenet2012/', 'train')
-    valdir = os.path.join('/local/a/imagenet/imagenet2012/', 'val')
+    traindir = os.path.join('/local/a/wponghir/dataset/imagenet2012/', 'train')
+    valdir = os.path.join('/local/a/wponghir/dataset/imagenet2012/', 'val')
 
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])

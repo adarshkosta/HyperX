@@ -9,7 +9,7 @@ import os
 import sys
 
 #Filepath handling
-root_dir = os.path.dirname(os.get_cwd()))
+root_dir = os.path.dirname(os.getcwd())
 inference_dir = os.path.join(root_dir, "inference")
 src_dir = os.path.join(root_dir, "src")
 models_dir = os.path.join(root_dir, "models")

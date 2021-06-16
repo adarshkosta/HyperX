@@ -77,6 +77,10 @@ class ResultsLog(object):
 
 def save_checkpoint(state, is_best, path='.', filename='checkpoint'):
     file = os.path.join(path, filename + '.pth.tar')
+    # for key in state['state_dict'].keys():
+    #     if 'module' in key:
+    #         state['state_dict'][key.replace('module.', '')] = \
+    #                 state['state_dict'].pop(key)
     torch.save(state, file)
     if is_best:
         shutil.copyfile(file, os.path.join(path, filename + '_best.pth.tar'))

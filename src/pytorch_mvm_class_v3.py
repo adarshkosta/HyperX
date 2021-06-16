@@ -57,8 +57,11 @@ class Conv2d_mvm_function(Function):
         weight_temp = weight.reshape((weight_channels_out, length))
         flatten_weight[0] = torch.clamp(weight_temp, min=0)  ## flatten weights
         flatten_weight[1] = torch.clamp(weight_temp, max=0).abs()
+        # pdb.set_trace()
         pos_bit_slice_weight = bit_slicing(flatten_weight[0], weight_bit_frac, bit_slice, weight_bits).to(device) ## v2: flatten weights --> fixed point --> bit slice -- v1
         neg_bit_slice_weight = bit_slicing(flatten_weight[1], weight_bit_frac, bit_slice, weight_bits).to(device) 
+
+        # pdb.set_trace()
 
         xbar_row = math.ceil(pos_bit_slice_weight.shape[0]/cfg.xbar_row_size)
         xbar_col = math.ceil(pos_bit_slice_weight.shape[1]/cfg.xbar_col_size)
@@ -155,6 +158,7 @@ class Conv2d_mvm_function(Function):
         for i in range(math.ceil(output_row/tile_row)):
             for j in range(math.ceil(output_col/tile_col)):
                 input_temp = unfold(input_pad[:,:, stride_input_row*i:stride_input_row*i+input_patch_row, stride_input_col*j:stride_input_col*j+input_patch_col]).permute(2,0,1) # #patches, batchsize, k^2*I
+                # pdb.set_trace()
                 input_temp = input_temp.reshape(input_batch*num_pixel,-1)          #new_batch_size = batch_size*#_of_output_pixel    
                 if bit_stream >1:
                     flatten_input_sign = torch.where(input_temp > 0, pos, neg).expand(bit_stream_num,-1,-1).permute(1, 2, 0) 
@@ -162,10 +166,12 @@ class Conv2d_mvm_function(Function):
                     flatten_input_sign_xbar = flatten_input_sign_temp.reshape(input_batch*num_pixel, xbars.shape[1],cfg.xbar_row_size, bit_stream_num)
                     input_temp.abs_()
 
+                # pdb.set_trace()
                 flatten_binary_input_temp = float_to_16bits_tensor_fast(input_temp, input_bit_frac, bit_stream, bit_stream_num, input_bits)   # batch x n x 16
                 flatten_binary_input[:,:flatten_binary_input_temp.shape[1]] = flatten_binary_input_temp
                 flatten_binary_input_xbar = flatten_binary_input.reshape((input_batch*num_pixel, xbars.shape[1],cfg.xbar_row_size, bit_stream_num))  
                 
+                # pdb.set_trace()
                 if cfg.non_ideality == True:
                     xbars_out = mvm_tensor_nonid(zero_mvmtensor, shift_add_bit_stream, shift_add_bit_slice, output_reg, output_analog, Goffmat, G_real_flatten0, G_real0, 
                                                xbmodel, flatten_binary_input_xbar, flatten_input_sign_xbar, bias_addr, xbars[0], bit_slice, bit_stream, weight_bits, 
@@ -182,7 +188,9 @@ class Conv2d_mvm_function(Function):
                                            acm_bit_frac)
                                 
                 output[:,:,i*tile_row:(i+1)*tile_row,j*tile_col:(j+1)*tile_col] = xbars_out.reshape(tile_row, tile_col, input_batch, -1).permute(2,3,0,1)[:,:weight_channels_out,:,:]  ## #batchsize, # o/p channels, tile_row, tile_col 
-                
+
+                # pdb.set_trace()
+
         ctx.save_for_backward(input, weight, bias)
         ctx.stride = stride
         ctx.padding = padding 
