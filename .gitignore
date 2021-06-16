@@ -1,5 +1,4 @@
 .*.sw*
-*.tar
 *.pyc
 
 
@@ -7,10 +6,10 @@ __pycache__
 
 datasets/
 models/*.tar
-pretrained_models/*
+pretrained_models/frozen/*
 results/
 datasets/
-xbmodels/*.tar
+xbmodels/*
 puma-functional-model/
 activations/
 
