@@ -9,8 +9,8 @@ debug = True
 mvm = False
 non_ideality = False
 
-inmax_test = 1.2 #1.2 #1.4
-inmin_test = 0.857 #0.857 #1.826
+inmax_test = 1.4 #1.2 #1.4
+inmin_test = 0.826 #0.857 #1.826
 
 ## Use global parameters (below) for all layers or layer specific parameters
 val = True
@@ -35,13 +35,13 @@ ifglobal_dataset = True  # if True data collected from all layers
 weight_bits = 8 #16 #8 
 weight_bit_frac = 7 #12 #6
 input_bits = 8
-input_bit_frac = 7
+input_bit_frac = 5
 
 ## Tiling configurations
 tile_row = 2
 tile_col = 2
-xbar_row_size = 64 #128
-xbar_col_size = 64 #128 #keep same as row, heterogenous not supported
+xbar_row_size = 128 #128
+xbar_col_size = 128 #128 #keep same as row, heterogenous not supported
 
 ## Bit-slicing configurations
 bit_stream = 1
@@ -86,7 +86,7 @@ class NN_model(nn.Module):
         return out
 
 xbmodel = NN_model(xbar_row_size)
-xbmodel_weight_path = '../xb_models/XB_64_stream1slice207dropout50epochs.pth.tar' #'../xb_models/xbar_128x128_stream1_slice2_100k_600k_250mV.pth.tar'
+xbmodel_weight_path = '../xb_models/XB_128_stream1slice207dropout50epochs.pth.tar' #'../xb_models/xbar_128x128_stream1_slice2_100k_600k_250mV.pth.tar'
 
 #xbmodel = None
 #xbmodel_weight_path = None

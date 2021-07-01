@@ -13,6 +13,7 @@ import sys
 import time
 import collections
 import math
+from collections import OrderedDict
 
 #Filepath handling
 root_dir = os.path.dirname(os.getcwd())
@@ -90,7 +91,7 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=1024, type=int,
                     metavar='N', help='mini-batch size (default: 128)')
-parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
+parser.add_argument('--lr', '--learning-rate', default=0.0001, type=float,
                     metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
@@ -100,7 +101,7 @@ parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar=
 parser.add_argument('--tag', metavar='tag', default=None, type=str,
                     help='tag for save file name')
 
-parser.add_argument('--milestones', default=[20,40,60,80,120], #[40, 80, 120, 150, 180], 
+parser.add_argument('--milestones', default=[40,80,120], #[40, 80, 120, 150, 180], 
             help='Milestones for LR decay')
 parser.add_argument('--gamma', default=0.1, type=float,
             help='learning rate decay')
@@ -247,7 +248,7 @@ if __name__=='__main__':
     if args.half:
         model = model.half()
 
-    print(model)
+    # print(model)
 
     # summary(model, (3,32,32))
     # optionally resume from a checkpoint
@@ -256,10 +257,17 @@ if __name__=='__main__':
             print("=> loading checkpoint '{}'".format(args.resume))
             checkpoint = torch.load(args.resume)
             args.start_epoch = 0
-            best_acc = 0
-            best_train_acc= 0
+            best_acc = checkpoint['best_acc']
+            best_train_acc= 56.88
             print('Resumed model accuracy: {}'.format(checkpoint['best_acc']))
-            model.load_state_dict(checkpoint['state_dict'])
+            state_dict = OrderedDict()
+
+            for key, value in checkpoint['state_dict'].items():
+                name = key[7:]
+                state_dict[name] = value
+
+            model.load_state_dict(state_dict)
+
             print("=> loaded checkpoint from {}".format(args.resume))
         else:
             print("=> no checkpoint found at '{}'".format(args.resume))
@@ -393,21 +401,25 @@ if __name__=='__main__':
                 if args.tag:
                     save_checkpoint({
                         'state_dict': model.state_dict(),
+                        'best_train_acc': best_train_acc,
                         'best_acc': best_acc,
                     }, is_best, path= args.savedir, filename=args.model +'qfp_' + args.dataset + '_half_' + str(args.tag))
                 else:
                     save_checkpoint({
                         'state_dict': model.state_dict(),
+                        'best_train_acc': best_train_acc,
                         'best_acc': best_acc,
                     }, is_best, path= args.savedir, filename=args.model +'qfp_' + args.dataset + '_half')
             else:
                 if args.tag:
                     save_checkpoint({
                         'state_dict': model.state_dict(),
+                        'best_train_acc': best_train_acc,
                         'best_acc': best_acc,
                     }, is_best, path=args.savedir, filename=args.model +'qfp_' + args.dataset + '_full_' + str(args.tag))
                 else:
                     save_checkpoint({
                         'state_dict': model.state_dict(),
+                        'best_train_acc': best_train_acc,
                         'best_acc': best_acc,
                     }, is_best, path= args.savedir, filename=args.model +'qfp_' + args.dataset + '_full')

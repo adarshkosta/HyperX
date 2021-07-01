@@ -16,6 +16,7 @@ class resnet(nn.Module):
         # print('Input:', torch.mean(x))
 
         x1 = self.fq0(x)
+
         # print('Conv1_In:', torch.mean(x1))
 
         out = self.conv1(x1)
@@ -229,135 +230,139 @@ class resnet(nn.Module):
 
 class ResNet_cifar(resnet):
 
-    def __init__(self, num_classes=100):
+    def __init__(self, num_classes=100, a_bit=7, af_bit=4, w_bit=7, wf_bit=6):
         super(ResNet_cifar, self).__init__()
 
-        self.wbit = 7
-        self.abit = 7
+        
+        self.abit = a_bit
+        self.af_bit = af_bit
+        self.wbit = w_bit
+        self.wf_bit = wf_bit
 
-        QConv2d = conv2d_Q_fn(w_bit=self.wbit)
-        QLinear = linear_Q_fn(w_bit=self.wbit)
+
+        QConv2d = conv2d_Q_fn(w_bit=self.wbit, wf_bit=self.wf_bit)
+        QLinear = linear_Q_fn(w_bit=self.wbit, wf_bit=self.wf_bit)
         
 
         self.inflate = 1
-        self.fq0 = activation_quantize_fn(a_bit=self.abit)
+        self.fq0 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
         self.conv1=QConv2d(3,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1= nn.BatchNorm2d(16*self.inflate)
         self.relu1=nn.ReLU(inplace=True)
-        self.fq1 = activation_quantize_fn(a_bit=self.abit)
+        self.fq1 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
 
         self.conv2=QConv2d(16*self.inflate,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn2= nn.BatchNorm2d(16*self.inflate)
         self.relu2=nn.ReLU(inplace=True)
-        self.fq2 = activation_quantize_fn(a_bit=self.abit)
+        self.fq2 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
 
         self.conv3=QConv2d(16*self.inflate,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn3= nn.BatchNorm2d(16*self.inflate)
         self.relu3=nn.ReLU(inplace=True)
-        self.fq3 = activation_quantize_fn(a_bit=self.abit)
+        self.fq3 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
         #######################################################
 
         self.conv4=QConv2d(16*self.inflate,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn4= nn.BatchNorm2d(16*self.inflate)
         self.relu4=nn.ReLU(inplace=True)
-        self.fq4 = activation_quantize_fn(a_bit=self.abit)
+        self.fq4 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
 
         self.conv5=QConv2d(16*self.inflate,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn5= nn.BatchNorm2d(16*self.inflate)
         self.relu5=nn.ReLU(inplace=True)
-        self.fq5 = activation_quantize_fn(a_bit=self.abit)
+        self.fq5 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
         #######################################################
 
         self.conv6=QConv2d(16*self.inflate,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn6= nn.BatchNorm2d(16*self.inflate)
         self.relu6=nn.ReLU(inplace=True)
-        self.fq6 = activation_quantize_fn(a_bit=self.abit)
+        self.fq6 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
 
         self.conv7=QConv2d(16*self.inflate,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn7= nn.BatchNorm2d(16*self.inflate)
         self.relu7=nn.ReLU(inplace=True)
-        self.fq7 = activation_quantize_fn(a_bit=self.abit)
+        self.fq7 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
         #######################################################
 
         #########Layer################ 
         self.conv8=QConv2d(16*self.inflate,32*self.inflate, kernel_size=3, stride=2, padding=1, bias=False)
         self.bn8= nn.BatchNorm2d(32*self.inflate)
         self.relu8=nn.ReLU(inplace=True)
-        self.fq8 = activation_quantize_fn(a_bit=self.abit)
+        self.fq8 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
 
         self.conv9=QConv2d(32*self.inflate,32*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn9= nn.BatchNorm2d(32*self.inflate)
-        self.fqr1 = activation_quantize_fn(a_bit=self.abit)
+        self.fqr1 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
         self.resconv1=nn.Sequential(QConv2d(16*self.inflate,32*self.inflate, kernel_size=1, stride=2, padding =0, bias=False),
         nn.BatchNorm2d(32*self.inflate),)
         self.relu9=nn.ReLU(inplace=True)
-        self.fq9 = activation_quantize_fn(a_bit=self.abit)
+        self.fq9 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
         #######################################################
 
         self.conv10=QConv2d(32*self.inflate,32*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn10= nn.BatchNorm2d(32*self.inflate)
         self.relu10=nn.ReLU(inplace=True)
-        self.fq10 = activation_quantize_fn(a_bit=self.abit)
+        self.fq10 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
 
         self.conv11=QConv2d(32*self.inflate,32*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn11= nn.BatchNorm2d(32*self.inflate)
         self.relu11=nn.ReLU(inplace=True)
-        self.fq11 = activation_quantize_fn(a_bit=self.abit)
+        self.fq11 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
 
         #######################################################
 
         self.conv12=QConv2d(32*self.inflate,32*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn12= nn.BatchNorm2d(32*self.inflate)
         self.relu12=nn.ReLU(inplace=True)
-        self.fq12 = activation_quantize_fn(a_bit=self.abit)
+        self.fq12 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
 
         self.conv13=QConv2d(32*self.inflate,32*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn13= nn.BatchNorm2d(32*self.inflate)
         self.relu13=nn.ReLU(inplace=True)
-        self.fq13 = activation_quantize_fn(a_bit=self.abit)
+        self.fq13 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
         #######################################################
 
         #########Layer################ 
         self.conv14=QConv2d(32*self.inflate,64*self.inflate, kernel_size=3, stride=2, padding=1, bias=False)
         self.bn14= nn.BatchNorm2d(64*self.inflate)
         self.relu14=nn.ReLU(inplace=True)
-        self.fq14 = activation_quantize_fn(a_bit=self.abit)
+        self.fq14 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
 
         self.conv15=QConv2d(64*self.inflate,64*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn15= nn.BatchNorm2d(64*self.inflate)
-        self.fqr2 = activation_quantize_fn(a_bit=self.abit)
+        self.fqr2 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
         self.resconv2=nn.Sequential(QConv2d(32*self.inflate,64*self.inflate, kernel_size=1, stride=2, padding =0, bias=False),
         nn.BatchNorm2d(64*self.inflate),)
         self.relu15=nn.ReLU(inplace=True)
-        self.fq15 = activation_quantize_fn(a_bit=self.abit)
+        self.fq15 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
         #######################################################
 
         self.conv16=QConv2d(64*self.inflate,64*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn16= nn.BatchNorm2d(64*self.inflate)
         self.relu16=nn.ReLU(inplace=True)
-        self.fq16 = activation_quantize_fn(a_bit=self.abit)
+        self.fq16 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
 
         self.conv17=QConv2d(64*self.inflate,64*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn17= nn.BatchNorm2d(64*self.inflate)
         self.relu17=nn.ReLU(inplace=True)
-        self.fq17 = activation_quantize_fn(a_bit=self.abit)
+        self.fq17 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
         #######################################################
 
         self.conv18=QConv2d(64*self.inflate,64*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn18= nn.BatchNorm2d(64*self.inflate)
         self.relu18=nn.ReLU(inplace=True)
-        self.fq18 = activation_quantize_fn(a_bit=self.abit)
+        self.fq18 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
 
         self.conv19=QConv2d(64*self.inflate,64*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn19= nn.BatchNorm2d(64*self.inflate)
         self.relu19=nn.ReLU(inplace=True)
-        self.fq19 = activation_quantize_fn(a_bit=self.abit)
+        self.fq19 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
         #######################################################
 
         #########Layer################ 
         self.avgpool=nn.AvgPool2d(8)
         self.bn20= nn.BatchNorm1d(64*self.inflate)
-        self.fq20 = activation_quantize_fn(a_bit=self.abit)
+        self.fq20 = activation_quantize_fn(a_bit=self.abit, af_bit=self.af_bit)
 
         self.fc=QLinear(64*self.inflate,num_classes, bias=False)
         self.bn21= nn.BatchNorm1d(num_classes)
@@ -365,6 +370,7 @@ class ResNet_cifar(resnet):
 
 
 def net(**kwargs):
-    num_classes, depth, dataset = map(
-        kwargs.get, ['num_classes', 'depth', 'dataset'])
-    return ResNet_cifar(num_classes=num_classes)
+    num_classes, depth, dataset, a_bit, af_bit,w_bit, wf_bit = map(
+        kwargs.get, ['num_classes', 'depth', 'dataset', 'a_bit', 'af_bit', 'w_bit', 'wf_bit'])
+    return ResNet_cifar(num_classes=num_classes, a_bit=a_bit, af_bit=af_bit, w_bit=w_bit, wf_bit=wf_bit)
+

@@ -162,7 +162,7 @@ if __name__=='__main__':
     parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
                 choices=model_names,
                 help='name of the model')
-    parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20fp_cifar10.pth.tar',
+    parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20qfp_cifar10_i8b4f_w8b6f.pth.tar',
         help='the path to the pretrained model')
     parser.add_argument('--mvm', action='store_true', default=None,
                 help='if running functional simulator backend')
@@ -247,7 +247,11 @@ if __name__=='__main__':
 
         #Quantize weights
         if args.quantize_model:
-            wt_quant = weight_quantize_fn(w_bit=7) 
+            if args.dataset == 'cifar10':
+                wf_bit = 6
+            elif args.dataset == 'cifar100':
+                wf_bit = 7
+            wt_quant = weight_quantize_fn(w_bit=7, wf_bit=wf_bit) 
             for name, m in model.named_modules():
                 # print(name)
                 if 'fc' in name and 'quantize_fn' not in name:
@@ -258,11 +262,11 @@ if __name__=='__main__':
                 elif 'conv' in name and 'quantize_fn' not in name:
                     m.weight.data = wt_quant(m.weight.data)
 
-            save_checkpoint({
-                        'state_dict': model.state_dict(),
-                        'best_acc': best_acc,
-                    }, is_best=True, path= args.savedir, filename=args.model +'qfp_' + args.dataset + '_half_qwts_all_w7b_a7b')
-            print('Saved quantized model. It can be used without the quantize flag now.')
+            # save_checkpoint({
+            #             'state_dict': model.state_dict(),
+            #             'best_acc': best_acc,
+            #         }, is_best=True, path= args.savedir, filename=args.model +'qfp_' + args.dataset + '_half_qwts_all_w7b_a7b')
+            # print('Saved quantized model. It can be used without the quantize flag now.')
             
 
         for m in model.modules():

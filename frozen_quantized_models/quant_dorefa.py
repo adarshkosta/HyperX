@@ -34,7 +34,7 @@ def uniform_quantize(k):
 
 
 class weight_quantize_fn(nn.Module):
-  def __init__(self, w_bit):
+  def __init__(self, w_bit, wf_bit):
     """This class quantization weights
     
     Args:
@@ -46,6 +46,8 @@ class weight_quantize_fn(nn.Module):
     super(weight_quantize_fn, self).__init__()
     assert w_bit <= 16 or w_bit == 32
     self.w_bit = w_bit
+    self.wf_bit = wf_bit
+    self.wi_bit = w_bit - wf_bit
     self.uniform_q = uniform_quantize(k=w_bit)
 
   def forward(self, x):
@@ -63,23 +65,32 @@ class weight_quantize_fn(nn.Module):
     #   E = torch.mean(torch.abs(x)).detach()
     #   weight_q = self.uniform_q(x / E) * E
     else:
-      n = float(2**self.w_bit)
-      weight = torch.tanh(x)
+      
+
+      ## weight = torch.tanh(x)
+
       # max_w = torch.max(torch.abs(weight)).detach()
       # weight = weight / 2 / max_w + 0.5
       # weight_q = max_w * (2 * self.uniform_q(weight) - 1)
 
       # weight = weight/2 + 0.5
-      weight = torch.clamp(weight, -1, 1-1/n)
+      ## weight = torch.clamp(x, -1, 1-1/n)
+
+      weight = torch.clamp(x, -2**self.wi_bit, 2**self.wi_bit-1/2**self.wf_bit)
+
+      weight = weight/2**self.wi_bit
+
       # weight_q = (2 * self.uniform_q(weight) - 1)
       weight_q = self.uniform_q(weight)
+
+      weight_q = weight_q*2**self.wi_bit
 
     return weight_q
 
 
 class activation_quantize_fn(nn.Module):
   
-  def __init__(self, a_bit):
+  def __init__(self, a_bit, af_bit):
     """This class quantization activations
     
     Args:
@@ -92,6 +103,8 @@ class activation_quantize_fn(nn.Module):
     super(activation_quantize_fn, self).__init__()
     assert a_bit <= 16 or a_bit == 32
     self.a_bit = a_bit
+    self.af_bit = af_bit
+    self.ai_bit = a_bit - af_bit
     self.uniform_q = uniform_quantize(k=a_bit)
 
   def forward(self, x):
@@ -107,13 +120,23 @@ class activation_quantize_fn(nn.Module):
     if self.a_bit == 32:
       activation_q = x
     else:
-      n = float(2**self.a_bit)
-      activation_q = self.uniform_q(torch.clamp(x, -1, 1-1/n))
+      # n = float(2**self.a_bit)
+
+      activation = torch.clamp(x, -2**self.ai_bit, 2**self.ai_bit-1/2**self.af_bit)
+
+      activation = activation/2**self.ai_bit
+
+      # weight_q = (2 * self.uniform_q(weight) - 1)
+      activation_q = self.uniform_q(activation)
+
+      activation_q = activation_q*2**self.ai_bit
+
       # print(np.unique(activation_q.detach().numpy()))
+
     return activation_q
 
 
-def conv2d_Q_fn(w_bit):
+def conv2d_Q_fn(w_bit, wf_bit):
   """This is a function returns a conv2d Layer class which has quantized weights
 
     Args:
@@ -128,7 +151,8 @@ def conv2d_Q_fn(w_bit):
       super(Conv2d_Q, self).__init__(in_channels, out_channels, kernel_size, stride,
                                      padding, dilation, groups, bias)
       self.w_bit = w_bit
-      self.quantize_fn = weight_quantize_fn(w_bit=w_bit)
+      self.wf_bit= wf_bit
+      self.quantize_fn = weight_quantize_fn(w_bit=w_bit, wf_bit=wf_bit)
 
     def forward(self, input, order=None):  
       self.weight_q = self.quantize_fn(self.weight) 
@@ -140,7 +164,7 @@ def conv2d_Q_fn(w_bit):
   return Conv2d_Q
 
 
-def linear_Q_fn(w_bit):
+def linear_Q_fn(w_bit, wf_bit):
   """This is a function returns a Linear Layer class which has quantized weights
 
     Args:
@@ -153,7 +177,8 @@ def linear_Q_fn(w_bit):
     def __init__(self, in_features, out_features, bias=True):
       super(Linear_Q, self).__init__(in_features, out_features, bias)
       self.w_bit = w_bit
-      self.quantize_fn = weight_quantize_fn(w_bit=w_bit)
+      self.wf_bit = wf_bit
+      self.quantize_fn = weight_quantize_fn(w_bit=w_bit, wf_bit=wf_bit)
 
     def forward(self, input):
       self.weight_q = self.quantize_fn(self.weight) 

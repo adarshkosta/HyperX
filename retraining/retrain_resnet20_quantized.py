@@ -10,17 +10,16 @@ import os
 import sys
 import time
 import math
+import pdb
 
 #Filepath handling
 root_dir = os.path.dirname(os.getcwd())
 inference_dir = os.path.join(root_dir, "inference")
 src_dir = os.path.join(root_dir, "src")
-models_dir = os.path.join(root_dir, "models")
 frozen_models_dir = os.path.join(root_dir, "frozen_quantized_models")
 datasets_dir = os.path.join(root_dir, "datasets")
 
 sys.path.insert(0, root_dir) # 1 adds path to end of PYTHONPATH
-sys.path.insert(0, models_dir)
 sys.path.insert(0, frozen_models_dir)
 sys.path.insert(0, inference_dir) 
 sys.path.insert(0, src_dir)
@@ -193,7 +192,7 @@ def print_args(args):
 
 #Parse arguments
 parser = argparse.ArgumentParser(description= ' Re-training')
-parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
+parser.add_argument('--dataset', metavar='DATASET', default='cifar100',
             help='dataset name')
 parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
             choices=model_names,
@@ -203,7 +202,7 @@ parser.add_argument('--load-dir', default='/home/nano01/a/esoufler/activations/x
             help='base path for loading activations')
 parser.add_argument('--savedir', default='../pretrained_models/frozen/x64-8b/',
                 help='base path for saving activations')
-parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20fp_cifar10.pth.tar',
+parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20qfp_cifar100_i8b5f_w8b7f.pth.tar',
             help='the path to the ideal pretrained model')
 
 parser.add_argument('--mode', default='rram',
@@ -211,11 +210,11 @@ parser.add_argument('--mode', default='rram',
 
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
             help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', default=40, type=int, metavar='N',
+parser.add_argument('--epochs', default=60, type=int, metavar='N',
             help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
             help='manual epoch number (useful on restarts)')
-parser.add_argument('-b', '--batch-size', default=256, type=int,
+parser.add_argument('-b', '--batch-size', default=128, type=int,
             metavar='N', help='mini-batch size (default: 128)')
 parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
             metavar='LR', help='initial learning rate')
@@ -226,15 +225,26 @@ parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar=
 parser.add_argument('--gamma', default=0.1, type=float,
             help='learning rate decay')
 
-parser.add_argument('--milestones', default=[8,16,24,32], 
+
+parser.add_argument('--a_bit', default=7, type=int,
+                metavar='N', help='activation total bits')
+parser.add_argument('--af_bit', default=5, type=int,
+                metavar='N', help='activation fractional bits')
+parser.add_argument('--w_bit', default=7, type=int,
+                metavar='N', help='weight total bits')
+parser.add_argument('--wf_bit', default=7, type=int,
+                metavar='N', help='weight fractional bits')
+
+
+parser.add_argument('--milestones', default=[20,30,40,50], 
             help='Milestones for LR decay')
 
 parser.add_argument('--loss', type=str, default='crossentropy', 
             help='Loss function to use')
 parser.add_argument('--optim', type=str, default='sgd',
             help='Optimizer to use')
-parser.add_argument('--dropout', type=float, default=0.5,
-            help='Dropout probability')
+# parser.add_argument('--dropout', type=float, default=0.5,
+#             help='Dropout probability')
 
 
 parser.add_argument('--print-freq', '-p', default=5, type=int,
@@ -279,9 +289,9 @@ else:
     raise Exception(args.model+' is currently not supported')
 
 if args.dataset == 'cifar10':
-    model = model.net(num_classes=10)
+    model = model.net(num_classes=10, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
 elif args.dataset == 'cifar100':
-    model = model.net(num_classes=100)
+    model = model.net(num_classes=100, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
 else:
   raise Exception(args.dataset + 'is currently not supported')
 
@@ -305,9 +315,9 @@ else: #No model to resume from
         print('==> Initializing model with pre-trained parameters ...')
         original_model = (__import__(args.model))
         if args.dataset == 'cifar10':
-            original_model = original_model.net(num_classes=10)
+            original_model = original_model.net(num_classes=10, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
         elif args.dataset == 'cifar100':
-            original_model = original_model.net(num_classes=100)
+            original_model = original_model.net(num_classes=100, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
         else:
             raise Exception(args.dataset + 'is currently not supported')
 
@@ -316,26 +326,35 @@ else: #No model to resume from
         original_model.load_state_dict(pretrained_model['state_dict'])
         best_acc = pretrained_model['best_acc']
         print('Original model accuracy: {}'.format(best_acc))
+
+        # for name1, m1 in model.named_modules():
+        #     print(name1)
+
+        # for name1, m1 in original_model.named_modules():
+        #     print(name1)
         
+        # pdb.set_trace()
         for name1, m1 in model.named_modules():
             for name2, m2 in original_model.named_modules():
                 if name2 == name1:
-                    if 'resconv' in name1 or 'conv' in name1 or 'fc' in name1 or 'bn' in name1:
+                    if 'resconv' in name1 or 'conv' in name1 or 'fc' in name1 or 'bn' in name1 or 'fq' in name1:
                         m1.load_state_dict(m2.state_dict())
+
+        # pdb.set_trace()
                         
-    else: #Initialize all params with normal distribution
-        for m in model.modules():
-            if isinstance(m, (nn.Conv2d, QConv2d)):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-            elif isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d)):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
-            elif isinstance(m, (nn.Linear, QLinear)):
-                stdv = 1. / math.sqrt(m.weight.data.size(1))
-                m.weight.data.uniform_(-stdv, stdv)
-                if m.bias is not None:
-                   m.bias.data.uniform_(-stdv, stdv)
+    # else: #Initialize all params with normal distribution
+    #     for m in model.modules():
+    #         if isinstance(m, (nn.Conv2d, QConv2d)):
+    #             n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+    #             m.weight.data.normal_(0, math.sqrt(2. / n))
+    #         elif isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d)):
+    #             m.weight.data.fill_(1)
+    #             m.bias.data.zero_()
+    #         elif isinstance(m, (nn.Linear, QLinear)):
+    #             stdv = 1. / math.sqrt(m.weight.data.size(1))
+    #             m.weight.data.uniform_(-stdv, stdv)
+    #             if m.bias is not None:
+    #                m.bias.data.uniform_(-stdv, stdv)
  
 model.to(device)
 #%%
@@ -390,7 +409,7 @@ lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer,
                                             last_epoch=args.start_epoch - 1)
 
 
-print(model)
+# print(model)
 
 if args.evaluate:
     acc, loss = test(test_loader, model, criterion, device)
@@ -399,7 +418,8 @@ else:
     acc, loss = test(test_loader, model, criterion, device)
     print('Pre-trained Prec@1 with {} layers frozen: {} \t Loss: {}'.format(args.frozen_layers, acc.item(), loss.item()))
     print('\nStarting training on SRAM layers...')
-    
+
+    # pdb.set_trace()
     
     best_acc = 0
     end = time.time()
@@ -407,9 +427,13 @@ else:
         # train for one epoch
         train(train_loader, model, criterion, optimizer, epoch, device)
         print('Train time: {}'.format(time.time()-end))
+
+        # pdb.set_trace()
         # evaluate on validation set
         acc, loss = test(test_loader, model, criterion, device)
         
+        # pdb.set_trace()
+
         lr_scheduler.step()
     
         # remember best prec@1 and save checkpoint

@@ -9,7 +9,7 @@ models/*.tar
 pretrained_models/frozen/*
 results/
 datasets/
-xbmodels/*
+xbmodels/*.tar
 puma-functional-model/
 activations/
 

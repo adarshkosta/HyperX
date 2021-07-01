@@ -50,6 +50,7 @@ import src.config as cfg
 
 from src.pytorch_mvm_class_v3 import *
 
+from frozen_quantized_models.quant_dorefa import *
 
 #Seeding
 def reset_seed():
@@ -202,8 +203,11 @@ if __name__=='__main__':
     parser.add_argument('--mode', default='test', 
                 help='save activations for \'train\' or \'test\' sets')
 
+    parser.add_argument('--quantize-model', action='store_true', default=None,
+                help='quantize model weights') 
     parser.add_argument('--fsmodel', action='store_true', default=None,
                 help='Ideal model or FS model')
+                
     parser.add_argument('--input_size', type=int, default=None,
                 help='image input size')
     parser.add_argument('-j', '--workers', default=8, type=int, metavar='J',
@@ -279,6 +283,23 @@ if __name__=='__main__':
             state_dict = pretrained_model['state_dict']
 
         model.load_state_dict(state_dict)
+
+        #Quantize weights
+        if args.quantize_model:
+            if args.dataset == 'cifar10':
+                wf_bit = 6
+            elif args.dataset == 'cifar100':
+                wf_bit = 7
+            wt_quant = weight_quantize_fn(w_bit=7, wf_bit=wf_bit) 
+            for name, m in model.named_modules():
+                # print(name)
+                if 'fc' in name and 'quantize_fn' not in name:
+                    m.weight.data = wt_quant(m.weight.data)
+                elif 'resconv' in name:
+                    if '.0' in name and 'quantize_fn' not in name:
+                        m.weight.data = wt_quant(m.weight.data)
+                elif 'conv' in name and 'quantize_fn' not in name:
+                    m.weight.data = wt_quant(m.weight.data)
 
 
         for m in model.modules():
