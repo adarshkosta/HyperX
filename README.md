@@ -18,36 +18,36 @@ Other command-line arguments can be looked upon from the code.
 For saving non-ideal mvm activations for ResNet-20 on CIFAR-10 for the training set, use the following command.
 ```python save_mvm_resnet20.py --pretrained='path to saved model' --dataset='cifar10' --mode='test' --gpus='0,1,2,3' -b1000 -j16 --exp='resnet20_cf10_test' --nideal --mvm```
 
-##Quantization
-###Dorefa-Training
+## Quantization
+### Dorefa-Training
 From the training folder, run:
 ```python train_q_resnet20.p```
 Check for proper command line arguments.
 
-###Dorefa-models for Resnet20
+### Dorefa-models for Resnet20
 ```pretrained_models/ideal/resnet20qfp_cifar10_i8b4f_w8b6f.pth.tar```
 
 ```pretrained_models/ideal/resnet20qfp_cifar10_i8b5f_w8b7f.pth.tar```
 
-###Testing a dorefa trained network on func-sim (ideal + non-ideal mode)
+### Testing a dorefa trained network on func-sim (ideal + non-ideal mode)
 From the inference folder, run:
 ```python test_quant.py --quantize-model --mvm```
 
 ```python test_quant.py --quantize-model --mvm --nideal```
 
-###Save-quantized-non-ideal activations
+### Save-quantized-non-ideal activations
 From save_mvm_activations, run:
 ```python save_mvm_resnet20.py --mvm --nideal --quantize-model --pretrained=$PATH_TO_MODEL --savedir=$SAVEDIR``` 
 
-###Save-single-batch
+### Save-single-batch
 From save_single_batch folder, run:
 ```python save_single_resnet20.py --dataset=$DATASET```
 
-###Retraining SRAM-layers
+### Retraining SRAM-layers
 From retraining folder, run:
 ```python retrain_resnet20_quantized.py --frozen-layers=$F --pretrained=$PATH_TO_MODEL --loaddir=$LOADDIR --savedir=$SAVEDIR```
 
-###Rememeber to update ```config.py``` with appropriate weight and input bits and fractions as well as corresponding crossbar configurations when using func-sim (not needed when retraining SRAM layers).
+### Rememeber to update ```config.py``` with appropriate weight and input bits and fractions as well as corresponding crossbar configurations when using func-sim (not needed when retraining SRAM layers).
 
 NOTE: Please use all 4 GPUs on the server (0,1,2,3) and batch_size=1000, else code wouldn't work. Currently only fixed for 4 GPUs operating together.
 
