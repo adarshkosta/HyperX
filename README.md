@@ -26,11 +26,13 @@ Check for proper command line arguments.
 
 ###Dorefa-models for Resnet20
 ```pretrained_models/ideal/resnet20qfp_cifar10_i8b4f_w8b6f.pth.tar```
+
 ```pretrained_models/ideal/resnet20qfp_cifar10_i8b5f_w8b7f.pth.tar```
 
 ###Testing a dorefa trained network on func-sim (ideal + non-ideal mode)
 From the inference folder, run:
 ```python test_quant.py --quantize-model --mvm```
+
 ```python test_quant.py --quantize-model --mvm --nideal```
 
 ###Save-quantized-non-ideal activations
@@ -44,6 +46,8 @@ From save_single_batch folder, run:
 ###Retraining SRAM-layers
 From retraining folder, run:
 ```python retrain_resnet20_quantized.py --frozen-layers=$F --pretrained=$PATH_TO_MODEL --loaddir=$LOADDIR --savedir=$SAVEDIR```
+
+###Rememeber to update ```config.py``` with appropriate weight and input bits and fractions as well as corresponding crossbar configurations when using func-sim (not needed when retraining SRAM layers).
 
 NOTE: Please use all 4 GPUs on the server (0,1,2,3) and batch_size=1000, else code wouldn't work. Currently only fixed for 4 GPUs operating together.
 
