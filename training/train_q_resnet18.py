@@ -89,17 +89,26 @@ parser.add_argument('--epochs', default=150, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
-parser.add_argument('-b', '--batch-size', default=1024, type=int,
+parser.add_argument('-b', '--batch-size', default=512, type=int,
                     metavar='N', help='mini-batch size (default: 128)')
-parser.add_argument('--lr', '--learning-rate', default=0.0001, type=float,
+parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
                     metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
-parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar='W', 
-                    help='weight decay (default: 1e-4)')
+parser.add_argument('--weight-decay', '--wd', default=5e-4, type=float, metavar='W', 
+                    help='weight decay (default: 5e-4)')
 
 parser.add_argument('--tag', metavar='tag', default=None, type=str,
                     help='tag for save file name')
+
+parser.add_argument('--a_bit', default=7, type=int,
+                metavar='N', help='activation total bits')
+parser.add_argument('--af_bit', default=5, type=int,
+                metavar='N', help='activation fractional bits')
+parser.add_argument('--w_bit', default=7, type=int,
+                metavar='N', help='weight total bits')
+parser.add_argument('--wf_bit', default=7, type=int,
+                metavar='N', help='weight fractional bits')
 
 parser.add_argument('--milestones', default=[40,80,120], #[40, 80, 120, 150, 180], 
             help='Milestones for LR decay')
@@ -237,18 +246,18 @@ if __name__=='__main__':
         raise Exception(args.model+'is currently not supported')
         
     if args.dataset == 'cifar10':
-        model = model.net(num_classes=10)
+        model = model.net(num_classes=10, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
     elif args.dataset == 'cifar100':
-        model = model.net(num_classes=100)
+        model = model.net(num_classes=100, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
     elif args.dataset == 'imagenet':
-        model = model.net(num_classes=1000)
+        model = model.net(num_classes=1000, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
     else:
-      raise Exception(args.dataset + 'is currently not supported')
+        raise Exception(args.dataset + 'is currently not supported')
     
     if args.half:
         model = model.half()
 
-    # print(model)
+    print(model)
 
     # summary(model, (3,32,32))
     # optionally resume from a checkpoint
@@ -298,29 +307,8 @@ if __name__=='__main__':
 
     model.to(device) 
 
-    # default_transform = {
-    #     'train': get_transform(args.dataset,
-    #                            input_size=args.input_size, augment=True),
-    #     'eval': get_transform(args.dataset,
-    #                           input_size=args.input_size, augment=False)
-    # }
-    # transform = getattr(model, 'input_transform', default_transform)
-    # train_data = get_dataset(args.dataset, 'train', transform['train'],download=True)
-
-
-    # trainloader = torch.utils.data.DataLoader(
-    #     train_data,
-    #     batch_size=args.batch_size, shuffle=True,
-    #     num_workers=args.workers, pin_memory=True)
-
-    # test_data = get_dataset(args.dataset, 'val', transform['eval'], download=True)
-    # testloader = torch.utils.data.DataLoader(
-    #     test_data,
-    #     batch_size=args.batch_size, shuffle=False,
-    #     num_workers=args.workers, pin_memory=True)
-
-    traindir = os.path.join('/local/a/imagenet/imagenet2012/', 'train')
-    valdir = os.path.join('/local/a/imagenet/imagenet2012/', 'val')
+    traindir = os.path.join('/local/b/imagenet/imagenet2012/', 'train')
+    valdir = os.path.join('/local/b/imagenet/imagenet2012/', 'val')
 
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
@@ -349,15 +337,6 @@ if __name__=='__main__':
         ])),
         batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True)
-
-    # param_dict = dict(model.named_parameters())
-    # params = []
-
-    # base_lr = float(args.lr)
-    # wd = float(args.weight_decay)
-    # for key, value in param_dict.items():
-    #     params += [{'params':[value], 'lr': base_lr, 
-    #         'weight_decay': wd}]
 
     optimizer = optim.SGD(model.parameters(), 
                         momentum = float(args.momentum), 

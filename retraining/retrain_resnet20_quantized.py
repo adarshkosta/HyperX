@@ -41,7 +41,7 @@ from torchsummary import summary
 #torch.set_default_tensor_type(torch.HalfTensor)
 
 # User-defined packages
-import frozen_models
+# import frozen_models
 from utils.utils import accuracy, AverageMeter, save_checkpoint 
 #from utils_bar import progress_bar
 
@@ -139,16 +139,17 @@ def test(test_loader, model, criterion, device):
 
     with torch.no_grad():
         for batch_idx, batch in enumerate(test_loader):
-            input_var = batch['data']
-            target_var = batch['target'].long()
+            data_var = batch['data'].cuda()
+            target_var = batch['target'].long().cuda()
     
             if args.half:
-                input_var = input_var.half()
-    
-            input_var, target_var = input_var.to(device), target_var.to(device)
+                data_var = data_var.half()
+
+            # data_var = data_var.to(device)
+            # target_var = target_var.to(device)
             
             # compute output
-            output = model(input_var)
+            output = model(data_var)
             loss = criterion(output, target_var)
 
             prec1, prec5 = accuracy(output.data, target_var.data, topk=(1, 5))
@@ -159,6 +160,7 @@ def test(test_loader, model, criterion, device):
     print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f} Loss {loss.avg:.4f}'
           .format(top1=top1, top5=top5, loss=losses))
     acc = top1.avg
+
     return acc, losses.avg
 
 class SplitActivations_Dataset(Dataset):
@@ -198,9 +200,9 @@ parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
             choices=model_names,
             help='name of the model')
 
-parser.add_argument('--load-dir', default='/home/nano01/a/esoufler/activations/x64-8b/',
+parser.add_argument('--load-dir', default='/home/nano01/a/esoufler/activations/',
             help='base path for loading activations')
-parser.add_argument('--savedir', default='../pretrained_models/frozen/x64-8b/',
+parser.add_argument('--savedir', default='../pretrained_models/frozen/',
                 help='base path for saving activations')
 parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20qfp_cifar100_i8b5f_w8b7f.pth.tar',
             help='the path to the ideal pretrained model')
@@ -239,13 +241,12 @@ parser.add_argument('--wf_bit', default=7, type=int,
 parser.add_argument('--milestones', default=[20,30,40,50], 
             help='Milestones for LR decay')
 
+parser.add_argument('--exp', type=str, default='x128-8b',
+            help='Crossbar size')
 parser.add_argument('--loss', type=str, default='crossentropy', 
             help='Loss function to use')
 parser.add_argument('--optim', type=str, default='sgd',
             help='Optimizer to use')
-# parser.add_argument('--dropout', type=float, default=0.5,
-#             help='Dropout probability')
-
 
 parser.add_argument('--print-freq', '-p', default=5, type=int,
                 metavar='N', help='print frequency (default: 5)')
@@ -268,6 +269,9 @@ print_args(args)
 
 args.mode_test = args.mode
 args.mode_train = args.mode
+
+args.savedir = os.path.join(args.savedir, args.exp)
+args.load_dir = os.path.join(args.load_dir, args.exp)
 
 # Check the savedir exists or not
 save_dir = os.path.join(args.savedir, args.mode_test, args.dataset, args.model)
@@ -321,7 +325,7 @@ else: #No model to resume from
         else:
             raise Exception(args.dataset + 'is currently not supported')
 
-        print('==> Load pretrained model form', args.pretrained, '...')
+        print('==> Load pretrained model from', args.pretrained, '...')
         pretrained_model = torch.load(args.pretrained)
         original_model.load_state_dict(pretrained_model['state_dict'])
         best_acc = pretrained_model['best_acc']
@@ -334,11 +338,26 @@ else: #No model to resume from
         #     print(name1)
         
         # pdb.set_trace()
-        for name1, m1 in model.named_modules():
-            for name2, m2 in original_model.named_modules():
-                if name2 == name1:
-                    if 'resconv' in name1 or 'conv' in name1 or 'fc' in name1 or 'bn' in name1 or 'fq' in name1:
-                        m1.load_state_dict(m2.state_dict())
+        param_dict1 = model.state_dict()
+        param_dict2 = original_model.state_dict()
+
+        # print(param_dict1.keys())
+        # print(param_dict2.keys())
+
+        for key in param_dict1.keys():
+            param_dict1[key] = param_dict2[key]
+            # print(key)
+
+        model.load_state_dict(param_dict1)
+
+        # for name1, m1 in model.named_modules():
+        #     for name2, m2 in original_model.named_modules():
+        #         if name2 == name1:
+        #             print(name1, name2)
+        #             # if 'resconv' in name1 or 'conv' in name1 or 'fc' in name1 or 'bn' in name1 or 'fq' in name1:
+        #             if '.' not in name1:
+        #                 print(name1, name2)
+        #                 m1.load_state_dict(m2.state_dict())
 
         # pdb.set_trace()
                         
@@ -458,5 +477,3 @@ else:
 
         print('Test time: {}\n'.format(time.time()-end))
         end = time.time()
-
-

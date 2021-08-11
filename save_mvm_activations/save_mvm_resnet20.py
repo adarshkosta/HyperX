@@ -64,6 +64,7 @@ def reset_seed():
     os.environ['PYTHONHASHSEED'] = str(new_manual_seed)
 
 reset_seed()
+
 #Create available models list
 model_names = []
 for path, dirs, files in os.walk(models_dir):
@@ -75,42 +76,45 @@ model_names.sort()
 
 #%%
 # Evaluate on a model
-def test(test_loader, model, criterion, device):
+def test(testloader, model, criterion):
     global best_acc
-
+    flag = False
     model.eval()
-
     losses = AverageMeter()
     top1 = AverageMeter()
     top5 = AverageMeter()
 
-    for batch_idx,(data, target) in enumerate(test_loader):
-        data_var = data.to(device)
-        target_var = target.to(device)
+    with torch.no_grad():
+        for batch_idx,(data, target) in enumerate(testloader):
+            target = target.cuda()
+            data_var = data.cuda()
+            target_var = target.cuda()
 
-        
-        output = model(data_var)
-        
-        loss= criterion(output, target_var)
-        prec1, prec5 = accuracy(output.data, target_var.data, topk=(1, 5))
-        losses.update(loss.data, data.size(0))
-        top1.update(prec1[0], data.size(0))
-        top5.update(prec5[0], data.size(0))
+            if args.half:
+                data_var = data_var.half()
 
+                                        
+            output = model(data_var)
+            loss= criterion(output, target_var)
 
-        if batch_idx % 1 == 0:
-            print('[{0}/{1}({2:.0f}%)]\t'
-                  'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                  'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
-                  'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
-                   batch_idx, len(test_loader), 100. *float(batch_idx)/len(test_loader),
-                   loss=losses, top1=top1, top5=top5))
+            prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
+            losses.update(loss.data, data.size(0))
+            top1.update(prec1[0], data.size(0))
+            top5.update(prec5[0], data.size(0))
 
+            if batch_idx % 1 == 0:
+                print('Test: [{0}/{1}]\t'
+                    'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                    'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+                    'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
+                    batch_idx, len(testloader),
+                    loss=losses, top1=top1, top5=top5))
 
+    acc = top1.avg
+    
     print(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'
           .format(top1=top1, top5=top5))
-    
-    acc = top1.avg
+
     return acc, losses.avg
   
 # Intermediate feature maps
@@ -207,7 +211,7 @@ if __name__=='__main__':
                 help='quantize model weights') 
     parser.add_argument('--fsmodel', action='store_true', default=None,
                 help='Ideal model or FS model')
-                
+
     parser.add_argument('--input_size', type=int, default=None,
                 help='image input size')
     parser.add_argument('-j', '--workers', default=8, type=int, metavar='J',
@@ -250,11 +254,11 @@ if __name__=='__main__':
         raise Exception(args.model+'is currently not supported')
 
     if args.dataset == 'cifar10':
-        model = model.net(num_classes=10)
-        model_mvm = model_mvm.net(num_classes=10)
+        model = model.net(num_classes=10)#, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
+        model_mvm = model_mvm.net(num_classes=10)#, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
     elif args.dataset == 'cifar100':
-        model = model.net(num_classes=100)
-        model_mvm = model_mvm.net(num_classes=100)
+        model = model.net(num_classes=100)#, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
+        model_mvm = model_mvm.net(num_classes=100)#, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
     else:
         raise Exception(args.dataset + 'is currently not supported')
     
@@ -421,6 +425,10 @@ if __name__=='__main__':
 
     print('Starting to save activations..')
 
+    losses = AverageMeter()
+    top1 = AverageMeter()
+    top5 = AverageMeter()
+
     #Iterate over dataloader and save activations
 
     for batch_idx,(data, target) in enumerate(dataloader):
@@ -429,16 +437,33 @@ if __name__=='__main__':
             base_time = time.time()
             reg_hook(model_mvm)
             
-            data_var = data.to(device)
-            target_var = target.to(device)
+            data_var = data.cuda()
+            target_var = target.cuda()
             
             output = model_mvm(data_var)
             act['out'] = output
 
+            loss= criterion(output, target_var)
+
+            prec1, prec5 = accuracy(output.data, target_var, topk=(1, 5))
+            losses.update(loss.data, data.size(0))
+            top1.update(prec1[0], data.size(0))
+            top5.update(prec5[0], data.size(0))
+
             save_activations(model=model_mvm, batch_idx=batch_idx, act=act, labels=target)
             
             duration = time.time() - base_time
-            print("Batch IDx: {} \t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))
+            
+            print('Batch: [{0}/{1}]\t'
+                'Time {2}m {3}s\t'
+                'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+                'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
+                batch_idx, len(dataloader), int(duration)//60, int(duration)%60,
+                loss=losses, top1=top1, top5=top5))
+
+            
+            # print("Batch IDx: {} \t Time taken: {}m {}secs".format(batch_idx, int(duration)//60, int(duration)%60))
     
     print("Done saving activations!")
     exit(0)

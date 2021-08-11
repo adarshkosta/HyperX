@@ -10,7 +10,7 @@ mvm = False
 non_ideality = False
 
 inmax_test = 1.4 #1.2 #1.4
-inmin_test = 0.826 #0.857 #1.826
+inmin_test = 0.826 #0.857 #0.826
 
 ## Use global parameters (below) for all layers or layer specific parameters
 val = True

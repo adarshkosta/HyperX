@@ -10,6 +10,8 @@ import os
 import sys
 import time
 import math
+import pdb
+from collections import OrderedDict
 
 #Filepath handling
 root_dir = os.path.dirname(os.getcwd())
@@ -38,13 +40,12 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from torchsummary import summary
+from frozen_quantized_models.quant_dorefa import *
 
 #torch.set_default_tensor_type(torch.HalfTensor)
 
 # User-defined packages
-import frozen_quantized_models
 from utils.utils import accuracy, AverageMeter, save_checkpoint 
-from frozen_quantized_models.qlayers import QConv2d, QLinear
 #from utils_bar import progress_bar
 
 #Seeding
@@ -103,7 +104,6 @@ def train(train_loader, model, criterion, optimizer, epoch, device):
         optimizer.zero_grad()
         loss.backward()
 
-        #torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         optimizer.step()
         
         output = output.float()
@@ -121,12 +121,11 @@ def train(train_loader, model, criterion, optimizer, epoch, device):
         if (batch_idx+1) % batch_freq == 0:
             print('Epoch: [{0}][{1}/{2}]\t'
                   'LR: {3}\t'
-                  'DT: {data_time.val:.3f} ({data_time.avg:.3f})\t'
                   'BT: {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                   'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'.format(
                       epoch, batch_idx, len(train_loader), optimizer.param_groups[0]['lr'], 
-                      data_time=data_time, batch_time=batch_time, loss=losses, top1=top1))
+                      batch_time=batch_time, loss=losses, top1=top1))
     
     print('Total train loss: {loss.avg:.4f}'.format(loss=losses))
     print('Avg Loading time: {duration.avg:.4f} seconds'.format(duration=data_time))
@@ -184,7 +183,7 @@ def test(test_loader, model, criterion, device):
   
     
 class SplitActivations_Dataset(Dataset):
-    def __init__(self, args, datapath, tgtpath, train_len = True):
+    def __init__(self, args, datapath, tgtpath, train_len=False):
         self.datapath = datapath
         self.tgtpath = tgtpath
         self.train_len = train_len
@@ -220,11 +219,11 @@ parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18',
             choices=model_names,
             help='name of the model')
 
-parser.add_argument('--load-dir', default='/home/nano01/a/esoufler/activations/x128/',
+parser.add_argument('--load-dir', default='/home/nano01/a/esoufler/activations/',
             help='base path for loading activations')           
-parser.add_argument('--savedir', default='../pretrained_models/frozen/x128/',
+parser.add_argument('--savedir', default='../pretrained_models/frozen/',
                 help='base path for saving activations')
-parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet18fp_imnet.pth.tar',
+parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet18qfp_imnet_i8b5f_w8b7f.pth.tar',
             help='the path to the ideal pretrained model')
 
 parser.add_argument('--mode', default='rram',
@@ -242,14 +241,25 @@ parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
             metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
             help='momentum')
-parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar='W', 
+parser.add_argument('--weight-decay', '--wd', default=5e-4, type=float, metavar='W', 
             help='weight decay (default: 1e-4)')
 parser.add_argument('--gamma', default=0.2, type=float,
             help='learning rate decay')
 
+parser.add_argument('--a_bit', default=7, type=int,
+                metavar='N', help='activation total bits')
+parser.add_argument('--af_bit', default=5, type=int,
+                metavar='N', help='activation fractional bits')
+parser.add_argument('--w_bit', default=7, type=int,
+                metavar='N', help='weight total bits')
+parser.add_argument('--wf_bit', default=7, type=int,
+                metavar='N', help='weight fractional bits')
+
 parser.add_argument('--milestones', default=[10,20,30,40], 
             help='Milestones for LR decay')
 
+parser.add_argument('--exp', type=str, default='x128-8b',
+            help='Crossbar size')
 parser.add_argument('--loss', type=str, default='crossentropy', 
             help='Loss function to use')
 parser.add_argument('--optim', type=str, default='sgd',
@@ -277,6 +287,9 @@ print_args(args)
 args.mode_test = args.mode
 args.mode_train = args.mode
 
+args.savedir = os.path.join(args.savedir, args.exp)
+args.load_dir = os.path.join(args.load_dir, args.exp)
+
 # Check the savedir exists or not
 save_dir = os.path.join(args.savedir, args.mode_test, args.dataset, args.model)
 
@@ -301,9 +314,9 @@ else:
 # optionally resume from a checkpoint
 if args.resume:
     if args.dataset == 'cifar10':
-        model = model.net(num_classes=10)
+        model = model.net(num_classes=10, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
     elif args.dataset == 'cifar100':
-        model = model.net(num_classes=100)
+        model = model.net(num_classes=100, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
     else:
         raise Exception(args.dataset + 'is currently not supported')
         
@@ -322,82 +335,74 @@ if args.resume:
 else: #No model to resume from
     if args.pretrained: #Initialize params with pretrained model
         if args.dataset == 'cifar10':
-            model = model.net(num_classes=1000)
+            model = model.net(num_classes=1000, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
         elif args.dataset == 'cifar100':
-            model = model.net(num_classes=1000)
+            model = model.net(num_classes=1000, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
 
-        for m in model.modules():
-            if isinstance(m, (nn.Conv2d, QConv2d)):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(3. / n))
-            elif isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d)):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
-            elif isinstance(m, (nn.Linear, QLinear)):
-                stdv = 3. / math.sqrt(m.weight.data.size(1))
-                m.weight.data.uniform_(-stdv, stdv)
-                if m.bias is not None:
-                   m.bias.data.uniform_(-stdv, stdv)
+        # for m in model.modules():
+        #     if isinstance(m, (nn.Conv2d, QConv2d)):
+        #         n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+        #         m.weight.data.normal_(0, math.sqrt(3. / n))
+        #     elif isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d)):
+        #         m.weight.data.fill_(1)
+        #         m.bias.data.zero_()
+        #     elif isinstance(m, (nn.Linear, QLinear)):
+        #         stdv = 3. / math.sqrt(m.weight.data.size(1))
+        #         m.weight.data.uniform_(-stdv, stdv)
+        #         if m.bias is not None:
+        #            m.bias.data.uniform_(-stdv, stdv)
         
         print('==> Initializing model with pre-trained parameters (except classifier)...')
         original_model = (__import__(args.model))
-        original_model = original_model.net(num_classes=1000)
+        original_model = original_model.net(num_classes=1000, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
 
         print('==> Load pretrained model form', args.pretrained, '...')
         pretrained_model = torch.load(args.pretrained)
-        original_model.load_state_dict(pretrained_model['state_dict'])
+
+        state_dict = OrderedDict()
+        for k, v in pretrained_model['state_dict'].items():
+            name = k[7:] # remove `module.`
+            state_dict[name] = v
+
+        original_model.load_state_dict(state_dict)
+
         best_acc = pretrained_model['best_acc']
         print('Original model accuracy on ImageNet: {}'.format(best_acc))
-        
-        for name1, m1 in model.named_modules():
-            for name2, m2 in original_model.named_modules():
-                if name2 == name1:
-                    if 'resconv' in name1 or 'conv' in name1 or 'fc' in name1 or 'bn' in name1:
-                        m1.load_state_dict(m2.state_dict())
+
+        param_dict1 = model.state_dict()
+        param_dict2 = original_model.state_dict()
+
+        for key in param_dict1.keys():
+            param_dict1[key] = param_dict2[key]
+            # print(key)
+
+        model.load_state_dict(param_dict1)
+
+        QConv2d = conv2d_Q_fn(w_bit=args.w_bit, wf_bit=args.wf_bit)
+        QLinear = linear_Q_fn(w_bit=args.w_bit, wf_bit=args.wf_bit)
         
         # Re-build classifier layer
         if args.dataset == 'cifar10':
-            model.fc = QLinear(512, 10, bias = False)
+            model.fc = QLinear(512, 10, bias=False)
             model.bn19 = nn.BatchNorm1d(10)
         elif args.dataset == 'cifar100':
-            model.fc = QLinear(512, 100, bias = False)
+            model.fc = QLinear(512, 100, bias=False)
             model.bn19 = nn.BatchNorm1d(100)
         else:
             raise Exception(args.dataset + 'is currently not supported')
             
         # Initialize classifier params with normal distribution
-        for name, m in model.named_modules():
-            if isinstance(m, (nn.Linear, QLinear)):
-                stdv = 1. / math.sqrt(m.weight.data.size(1))
-                m.weight.data.uniform_(-stdv, stdv)
-                #m.weight.data.normal_(0, math.sqrt(3. / n))
-                if m.bias is not None:
-                    m.bias.data.uniform_(-stdv, stdv)
-            elif isinstance(m, nn.BatchNorm1d):
-                if 'bn19' in name:
-                    m.weight.data.fill_(1)
-                    m.bias.data.zero_()
-                        
-    else: #Initialize all params with normal distribution
-        if args.dataset == 'cifar10':
-            model = model.net(num_classes=10)
-        elif args.dataset == 'cifar100':
-            model = model.net(num_classes=100)
-        else:
-            raise Exception(args.dataset + 'is currently not supported')
-        
-        for m in model.modules():
-            if isinstance(m, (nn.Conv2d, QConv2d)):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-            elif isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d)):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
-            elif isinstance(m, (nn.Linear, QLinear)):
-                stdv = 1. / math.sqrt(m.weight.data.size(1))
-                m.weight.data.uniform_(-stdv, stdv)
-                if m.bias is not None:
-                   m.bias.data.uniform_(-stdv, stdv)
+        # for name, m in model.named_modules():
+        #     if isinstance(m, (nn.Linear, QLinear)):
+        #         stdv = 1. / math.sqrt(m.weight.data.size(1))
+        #         m.weight.data.uniform_(-stdv, stdv)
+        #         #m.weight.data.normal_(0, math.sqrt(3. / n))
+        #         if m.bias is not None:
+        #             m.bias.data.uniform_(-stdv, stdv)
+        #     elif isinstance(m, nn.BatchNorm1d):
+        #         if 'bn19' in name:
+        #             m.weight.data.fill_(1)
+        #             m.bias.data.zero_()
  
 model.to(device)
 #%%
@@ -453,7 +458,7 @@ lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer,
                                             gamma=args.gamma, 
                                             last_epoch=args.start_epoch - 1)
 
-print(model)
+# print(model)
 
 if args.evaluate:
     acc, loss = test(test_loader, model, criterion, device)
@@ -463,10 +468,10 @@ else:
     print('Pre-trained Prec@1 with {} layers frozen: {} \t Loss: {}'.format(args.frozen_layers, acc.item(), loss.item()))
     print('\nStarting training on SRAM layers...')
     
-#    print('Params getting trained: \n')
-#    for name, param in model.named_parameters():
-#      if param.requires_grad == True:
-#        print('\t', name)
+    # print('Params getting trained: \n')
+    # for name, param in model.named_parameters():
+    #     if param.requires_grad == True:
+    #         print('\t', name)
     
     best_acc = 0
     end = time.time()
@@ -503,6 +508,3 @@ else:
 
         print('Test time: {}\n'.format(time.time()-end))
         end = time.time()
-
-
-

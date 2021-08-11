@@ -4,16 +4,23 @@ import numpy as np
 import os
 from tqdm import trange
 
+def print_args(args):
+    print('\n' + ' '*6 + '==> Arguments:')
+    for k, v in vars(args).items():
+        print(' '*10 + k + ': ' + str(v))
+
 parser = argparse.ArgumentParser()
-parser.add_argument('--b-train', default=100, type=int,
+parser.add_argument('--b-train', default=200, type=int,
                      metavar='N', help='mini-batch size (default: 40)')
-parser.add_argument('--b-test', default=100, type=int,
+parser.add_argument('--b-test', default=200, type=int,
                      metavar='N', help='mini-batch size (default: 40)')
-parser.add_argument('--datadir', default='/home/nano01/a/esoufler/activations/x64-8b/sram/', help='dataset name or folder')
+parser.add_argument('--datadir', default='/home/nano01/a/esoufler/activations/x128-8b/sram/', help='dataset name or folder')
 parser.add_argument('--dataset', metavar='DATASET', default='cifar100', help='dataset name or folder')
 parser.add_argument('--model', '-a', metavar='MODEL', default='resnet18', help='name of the model')
 parser.add_argument('--mode', metavar='MODE', default='both', help='set to save')
 args = parser.parse_args()
+
+print_args(args)
 
 
 train_length = 50000

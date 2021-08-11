@@ -12,7 +12,7 @@ import sys
 root_dir = os.path.dirname(os.getcwd())
 inference_dir = os.path.join(root_dir, "inference")
 src_dir = os.path.join(root_dir, "src")
-models_dir = os.path.join(root_dir, "models")
+models_dir = os.path.join(root_dir, "frozen_quantized_models")
 datasets_dir = os.path.join(root_dir, "datasets")
 
 sys.path.insert(0, root_dir) # 1 adds path to end of PYTHONPATH
@@ -157,12 +157,12 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-b', '--batch-size', default=256, type=int,
                          metavar='N', help='mini-batch size (default: 256)')
-    parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
+    parser.add_argument('--dataset', metavar='DATASET', default='cifar100',
                 help='dataset name or folder')
     parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
                 choices=model_names,
                 help='name of the model')
-    parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20qfp_cifar10_i8b4f_w8b6f.pth.tar',
+    parser.add_argument('--pretrained', action='store', default='../pretrained_models/ideal/resnet20qfp_cifar100_i8b5f_w8b7f.pth.tar',
         help='the path to the pretrained model')
     parser.add_argument('--mvm', action='store_true', default=None,
                 help='if running functional simulator backend')
@@ -170,6 +170,15 @@ if __name__=='__main__':
                 help='Add xbar non-idealities')
     parser.add_argument('--quantize-model', action='store_true', default=None,
                 help='quantize model weights')  
+
+    parser.add_argument('--a_bit', default=7, type=int,
+                metavar='N', help='activation total bits')
+    parser.add_argument('--af_bit', default=5, type=int,
+                    metavar='N', help='activation fractional bits')
+    parser.add_argument('--w_bit', default=7, type=int,
+                    metavar='N', help='weight total bits')
+    parser.add_argument('--wf_bit', default=7, type=int,
+                    metavar='N', help='weight fractional bits')
 
     parser.add_argument('--savedir', default='../pretrained_models/ideal/',
                 help='base path for saving activations')
@@ -210,11 +219,11 @@ if __name__=='__main__':
         raise Exception(args.model+'is currently not supported')
         
     if args.dataset == 'cifar10':
-        model = model.net(num_classes=10)
-        model_mvm = model_mvm.net(num_classes=10)
+        model = model.net(num_classes=10, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
+        model_mvm = model_mvm.net(num_classes=10, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
     elif args.dataset == 'cifar100':
-        model = model.net(num_classes=100)
-        model_mvm = model_mvm.net(num_classes=100)
+        model = model.net(num_classes=100, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
+        model_mvm = model_mvm.net(num_classes=100, a_bit=args.a_bit, af_bit=args.af_bit, w_bit=args.w_bit, wf_bit=args.wf_bit)
     else:
         raise Exception(args.dataset + 'is currently not supported')
 
